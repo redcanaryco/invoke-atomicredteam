@@ -70,7 +70,7 @@ function Install-AtomicRedTeam {
         $path = Join-Path $DownloadPath "$Branch.zip"
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
         write-verbose "Beginning download from Github"
- #####       Invoke-WebRequest $url -OutFile $path
+        Invoke-WebRequest $url -OutFile $path
 
         write-verbose "Extracting ART to $InstallPath"
         $zipDest = Join-Path "$DownloadPath" "tmp"
