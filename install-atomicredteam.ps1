@@ -3,7 +3,7 @@ function Install-AtomicRedTeam {
     <#
     .SYNOPSIS
 
-        This is a simple script to download and install Atomic Red Team Invoke-AtomicRedTeam Powershell Framework.
+        This is a simple script to download and install the Atomic Red Team Invoke-AtomicRedTeam Powershell Framework.
 
         Atomic Function: Install-AtomicRedTeam
         Author: Red Canary Research
@@ -13,7 +13,7 @@ function Install-AtomicRedTeam {
 
     .PARAMETER DownloadPath
 
-    Specifies the desired path to download Atomic Red Team.
+        Specifies the desired path to download Atomic Red Team.
 
     .PARAMETER InstallPath
 
@@ -30,7 +30,7 @@ function Install-AtomicRedTeam {
 
     .NOTES
 
-    Use the '-Verbose' option to print detailed information.
+        Use the '-Verbose' option to print detailed information.
 
 #>
     [CmdletBinding()]
