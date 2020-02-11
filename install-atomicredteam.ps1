@@ -47,6 +47,9 @@ function Install-AtomicRedTeam {
         [Parameter(Mandatory = $False, Position = 3)]
         [string]$Branch = "master",
 
+        [Parameter(Mandatory = $False, Position = 4)]
+        [switch]$getAtomics = $False,
+
         [Parameter(Mandatory = $False)]
         [switch]$Force = $False # delete the existing install directory and reinstall
     )
@@ -87,6 +90,11 @@ function Install-AtomicRedTeam {
 
         write-verbose "Importing invoke-atomicRedTeam module"
         Import-Module $modulePath -Force
+
+        if ($getAtomics){
+        Write-Verbose "Installing Atomics Folder"
+            IEX (New-Object Net.WebClient).DownloadString("https://raw.githubusercontent.com/redcanaryco/invoke-atomicredteam/master/install-atomicsfolder.ps1"); Install-AtomicsFolder -InstallPath $InstallPath -DownloadPath $DownloadPath
+        }
 
         Write-Host "Installation of Invoke-AtomicRedTeam is complete. You can now use the Invoke-AtomicTest function" -Fore Yellow
         Write-Host "See Wiki at https://github.com/$repoOwner/invoke-atomicredteam/wiki for complete details" -Fore Yellow
