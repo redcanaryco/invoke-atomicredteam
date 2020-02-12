@@ -48,38 +48,44 @@ function Install-AtomicsFolder {
         [Parameter(Mandatory = $False)]
         [switch]$Force = $False # delete the existing install directory and reinstall
     )
-    $InstallPathwAtomics = Join-Path $InstallPath "atomics"
-    if ($Force -or -Not (Test-Path -Path $InstallPathwAtomics )) {
-        write-verbose "Directory Creation"
-        if ($Force) {
-            Try { 
-                if (Test-Path $InstallPathwAtomics) { Remove-Item -Path $InstallPathwAtomics -Recurse -Force -ErrorAction Stop | Out-Null }
+    Try {
+        $InstallPathwAtomics = Join-Path $InstallPath "atomics"
+        if ($Force -or -Not (Test-Path -Path $InstallPathwAtomics )) {
+            write-verbose "Directory Creation"
+            if ($Force) {
+                Try { 
+                    if (Test-Path $InstallPathwAtomics) { Remove-Item -Path $InstallPathwAtomics -Recurse -Force -ErrorAction Stop | Out-Null }
+                }
+                Catch {
+                    Write-Host -ForegroundColor Red $_.Exception.Message
+                    return
+                }
             }
-            Catch {
-                Write-Host -ForegroundColor Red $_.Exception.Message
-                return
-            }
+            if (-not (Test-Path $InstallPath)) { New-Item -ItemType directory -Path $InstallPath | Out-Null }
+
+            $url = "https://github.com/$RepoOwner/atomic-red-team/archive/$Branch.zip"
+            $path = Join-Path $DownloadPath "$Branch.zip"
+            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+            write-verbose "Beginning download of atomics folder from Github"
+            Invoke-WebRequest $url -OutFile $path
+
+            write-verbose "Extracting ART to $InstallPath"
+            $zipDest = Join-Path "$DownloadPath" "tmp"
+            expand-archive -LiteralPath $path -DestinationPath "$zipDest" -Force:$Force
+            $atomicsFolderUnzipped = Join-Path (Join-Path $zipDest "atomic-red-team-$Branch") "atomics"
+            Move-Item $atomicsFolderUnzipped $InstallPath
+            Remove-Item $zipDest -Recurse -Force
+            Remove-Item $path
+
         }
-        if (-not (Test-Path $InstallPath)) { New-Item -ItemType directory -Path $InstallPath | Out-Null }
-
-        $url = "https://github.com/$RepoOwner/atomic-red-team/archive/$Branch.zip"
-        $path = Join-Path $DownloadPath "$Branch.zip"
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        write-verbose "Beginning download of atomics folder from Github"
-        Invoke-WebRequest $url -OutFile $path
-
-        write-verbose "Extracting ART to $InstallPath"
-        $zipDest = Join-Path "$DownloadPath" "tmp"
-        expand-archive -LiteralPath $path -DestinationPath "$zipDest" -Force:$Force
-        $atomicsFolderUnzipped = Join-Path (Join-Path $zipDest "atomic-red-team-$Branch") "atomics"
-        Move-Item $atomicsFolderUnzipped $InstallPath
-        Remove-Item $zipDest -Recurse -Force
-        Remove-Item $path
-
+        else {
+            Write-Host -ForegroundColor Yellow "An atomics folder already exists at $InstallPathwAtomics. No changes were made."
+            Write-Host -ForegroundColor Cyan "Try the install again with the '-Force' parameter if you want to delete the existing installion and re-install."
+            Write-Host -ForegroundColor Red "Warning: All files within the atomics folder ($InstallPathwAtomics) will be deleted when using the '-Force' parameter."
+        }
     }
-    else {
-        Write-Host -ForegroundColor Yellow "An atomics folder already exists at $InstallPathwAtomics. No changes were made."
-        Write-Host -ForegroundColor Cyan "Try the install again with the '-Force' parameter if you want to delete the existing installion and re-install."
-        Write-Host -ForegroundColor Red "Warning: All files within the atomics folder ($InstallPathwAtomics) will be deleted when using the '-Force' parameter."
+    Catch {
+        Write-Host -ForegroundColor Red "Installation of the AtomicsFolder Failed."
+        Write-Host $_.Exception.Message`n
     }
 }
