@@ -2,7 +2,7 @@
 .SYNOPSIS
     Invokes specified Atomic test(s)
 .DESCRIPTION
-    Invokes specified Atomic tests(s).  Optionally, you can specify if you want to generate Atomic test(s) only.
+    Invokes specified Atomic tests(s).  Optionally, you can specify if you want to list the details of the Atomic test(s) only.
 .EXAMPLE Check if Prerequisites for Atomic Test are met
     PS/> Invoke-AtomicTest T1117 -CheckPrereqs
 .EXAMPLE Invokes Atomic Test
@@ -12,10 +12,10 @@
 .EXAMPLE Generate Atomic Test (Output Test Definition Details)
     PS/> Invoke-AtomicTest T1117 -ShowDetails
 .NOTES
-    Create Atomic Tests from yaml files described in Atomic Red Team. https://github.com/redcanaryco/atomic-red-team
+    Create Atomic Tests from yaml files described in Atomic Red Team. https://github.com/redcanaryco/atomic-red-team/tree/master/atomics
 .LINK
-    Blog: http://subt0x11.blogspot.com/2018/08/invoke-atomictest-automating-mitre-att.html
-    Github repo: https://github.com/redcanaryco/atomic-red-team
+    Installation and Usage Wiki: https://github.com/redcanaryco/invoke-atomicredteam/wiki
+    Github repo: https://github.com/redcanaryco/invoke-atomicredteam
 #>
 function Invoke-AtomicTest {
     [CmdletBinding(DefaultParameterSetName = 'technique',
