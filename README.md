@@ -7,3 +7,5 @@ Invoke-AtomicRedTeam is a PowerShell module to execute tests as defined in the [
 * It is recommended to set up a test machine for atomic test execution that is similar to the build in your environment. Be sure you have your collection/EDR solution in place, and that the endpoint is checking in and active.
 
 See the Wiki for complete [Installation and Usage instructions](https://github.com/redcanaryco/invoke-atomicredteam/wiki).
+
+Note: This execution framworks works on Windows, MacOS and Linux. If using on MacOS or Linux you must install PowerShell Core first.
