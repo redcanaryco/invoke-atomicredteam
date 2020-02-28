@@ -10,14 +10,12 @@ function Invoke-Process {
         [Parameter(Mandatory = $false, Position = 1)]
         [string]$Arguments = "",
         
-        [Parameter(Mandatory = $false, Position = 2)]
-        [string]$WorkingDirectory = $( if ($IsLinux -or $IsMacOS) {"/tmp" } else { $env:TEMP }),
-
         [Parameter(Mandatory = $false, Position = 3)]
         [Int]$TimeoutSeconds = 120
     )
 
     end {
+        $WorkingDirectory = if ($IsLinux -or $IsMacOS) {"/tmp" } else { $env:TEMP }
         try {
             # new Process
             $process = Start-Process -FilePath $FileName -ArgumentList $Arguments -WorkingDirectory $WorkingDirectory -NoNewWindow -PassThru

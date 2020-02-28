@@ -99,7 +99,10 @@ function Invoke-AtomicTest {
         [Parameter(Mandatory = $false,
             ParameterSetName = 'technique')]
         [Int]
-        $TimeoutSeconds = 120
+        $TimeoutSeconds = 120,
+
+        [Parameter(Mandatory = $false, ParameterSetName = 'technique')]
+        [System.Management.Automation.Runspaces.PSSession[]]$Session
     )
     BEGIN { } # Intentionally left blank and can be removed
     PROCESS {
@@ -234,7 +237,7 @@ function Invoke-AtomicTest {
                         Write-KeyValue "Executing test: " $testId
                         $startTime = get-date
                         $final_command = Merge-InputArgs $test.executor.command $test $InputArgs $PathToAtomicsFolder
-                        $res = Invoke-ExecuteCommand $final_command $test.executor.name  $TimeoutSeconds
+                        $res = Invoke-ExecuteCommand $final_command $test.executor.name  $TimeoutSeconds $session
                         Write-ExecutionLog $startTime $AT $testCount $test.name $ExecutionLogPath $TimeoutSeconds
                         Write-KeyValue "Done executing test: " $testId
                     }
@@ -265,3 +268,5 @@ function Invoke-AtomicTest {
     } # End of PROCESS block
     END { } # Intentionally left blank and can be removed
 }
+# $session = New-PSSession -Credential nti\croberts -ComputerName "atomicsoc06"
+# Invoke-AtomicTest t1003 -TestNumbers 11 -Session $session
