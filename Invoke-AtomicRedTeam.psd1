@@ -57,7 +57,8 @@
     # RequiredAssemblies = @()
 
     # Script files (.ps1) that are run in the caller's environment prior to importing this module.
-    # ScriptsToProcess = @()
+    # AtomicClassSchema.ps1 needs to be present in the caller's scope in order for the built-in classes to surface properly.
+    ScriptsToProcess = @('Private\AtomicClassSchema.ps1')
 
     # Type files (.ps1xml) to be loaded when importing this module
     # TypesToProcess = @()
@@ -70,7 +71,11 @@
 
     # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
     FunctionsToExport = @(
-        'Invoke-AtomicTest'
+        'Invoke-AtomicTest',
+        'New-AtomicTechnique',
+        'New-AtomicTest',
+        'New-AtomicTestInputArgument',
+        'New-AtomicTestDependency'
     )
 
     # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
