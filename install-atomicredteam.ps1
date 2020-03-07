@@ -55,7 +55,7 @@ function Install-AtomicRedTeam {
     )
     Try {
         $InstallPathwIart = Join-Path $InstallPath "invoke-atomicredteam"
-        $modulePath = Join-Path "$InstallPath" "invoke-atomicredteam\Invoke-AtomicRedTeam.psm1"
+        $modulePath = Join-Path "$InstallPath" "invoke-atomicredteam\Invoke-AtomicRedTeam.psd1"
         if ($Force -or -Not (Test-Path -Path $InstallPathwIart )) {
             write-verbose "Directory Creation"
             if ($Force) {
