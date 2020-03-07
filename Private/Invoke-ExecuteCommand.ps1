@@ -24,6 +24,7 @@ function Invoke-ExecuteCommand ($finalCommand, $executor, $TimeoutSeconds, $sess
             $scriptParentPath = Split-Path $import -Parent
             $fp = Join-Path $scriptParentPath "Invoke-Process.ps1"
             $fp2 = Join-Path $scriptParentPath "Invoke-KillProcessTree.ps1"
+            #need maldoc file and verifyfilehash
             invoke-command -Session $session -FilePath $fp
             invoke-command -Session $session -FilePath $fp2
             invoke-command -Session $session -ScriptBlock { Invoke-Process -filename $Using:execExe -Arguments $Using:arguments -TimeoutSeconds $Using:TimeoutSeconds }
