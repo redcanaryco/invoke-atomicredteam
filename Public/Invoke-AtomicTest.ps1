@@ -194,7 +194,7 @@ function Invoke-AtomicTest {
 
                     if ($CheckPrereqs) {
                         Write-KeyValue "CheckPrereq's for: " $testId
-                        $failureReasons = Invoke-CheckPrereqs $test $isElevated $InputArgs $PathToAtomicsFolder $TimeoutSeconds
+                        $failureReasons = Invoke-CheckPrereqs $test $isElevated $InputArgs $PathToAtomicsFolder $TimeoutSeconds $session
                         Write-PrereqResults $FailureReasons $testId
                     }
                     elseif ($GetPrereqs) {
