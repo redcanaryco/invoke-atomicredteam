@@ -11,14 +11,23 @@ function Invoke-Process {
         [string]$Arguments = "",
         
         [Parameter(Mandatory = $false, Position = 3)]
-        [Int]$TimeoutSeconds = 120
+        [Int]$TimeoutSeconds = 120,
+
+        [Parameter(Mandatory = $false, Position =4)]
+        [String]$stdoutFile = $null
     )
 
     end {
-        $WorkingDirectory = if ($IsLinux -or $IsMacOS) {"/tmp" } else { $env:TEMP }
+        $WorkingDirectory = if ($IsLinux -or $IsMacOS) { "/tmp" } else { $env:TEMP }
         try {
             # new Process
-            $process = Start-Process -FilePath $FileName -ArgumentList $Arguments -WorkingDirectory $WorkingDirectory -NoNewWindow -PassThru
+            if ($stdoutFile) {
+                Remove-Item $stdoutFile -Force -ErrorAction Ignore
+                $process = Start-Process -FilePath $FileName -ArgumentList $Arguments -WorkingDirectory $WorkingDirectory -NoNewWindow -PassThru -RedirectStandardOutput $stdoutFile
+             }
+            else {
+                $process = Start-Process -FilePath $FileName -ArgumentList $Arguments -WorkingDirectory $WorkingDirectory -NoNewWindow -PassThru
+            }
             $handle = $process.Handle # cache process.Handle, otherwise ExitCode is null from powershell processes
 
             # wait for complete

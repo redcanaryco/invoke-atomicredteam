@@ -238,6 +238,7 @@ function Invoke-AtomicTest {
                         $startTime = get-date
                         $final_command = Merge-InputArgs $test.executor.command $test $InputArgs $PathToAtomicsFolder
                         $res = Invoke-ExecuteCommand $final_command $test.executor.name  $TimeoutSeconds $session
+                        if ($session) { write-output (Invoke-Command -Session $session -scriptblock { Get-Content $env:temp\art-out.txt }) }
                         Write-ExecutionLog $startTime $AT $testCount $test.name $ExecutionLogPath $TimeoutSeconds
                         Write-KeyValue "Done executing test: " $testId
                     }
