@@ -274,5 +274,3 @@ function Invoke-AtomicTest {
     } # End of PROCESS block
     END { } # Intentionally left blank and can be removed
 }
-# $session = New-PSSession -Credential nti\croberts -ComputerName "atomicsoc06"
-# Invoke-AtomicTest t1003 -TestNumbers 11 -Session $session
