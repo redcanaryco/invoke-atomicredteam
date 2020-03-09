@@ -228,7 +228,7 @@ function Invoke-AtomicTest {
                                 }
                             }
                         }
-                        if ($test.executor.elevation_required -and -not $isElevated) {
+                        if (-not $session -and $test.executor.elevation_required -and -not $isElevated) {
                             Write-Host -ForegroundColor Red "Elevation required but not provided"
                         }
                     }
