@@ -26,7 +26,7 @@ function Invoke-ExecuteCommand ($finalCommand, $executor, $TimeoutSeconds, $sess
             $fp2 = Join-Path $scriptParentPath "Invoke-KillProcessTree.ps1"
             invoke-command -Session $session -FilePath $fp
             invoke-command -Session $session -FilePath $fp2
-            $res = invoke-command -Session $session -ScriptBlock { Invoke-Process -filename $Using:execExe -Arguments $Using:arguments -TimeoutSeconds $Using:TimeoutSeconds -stdoutFile $env:temp\art-out.txt }
+            $res = invoke-command -Session $session -ScriptBlock { Invoke-Process -filename $Using:execExe -Arguments $Using:arguments -TimeoutSeconds $Using:TimeoutSeconds -stdoutFile $env:temp\art-out.txt -stderrFile $env:temp\art-err.txt  }
         }
         else {
             $res = Invoke-Process -filename $execExe -Arguments $arguments -TimeoutSeconds $TimeoutSeconds  

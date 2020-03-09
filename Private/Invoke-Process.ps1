@@ -14,7 +14,10 @@ function Invoke-Process {
         [Int]$TimeoutSeconds = 120,
 
         [Parameter(Mandatory = $false, Position =4)]
-        [String]$stdoutFile = $null
+        [String]$stdoutFile = $null,
+
+        [Parameter(Mandatory = $false, Position =5)]
+        [String]$stderrFile = $null
     )
 
     end {
@@ -22,8 +25,8 @@ function Invoke-Process {
         try {
             # new Process
             if ($stdoutFile) {
-                Remove-Item $stdoutFile -Force -ErrorAction Ignore
-                $process = Start-Process -FilePath $FileName -ArgumentList $Arguments -WorkingDirectory $WorkingDirectory -NoNewWindow -PassThru -RedirectStandardOutput $stdoutFile
+                Remove-Item $stdoutFile -Force -ErrorAction Ignore; Remove-Item $stderrFile -Force -ErrorAction Ignore
+                $process = Start-Process -FilePath $FileName -ArgumentList $Arguments -WorkingDirectory $WorkingDirectory -NoNewWindow -PassThru -RedirectStandardOutput $stdoutFile -RedirectStandardError $stderrFile
              }
             else {
                 $process = Start-Process -FilePath $FileName -ArgumentList $Arguments -WorkingDirectory $WorkingDirectory -NoNewWindow -PassThru

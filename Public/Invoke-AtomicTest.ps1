@@ -102,7 +102,12 @@ function Invoke-AtomicTest {
         $TimeoutSeconds = 120,
 
         [Parameter(Mandatory = $false, ParameterSetName = 'technique')]
-        [System.Management.Automation.Runspaces.PSSession[]]$Session
+        [System.Management.Automation.Runspaces.PSSession[]]$Session,
+
+        [Parameter(Mandatory = $false,
+            ParameterSetName = 'technique')]
+        [String]
+        $PathToPayloads = $( if ($Session) { "`$Env:TEMP\AtomicRedTeam" } else { $PathToAtomicsFolder })
     )
     BEGIN { } # Intentionally left blank and can be removed
     PROCESS {
@@ -184,7 +189,7 @@ function Invoke-AtomicTest {
                         Show-Details $test $testCount $technique $InputArgs $PathToAtomicsFolder
                         continue
                     }
-                    if($ShowDetailsBrief){
+                    if ($ShowDetailsBrief) {
                         Write-KeyValue $testId
                         continue
                     }
@@ -194,7 +199,7 @@ function Invoke-AtomicTest {
 
                     if ($CheckPrereqs) {
                         Write-KeyValue "CheckPrereq's for: " $testId
-                        $failureReasons = Invoke-CheckPrereqs $test $isElevated $InputArgs $PathToAtomicsFolder $TimeoutSeconds $session
+                        $failureReasons = Invoke-CheckPrereqs $test $isElevated $InputArgs $PathToPayloads $TimeoutSeconds $session
                         Write-PrereqResults $FailureReasons $testId
                     }
                     elseif ($GetPrereqs) {
@@ -202,11 +207,11 @@ function Invoke-AtomicTest {
                         if ($nul -eq $test.dependencies) { Write-KeyValue "No Preqs Defined"; continue }
                         foreach ($dep in $test.dependencies) {
                             $executor = Get-PrereqExecutor $test
-                            $description = (Merge-InputArgs $dep.description $test $InputArgs $PathToAtomicsFolder).trim()
+                            $description = (Merge-InputArgs $dep.description $test $InputArgs $PathToPayloads).trim()
                             Write-KeyValue  "Attempting to satisfy prereq: " $description
-                            $final_command_prereq = Merge-InputArgs $dep.prereq_command $test $InputArgs $PathToAtomicsFolder
-                            if($executor -ne "powershell") { $final_command_prereq = ($final_command_prereq.trim()).Replace("`n", " && ") }
-                            $final_command_get_prereq = Merge-InputArgs $dep.get_prereq_command $test $InputArgs $PathToAtomicsFolder
+                            $final_command_prereq = Merge-InputArgs $dep.prereq_command $test $InputArgs $PathToPayloads
+                            if ($executor -ne "powershell") { $final_command_prereq = ($final_command_prereq.trim()).Replace("`n", " && ") }
+                            $final_command_get_prereq = Merge-InputArgs $dep.get_prereq_command $test $InputArgs $PathToPayloads
                             $res = Invoke-ExecuteCommand $final_command_prereq $executor $TimeoutSeconds $session
 
                             if ($res -eq 0) {
@@ -229,16 +234,16 @@ function Invoke-AtomicTest {
                     }
                     elseif ($Cleanup) {
                         Write-KeyValue "Executing cleanup for test: " $testId
-                        $final_command = Merge-InputArgs $test.executor.cleanup_command $test $InputArgs $PathToAtomicsFolder
+                        $final_command = Merge-InputArgs $test.executor.cleanup_command $test $InputArgs $PathToPayloads
                         $res = Invoke-ExecuteCommand $final_command $test.executor.name $TimeoutSeconds $session
                         Write-KeyValue "Done executing cleanup for test: " $testId
                     }
                     else {
                         Write-KeyValue "Executing test: " $testId
                         $startTime = get-date
-                        $final_command = Merge-InputArgs $test.executor.command $test $InputArgs $PathToAtomicsFolder
+                        $final_command = Merge-InputArgs $test.executor.command $test $InputArgs $PathToPayloads
                         $res = Invoke-ExecuteCommand $final_command $test.executor.name  $TimeoutSeconds $session
-                        if ($session) { write-output (Invoke-Command -Session $session -scriptblock { Get-Content $env:temp\art-out.txt }) }
+                        if ($session) { write-output (Invoke-Command -Session $session -scriptblock { Get-Content $env:temp\art-out.txt; Get-Content $env:temp\art-err.txt }) }
                         Write-ExecutionLog $startTime $AT $testCount $test.name $ExecutionLogPath $TimeoutSeconds
                         Write-KeyValue "Done executing test: " $testId
                     }
