@@ -107,7 +107,7 @@ function Invoke-AtomicTest {
         [Parameter(Mandatory = $false,
             ParameterSetName = 'technique')]
         [String]
-        $PathToPayloads = $( if ($Session) { invoke-command -Session $Session -ScriptBlock {$Env:TEMP} } else { $PathToAtomicsFolder })
+        $PathToPayloads = $( if ($Session) { invoke-command -Session $Session -ScriptBlock {"$Env:TEMP\AtomicRedTeam"} } else { $PathToAtomicsFolder })
     )
     BEGIN { } # Intentionally left blank and can be removed
     PROCESS {
