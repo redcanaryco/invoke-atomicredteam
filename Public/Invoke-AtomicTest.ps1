@@ -68,6 +68,12 @@ function Invoke-AtomicTest {
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'technique')]
         [switch]
+        $PromptForInputArgs = $false,
+
+        [Parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'technique')]
+        [switch]
         $GetPrereqs = $false,
 
         [Parameter(Mandatory = $false,
@@ -177,12 +183,17 @@ function Invoke-AtomicTest {
                     }
 
                     $testId = "$AT-$testCount $($test.name)"
-                    if ($ShowDetails) {
-                        Show-Details $test $testCount $technique $InputArgs $PathToAtomicsFolder
+                    if ($ShowDetailsBrief) {
+                        Write-KeyValue $testId
                         continue
                     }
-                    if($ShowDetailsBrief){
-                        Write-KeyValue $testId
+
+                    if ($PromptForInputArgs) {
+                        $InputArgs = Invoke-PromptForInputArgs $test.input_arguments
+                    }
+
+                    if ($ShowDetails) {
+                        Show-Details $test $testCount $technique $InputArgs $PathToAtomicsFolder
                         continue
                     }
 
@@ -202,7 +213,7 @@ function Invoke-AtomicTest {
                             $description = (Merge-InputArgs $dep.description $test $InputArgs $PathToAtomicsFolder).trim()
                             Write-KeyValue  "Attempting to satisfy prereq: " $description
                             $final_command_prereq = Merge-InputArgs $dep.prereq_command $test $InputArgs $PathToAtomicsFolder
-                            if($executor -ne "powershell") { $final_command_prereq = ($final_command_prereq.trim()).Replace("`n", " && ") }
+                            if ($executor -ne "powershell") { $final_command_prereq = ($final_command_prereq.trim()).Replace("`n", " && ") }
                             $final_command_get_prereq = Merge-InputArgs $dep.get_prereq_command $test $InputArgs $PathToAtomicsFolder
                             $res = Invoke-ExecuteCommand $final_command_prereq $executor $TimeoutSeconds
 
