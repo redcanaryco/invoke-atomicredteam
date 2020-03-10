@@ -34,7 +34,7 @@ function Invoke-PromptForInputArgs([hashtable]$ip) {
     $InputArgs = @{ }
     foreach ($key in $ip.Keys) {
         $InputArgs[$key] = $ip[$key].default
-        $newValue = Read-Host -Prompt "Enter a value for $key, or press enter to accept the default [$($ip[$key].default)]"
+        $newValue = Read-Host -Prompt "Enter a value for $key , or press enter to accept the default.`n$($ip[$key].description.trim()) [$($ip[$key].default.trim())]"
         # replace default with user supplied
         if (-not [string]::IsNullOrWhiteSpace($newValue)) {
             $InputArgs.set_Item($key, $newValue)
