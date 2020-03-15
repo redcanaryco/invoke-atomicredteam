@@ -117,7 +117,11 @@ function Invoke-AtomicTest {
         Write-Host -ForegroundColor Cyan "PathToAtomicsFolder = $PathToAtomicsFolder`n"
         
         $targetPlatform, $isElevated, $tmpDir = Get-TargetInfo $Session
-        $PathToPayloads = if ($Session) { Join-Path $tmpDir "AtomicRedTeam" } else { $PathToAtomicsFolder }
+        $PathToPayloads = if ($Session) { if ($targetPlatform -eq "windows") { "$tmpDir\AtomicRedTeam" } else { "$tmpDir/AtomicRedTeam" } } else { $PathToAtomicsFolder }
+        Write-Host $targetPlatform
+        write-host $isElevated
+        write-host $tmpDir
+        write-host $PathToPayloads
 
         function Invoke-AtomicTestSingle ($AT) {
 
@@ -243,10 +247,10 @@ function Invoke-AtomicTest {
                         $res = Invoke-ExecuteCommand $final_command $test.executor.name  $TimeoutSeconds $session
                         if ($session) { 
                             if ($targetPlatform -eq "windows") {
-                                write-output (Invoke-Command -Session $session -scriptblock { Get-Content "$env:temp\art-out.txt"; Get-Content "$env:temp\art-err.txt";  Remove-Item "$env:temp\art-out.txt","$env:temp\art-err.txt" -Force -ErrorAction Ignore}) 
+                                write-output (Invoke-Command -Session $session -scriptblock { Get-Content "$env:temp\art-out.txt"; Get-Content "$env:temp\art-err.txt"; Remove-Item "$env:temp\art-out.txt", "$env:temp\art-err.txt" -Force -ErrorAction Ignore }) 
                             }
                             else {
-                                write-output (Invoke-Command -Session $session -scriptblock { Get-Content "/tmp/art-out.txt"; Get-Content "/tmp/art-err.txt";  Remove-Item "/tmp/art-out.txt","/tmp/art-err.txt" -Force -ErrorAction Ignore}) 
+                                write-output (Invoke-Command -Session $session -scriptblock { Get-Content "/tmp/art-out.txt"; Get-Content "/tmp/art-err.txt"; Remove-Item "/tmp/art-out.txt", "/tmp/art-err.txt" -Force -ErrorAction Ignore }) 
                             }
                         }
                         Write-ExecutionLog $startTime $AT $testCount $test.name $ExecutionLogPath $TimeoutSeconds
