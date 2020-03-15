@@ -25,8 +25,7 @@ function Invoke-Process {
         try {
             # new Process
             if ($stdoutFile) {
-                Remove-Item $stdoutFile -Force -ErrorAction Ignore; Remove-Item $stderrFile -Force -ErrorAction Ignore
-                $process = Start-Process -FilePath $FileName -ArgumentList $Arguments -WorkingDirectory $WorkingDirectory -NoNewWindow -PassThru -RedirectStandardOutput $stdoutFile -RedirectStandardError $stderrFile
+                $process = Start-Process -FilePath $FileName -ArgumentList $Arguments -WorkingDirectory $WorkingDirectory -NoNewWindow -PassThru -RedirectStandardOutput (Join-Path $WorkingDirectory $stdoutFile) -RedirectStandardError (Join-Path $WorkingDirectory $stderrFile)
              }
             else {
                 $process = Start-Process -FilePath $FileName -ArgumentList $Arguments -WorkingDirectory $WorkingDirectory -NoNewWindow -PassThru
