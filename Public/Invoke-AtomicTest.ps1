@@ -241,7 +241,7 @@ function Invoke-AtomicTest {
                         $startTime = get-date
                         $final_command = Merge-InputArgs $test.executor.command $test $InputArgs $PathToPayloads
                         $res = Invoke-ExecuteCommand $final_command $test.executor.name  $TimeoutSeconds $session
-                        if ($session) { write-output (Invoke-Command -Session $session -scriptblock { Get-Content "$Using:tmpDir`art-out.txt"; Get-Content "$Using:tmpDir`art-err.txt"; Remove-Item "$Using:tmpDir`art-out.txt", "$Using:tmpDir`art-err.txt" -Force -ErrorAction Ignore }) 
+                        if ($session) { write-output (Invoke-Command -Session $session -scriptblock { Get-Content "$Using:tmpDir`art-out.txt"; Get-Content "$Using:tmpDir`art-err.txt"; Remove-Item "$Using:tmpDir`art-out.txt", "$Using:tmpDir`art-err.txt" -Force -ErrorAction Ignore })}
                         Write-ExecutionLog $startTime $AT $testCount $test.name $ExecutionLogPath $TimeoutSeconds $targetHostname $targetUser
                         Write-KeyValue "Done executing test: " $testId
                     }

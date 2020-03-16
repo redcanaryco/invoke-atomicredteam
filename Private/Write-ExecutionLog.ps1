@@ -1,4 +1,4 @@
-function Write-ExecutionLog($startTime, $technique, $testNum, $testName, $logPath $targetHostname, $targetUser) {
+function Write-ExecutionLog($startTime, $technique, $testNum, $testName, $logPath, $targetHostname, $targetUser) {
     if (!(Test-Path $logPath)) { 
         New-Item $logPath -Force -ItemType File | Out-Null
     } 
