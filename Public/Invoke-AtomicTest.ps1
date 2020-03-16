@@ -117,11 +117,7 @@ function Invoke-AtomicTest {
         Write-Host -ForegroundColor Cyan "PathToAtomicsFolder = $PathToAtomicsFolder`n"
         
         $targetPlatform, $isElevated, $tmpDir = Get-TargetInfo $Session
-        $PathToPayloads = if ($Session) { if ($targetPlatform -eq "windows") { "$tmpDir\AtomicRedTeam" } else { "$tmpDir/AtomicRedTeam" } } else { $PathToAtomicsFolder }
-        Write-Host $targetPlatform
-        write-host $isElevated
-        write-host $tmpDir
-        write-host $PathToPayloads
+        $PathToPayloads = if ($Session) { "$tmpDir`AtomicRedTeam" }  else { $PathToAtomicsFolder }
 
         function Invoke-AtomicTestSingle ($AT) {
 
@@ -245,15 +241,8 @@ function Invoke-AtomicTest {
                         $startTime = get-date
                         $final_command = Merge-InputArgs $test.executor.command $test $InputArgs $PathToPayloads
                         $res = Invoke-ExecuteCommand $final_command $test.executor.name  $TimeoutSeconds $session
-                        if ($session) { 
-                            if ($targetPlatform -eq "windows") {
-                                write-output (Invoke-Command -Session $session -scriptblock { Get-Content "$env:temp\art-out.txt"; Get-Content "$env:temp\art-err.txt"; Remove-Item "$env:temp\art-out.txt", "$env:temp\art-err.txt" -Force -ErrorAction Ignore }) 
-                            }
-                            else {
-                                write-output (Invoke-Command -Session $session -scriptblock { Get-Content "/tmp/art-out.txt"; Get-Content "/tmp/art-err.txt"; Remove-Item "/tmp/art-out.txt", "/tmp/art-err.txt" -Force -ErrorAction Ignore }) 
-                            }
-                        }
-                        Write-ExecutionLog $startTime $AT $testCount $test.name $ExecutionLogPath $TimeoutSeconds
+                        if ($session) { write-output (Invoke-Command -Session $session -scriptblock { Get-Content "$Using:tmpDir`art-out.txt"; Get-Content "$Using:tmpDir`art-err.txt"; Remove-Item "$Using:tmpDir`art-out.txt", "$Using:tmpDir`art-err.txt" -Force -ErrorAction Ignore }) 
+                        Write-ExecutionLog $startTime $AT $testCount $test.name $ExecutionLogPath $TimeoutSeconds $targetHostname $targetUser
                         Write-KeyValue "Done executing test: " $testId
                     }
  
