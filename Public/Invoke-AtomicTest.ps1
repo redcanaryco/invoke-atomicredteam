@@ -116,7 +116,7 @@ function Invoke-AtomicTest {
         Write-Verbose -Message 'Attempting to run Atomic Techniques'
         Write-Host -ForegroundColor Cyan "PathToAtomicsFolder = $PathToAtomicsFolder`n"
         
-        $targetPlatform, $isElevated, $tmpDir = Get-TargetInfo $Session
+        $targetPlatform, $isElevated, $tmpDir, $targetHostname, $targetUser = Get-TargetInfo $Session
         $PathToPayloads = if ($Session) { "$tmpDir`AtomicRedTeam" }  else { $PathToAtomicsFolder }
 
         function Invoke-AtomicTestSingle ($AT) {
@@ -188,7 +188,7 @@ function Invoke-AtomicTest {
                     }
 
                     if ($ShowDetails) {
-                        Show-Details $test $testCount $technique $InputArgs $PathToAtomicsFolder
+                        Show-Details $test $testCount $technique $InputArgs $PathToPayloads
                         continue
                     }
 
@@ -241,8 +241,8 @@ function Invoke-AtomicTest {
                         $startTime = get-date
                         $final_command = Merge-InputArgs $test.executor.command $test $InputArgs $PathToPayloads
                         $res = Invoke-ExecuteCommand $final_command $test.executor.name  $TimeoutSeconds $session
-                        if ($session) { write-output (Invoke-Command -Session $session -scriptblock { Get-Content "$Using:tmpDir`art-out.txt"; Get-Content "$Using:tmpDir`art-err.txt"; Remove-Item "$Using:tmpDir`art-out.txt", "$Using:tmpDir`art-err.txt" -Force -ErrorAction Ignore })}
-                        Write-ExecutionLog $startTime $AT $testCount $test.name $ExecutionLogPath $TimeoutSeconds $targetHostname $targetUser
+                        if ($session) { write-output (Invoke-Command -Session $session -scriptblock { Get-Content $($Using:tmpDir + "art-out.txt"); Get-Content $($Using:tmpDir + "art-err.txt"); Remove-Item $($Using:tmpDir + "art-out.txt"), $($Using:tmpDir + "art-err.txt") -Force -ErrorAction Ignore })}
+                        Write-ExecutionLog $startTime $AT $testCount $test.name $ExecutionLogPath $targetHostname $targetUser
                         Write-KeyValue "Done executing test: " $testId
                     }
  

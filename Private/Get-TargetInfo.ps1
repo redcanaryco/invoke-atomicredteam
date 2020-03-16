@@ -4,7 +4,7 @@ function Get-TargetInfo($Session) {
     $targetHostname = hostname
     $targetUser = whoami
     if ($Session) {
-        $targetPlatform, $isElevated, $tmpDir = invoke-command -Session $Session -ScriptBlock {
+        $targetPlatform, $isElevated, $tmpDir, $targetHostname, $targetUser = invoke-command -Session $Session -ScriptBlock {
             $targetPlatform = "windows"
             $tmpDir = "/tmp/"
             $targetHostname = hostname
@@ -12,7 +12,7 @@ function Get-TargetInfo($Session) {
             if ($IsLinux) { $targetPlatform = "linux" }
             elseif ($IsMacOS) { $targetPlatform =  "macos" }
             else {  # windows
-                $tmpDir = $env:TEMP
+                $tmpDir = "$env:TEMP\"
                 $isElevated = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
             }
             if ($IsLinux -or $IsMacOS) {
