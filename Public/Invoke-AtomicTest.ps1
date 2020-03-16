@@ -90,7 +90,7 @@ function Invoke-AtomicTest {
         [Parameter(Mandatory = $false,
             ParameterSetName = 'technique')]
         [String]
-        $ExecutionLogPath = "Invoke-AtomicTest-ExecutionLog.csv",
+        $ExecutionLogPath = $( if ($IsLinux -or $IsMacOS) { "/tmp/Invoke-AtomicTest-ExecutionLog.csv" } else { "$env:TEMP\Invoke-AtomicTest-ExecutionLog.csv" }),
 
         [Parameter(Mandatory = $false,
             ParameterSetName = 'technique')]
