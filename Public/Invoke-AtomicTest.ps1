@@ -108,30 +108,17 @@ function Invoke-AtomicTest {
         $TimeoutSeconds = 120,
 
         [Parameter(Mandatory = $false, ParameterSetName = 'technique')]
-        [System.Management.Automation.Runspaces.PSSession[]]$Session,
+        [System.Management.Automation.Runspaces.PSSession[]]$Session
 
-        [Parameter(Mandatory = $false,
-            ParameterSetName = 'technique')]
-        [String]
-        $PathToPayloads = $( if ($Session) { invoke-command -Session $Session -ScriptBlock {"$Env:TEMP\AtomicRedTeam"} } else { $PathToAtomicsFolder })
     )
     BEGIN { } # Intentionally left blank and can be removed
     PROCESS {
         Write-Verbose -Message 'Attempting to run Atomic Techniques'
         Write-Host -ForegroundColor Cyan "PathToAtomicsFolder = $PathToAtomicsFolder`n"
         
-        $isElevated = $false
-        $targetPlatform = "linux"
-        if ($IsLinux -or $IsMacOS) {
-            if ($IsMacOS) { $targetPlatform = "macos" }
-            $privid = id -u                
-            if ($privid -eq 0) { $isElevated = $true }
-        }
-        else {
-            $targetPlatform = "windows"
-            $isElevated = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-        }
-        
+        $targetPlatform, $isElevated, $tmpDir, $targetHostname, $targetUser = Get-TargetInfo $Session
+        $PathToPayloads = if ($Session) { "$tmpDir`AtomicRedTeam" }  else { $PathToAtomicsFolder }
+
         function Invoke-AtomicTestSingle ($AT) {
 
             $AT = $AT.ToUpper()
@@ -201,7 +188,7 @@ function Invoke-AtomicTest {
                     }
 
                     if ($ShowDetails) {
-                        Show-Details $test $testCount $technique $InputArgs $PathToAtomicsFolder
+                        Show-Details $test $testCount $technique $InputArgs $PathToPayloads
                         continue
                     }
 
@@ -239,7 +226,7 @@ function Invoke-AtomicTest {
                                 }
                             }
                         }
-                        if (-not $session -and $test.executor.elevation_required -and -not $isElevated) {
+                        if ( $test.executor.elevation_required -and -not $isElevated) {
                             Write-Host -ForegroundColor Red "Elevation required but not provided"
                         }
                     }
@@ -254,8 +241,8 @@ function Invoke-AtomicTest {
                         $startTime = get-date
                         $final_command = Merge-InputArgs $test.executor.command $test $InputArgs $PathToPayloads
                         $res = Invoke-ExecuteCommand $final_command $test.executor.name  $TimeoutSeconds $session
-                        if ($session) { write-output (Invoke-Command -Session $session -scriptblock { Get-Content $env:temp\art-out.txt; Get-Content $env:temp\art-err.txt }) }
-                        Write-ExecutionLog $startTime $AT $testCount $test.name $ExecutionLogPath $TimeoutSeconds
+                        if ($session) { write-output (Invoke-Command -Session $session -scriptblock { Get-Content $($Using:tmpDir + "art-out.txt"); Get-Content $($Using:tmpDir + "art-err.txt"); Remove-Item $($Using:tmpDir + "art-out.txt"), $($Using:tmpDir + "art-err.txt") -Force -ErrorAction Ignore })}
+                        Write-ExecutionLog $startTime $AT $testCount $test.name $ExecutionLogPath $targetHostname $targetUser
                         Write-KeyValue "Done executing test: " $testId
                     }
  
