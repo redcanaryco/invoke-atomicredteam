@@ -1,6 +1,6 @@
 function Show-Details ($test, $testCount, $technique, $customInputArgs, $PathToAtomicsFolder) {
     # Header info
-    $tName = $technique.display_name.ToString() + " " + $technique.attack_technique.ToString() 
+    $tName = $technique.display_name.ToString() + " " + $technique.attack_technique 
     Write-KeyValue "[********BEGIN TEST*******]`nTechnique: "  $tName
     Write-KeyValue "Atomic Test Name: " $test.name.ToString()
     Write-KeyValue "Atomic Test Number: " $testCount
