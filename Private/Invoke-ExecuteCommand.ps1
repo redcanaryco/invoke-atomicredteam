@@ -1,5 +1,5 @@
 function Invoke-ExecuteCommand ($finalCommand, $executor, $TimeoutSeconds, $session = $null) {
-    $null = @( 
+    $null = @(
         if ($null -eq $finalCommand) { return 0 }
         $finalCommand = $finalCommand.trim()
         Write-Verbose -Message 'Invoking Atomic Tests using defined executor'
@@ -8,14 +8,24 @@ function Invoke-ExecuteCommand ($finalCommand, $executor, $TimeoutSeconds, $sess
             $execPrefix = "-c"
             $execExe = $executor
             if ($executor -eq "command_prompt") { $execPrefix = "/c"; $execExe = "cmd.exe" }
-            $arguments = "$execPrefix `"$execCommand`"" 
+            $arguments = "$execPrefix `"$execCommand`""
         }
         elseif ($executor -eq "powershell") {
             $execCommand = $finalCommand -replace "`"", "`\`"`""
-            $execExe = "powershell.exe"; if ($IsLinux -or $IsMacOS) { $execExe = "pwsh" }
-            $arguments = "& {$execCommand}"   
+            if ($session) {
+                if ($targetPlatform -eq "windows") {
+                        $execExe = "powershell.exe"
+                }
+                else {
+                        $execExe = "pwsh"
+                }
+            }
+            else {
+                $execExe = "powershell.exe"; if ($IsLinux -or $IsMacOS) { $execExe = "pwsh" }
+            }
+            $arguments = "& {$execCommand}"
         }
-        else { 
+        else {
             Write-Warning -Message "Unable to generate or execute the command line properly. Unknown executor"
             $res = -1
             return $res
@@ -29,8 +39,8 @@ function Invoke-ExecuteCommand ($finalCommand, $executor, $TimeoutSeconds, $sess
             $res = invoke-command -Session $session -ScriptBlock { Invoke-Process -filename $Using:execExe -Arguments $Using:arguments -TimeoutSeconds $Using:TimeoutSeconds -stdoutFile "art-out.txt" -stderrFile "art-err.txt"  }
         }
         else {
-            $res = Invoke-Process -filename $execExe -Arguments $arguments -TimeoutSeconds $TimeoutSeconds  
-        }              
+            $res = Invoke-Process -filename $execExe -Arguments $arguments -TimeoutSeconds $TimeoutSeconds
+        }
 
     )
     $res
