@@ -30,7 +30,6 @@ function Get-TargetInfo($Session) {
             $isElevated = $false
             $privid = id -u                
             if ($privid -eq 0) { $isElevated = $true }
-            $isElevated
             if ($IsMacOS) { $targetPlatform = "macos" }
         }
         else {
