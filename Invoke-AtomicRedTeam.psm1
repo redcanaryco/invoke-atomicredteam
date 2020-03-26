@@ -5,7 +5,7 @@ $Public = @( Get-ChildItem -Path $PSScriptRoot\Public\*.ps1 -Recurse -ErrorActio
 $Private = @( Get-ChildItem -Path $PSScriptRoot\Private\*.ps1 -Recurse -Exclude "AtomicClassSchema.ps1" -ErrorAction SilentlyContinue )
 
 # Make sure the Atomic Class Schema is available first
-. "C:\AtomicRedTeam\invoke-atomicredteam\Private\AtomicClassSchema.ps1"
+. $PSScriptRoot\Private\AtomicClassSchema.ps1"
 
 #Dot source the files
 Foreach ($import in @($Public + $Private)) {
