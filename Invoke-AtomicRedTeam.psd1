@@ -58,7 +58,7 @@
 
     # Script files (.ps1) that are run in the caller's environment prior to importing this module.
     # AtomicClassSchema.ps1 needs to be present in the caller's scope in order for the built-in classes to surface properly.
-    ScriptsToProcess = @('Private\AtomicClassSchema.ps1')
+    # ScriptsToProcess = @()
 
     # Type files (.ps1xml) to be loaded when importing this module
     # TypesToProcess = @()
