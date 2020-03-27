@@ -113,6 +113,8 @@ function Invoke-AtomicTest {
     )
     BEGIN { } # Intentionally left blank and can be removed
     PROCESS {
+        $PathToAtomicsFolder = (Resolve-Path $PathToAtomicsFolder).Path
+        
         Write-Verbose -Message 'Attempting to run Atomic Techniques'
         Write-Host -ForegroundColor Cyan "PathToAtomicsFolder = $PathToAtomicsFolder`n"
         
