@@ -106,7 +106,6 @@ filter Get-AtomicTechnique {
     $ValidSupportedPlatforms = @('windows', 'macos', 'linux')
     $ValidInputArgTypes = @('Path', 'Url', 'String', 'Integer', 'Float')
     $ValidExecutorTypes = @('command_prompt', 'sh', 'bash', 'powershell', 'manual')
-    $ValidDependencyExecutorTypes = @('powershell')
 
     # ConvertFrom-Yaml will throw a .NET exception rather than a PowerShell error.
     # Capture the exception and convert to PowerShell error so that the user can decide
@@ -291,7 +290,7 @@ filter Get-AtomicTechnique {
             }
 
             if ($AtomicTest.ContainsKey('dependency_executor_name')) {
-                if ($ValidDependencyExecutorTypes -notcontains $AtomicTest['dependency_executor_name']) {
+                if ($ValidExecutorTypes -notcontains $AtomicTest['dependency_executor_name']) {
                     Write-Error "$ErrorStringPrefix[Atomic test name: $($AtomicTestInstance.name)] 'atomic_tests[$i].dependency_executor_name': '$($AtomicTest['dependency_executor_name'])' must be one of the following: $($ValidExecutorTypes -join ', ')."
                     return
                 }
