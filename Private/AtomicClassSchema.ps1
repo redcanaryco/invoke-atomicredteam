@@ -32,6 +32,7 @@ class AtomicExecutorManual : AtomicExecutorBase {
 
 class AtomicTest {
     [String] $name
+    [String] $auto_generated_guid
     [String] $description
     [String[]] $supported_platforms
     # I wish this didn't have to be a hashtable but I don't

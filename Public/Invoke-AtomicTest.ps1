@@ -55,6 +55,11 @@ function Invoke-AtomicTest {
 
         [Parameter(Mandatory = $false,
             ParameterSetName = 'technique')]
+        [String[]]
+        $TestGuids,
+
+        [Parameter(Mandatory = $false,
+            ParameterSetName = 'technique')]
         [String]
         $PathToAtomicsFolder = $( if ($IsLinux -or $IsMacOS) { $Env:HOME + "/AtomicRedTeam/atomics" } else { $env:HOMEDRIVE + "\AtomicRedTeam\atomics" }),
 
@@ -163,6 +168,10 @@ function Invoke-AtomicTest {
 
                     if ($null -ne $TestNames) {
                         if (-Not ($TestNames -contains $test.name) ) { continue }
+                    }
+
+                    if ($null -ne $TestGuids) {
+                        if (-Not ($TestGuids -contains $test.auto_generated_guid) ) { continue }
                     }
 
                     $props = @{
