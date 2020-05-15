@@ -224,7 +224,7 @@ filter Get-AtomicTechnique {
             }
 
             foreach ($SupportedPlatform in $AtomicTest['supported_platforms']) {
-                if ($ValidSupportedPlatforms -notcontains $SupportedPlatform) {
+                if ($ValidSupportedPlatforms -cnotcontains $SupportedPlatform) {
                     Write-Error "$ErrorStringPrefix[Atomic test name: $($AtomicTestInstance.name)] 'atomic_tests[$i].supported_platforms': '$SupportedPlatform' must be one of the following: $($ValidSupportedPlatforms -join ', ')."
                     return
                 }
