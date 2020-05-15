@@ -55,6 +55,11 @@ function Invoke-AtomicTest {
 
         [Parameter(Mandatory = $false,
             ParameterSetName = 'technique')]
+        [String[]]
+        $TestGuids,
+
+        [Parameter(Mandatory = $false,
+            ParameterSetName = 'technique')]
         [String]
         $PathToAtomicsFolder = $( if ($IsLinux -or $IsMacOS) { $Env:HOME + "/AtomicRedTeam/atomics" } else { $env:HOMEDRIVE + "\AtomicRedTeam\atomics" }),
 
@@ -165,6 +170,10 @@ function Invoke-AtomicTest {
                         if (-Not ($TestNames -contains $test.name) ) { continue }
                     }
 
+                    if ($null -ne $TestGuids) {
+                        if (-Not ($TestGuids -contains $test.auto_generated_guid) ) { continue }
+                    }
+
                     $props = @{
                         Activity        = 'Running Atomic Tests'
                         Status          = 'Progress:'
@@ -244,7 +253,7 @@ function Invoke-AtomicTest {
                         $final_command = Merge-InputArgs $test.executor.command $test $InputArgs $PathToPayloads
                         $res = Invoke-ExecuteCommand $final_command $test.executor.name  $TimeoutSeconds $session
                         if ($session) { write-output (Invoke-Command -Session $session -scriptblock { Get-Content $($Using:tmpDir + "art-out.txt"); Get-Content $($Using:tmpDir + "art-err.txt"); Remove-Item $($Using:tmpDir + "art-out.txt"), $($Using:tmpDir + "art-err.txt") -Force -ErrorAction Ignore })}
-                        Write-ExecutionLog $startTime $AT $testCount $test.name $ExecutionLogPath $targetHostname $targetUser
+                        Write-ExecutionLog $startTime $AT $testCount $test.name $ExecutionLogPath $targetHostname $targetUser $test.auto_generated_guid
                         Write-KeyValue "Done executing test: " $testId
                     }
  

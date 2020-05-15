@@ -200,6 +200,7 @@ filter Get-AtomicTechnique {
             }
 
             $AtomicTestInstance.name = $AtomicTest['name']
+            $AtomicTestInstance.auto_generated_guid = $AtomicTest['auto_generated_guid']
 
             if (-not $AtomicTest.ContainsKey('description')) {
                 Write-Error "$ErrorStringPrefix[Atomic test name: $($AtomicTestInstance.name)] 'atomic_tests[$i].description' element is required."

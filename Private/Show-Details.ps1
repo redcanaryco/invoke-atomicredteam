@@ -9,6 +9,7 @@ function Show-Details ($test, $testCount, $technique, $customInputArgs, $PathToA
     Write-KeyValue "Technique: "  $tName
     Write-KeyValue "Atomic Test Name: " $test.name.ToString()
     Write-KeyValue "Atomic Test Number: " $testCount
+    if($test.auto_generated_guid) { Write-KeyValue "Atomic Test GUID: " $test.auto_generated_guid}
     Write-KeyValue "Description: " $(Invoke-CleanupDescription $test)
 
     # Attack Commands
