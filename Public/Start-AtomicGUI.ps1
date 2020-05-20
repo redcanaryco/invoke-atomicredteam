@@ -169,8 +169,10 @@ function Start-AtomicGUI {
                         New-UDButton -Icon arrow_circle_left -OnClick (
                             New-UDEndpoint -Endpoint {
                                 $yaml = (Get-UDElement -Id "yaml").Content[0]
-                                Set-UDElement -Id "yaml" -Content {
-                                    $yaml -replace "^  ", "" -replace "`n  ", "`n"
+                                if (-not $yaml.startsWith("- ")) {
+                                    Set-UDElement -Id "yaml" -Content {
+                                        $yaml -replace "^  ", "" -replace "`n  ", "`n"
+                                    }
                                 }
                             }
                         )
@@ -181,6 +183,7 @@ function Start-AtomicGUI {
                                 Set-UDElement -Id "yaml" -Content {
                                     $yaml -replace "^", "  " -replace "`n", "`n  "
                                 }
+                                    
                             }
                         )
                         # Copy Yaml to clipboard
