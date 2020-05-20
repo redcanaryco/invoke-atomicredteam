@@ -74,7 +74,7 @@ function Start-AtomicGUI {
     # EndpointInitialization defining which methods, modules, and variables will be available for use within an endpoint
     $ei = New-UDEndpointInitialization `
         -Function @("New-InputArgCard", "New-depCard", "New-UDTextAreaX", "New-UDTextBoxX", "New-UDSelectX") `
-        -Variable @("InputArgCards", "depCards") `
+        -Variable @("InputArgCards", "depCards", "yaml") `
         -Module @("..\Invoke-AtomicRedTeam.psd1")
 
     ############## Static Definitions
@@ -127,7 +127,8 @@ function Start-AtomicGUI {
                             $dependencies = @()
                             $preReqEx = ""
                             $depCards.GetEnumerator() | ForEach-Object {
-                                if ($_.Value -eq $false) { # a value of true means the card was deleted, so only add dependencies from non-deleted cards
+                                if ($_.Value -eq $false) {
+                                    # a value of true means the card was deleted, so only add dependencies from non-deleted cards
                                     $prefix = $_.key
                                     $depDescription = (Get-UDElement -Id "$prefix-depDescription").Attributes['value']
                                     $prereqCommand = (Get-UDElement -Id "$prefix-prereqCommand").Attributes['value']
@@ -138,16 +139,36 @@ function Start-AtomicGUI {
                                     $dependencies += $NewDep
                                 }
                             }
-                            $depParams = @{}
-                            if($dependencies.count -gt 0) {
+                            $depParams = @{ }
+                            if ($dependencies.count -gt 0) {
                                 $depParams.add("DependencyExecutorType", $preReqEx)
                                 $depParams.add("Dependencies", $dependencies)
                             }
 
                             $AtomicTest = New-AtomicTest -Name $testName -Description $testDesc -SupportedPlatforms $platforms -InputArguments $inputArgs -ExecutorType $executor -ExecutorCommand $attackCommands @depParams                                           
-                            $message = $AtomicTest | ConvertTo-Yaml
-                            New-UDElement -Tag pre -Content { $message }
+                            $yaml = $AtomicTest | ConvertTo-Yaml
+                            New-UDElement -ID yaml -Tag pre -Content { $yaml }
                         } 
+                        New-UDButton -Icon arrow_circle_left -OnClick (
+                            New-UDEndpoint -Endpoint {
+                                $yaml = (Get-UDElement -Id "yaml").Content[0]
+                                $newYaml = $yaml + "!!!!!!!!!!!!"
+                                Set-UDElement -Id "yaml" -Content {
+                                    $newYaml
+                                }
+                            }
+                        )
+                        New-UDButton -Icon arrow_circle_right -OnClick (
+                            New-UDEndpoint -Endpoint {
+                            }
+                        )
+                        New-UDButton -Text "Copy" -OnClick (
+                            New-UDEndpoint -Endpoint {
+                                $yaml = (Get-UDElement -Id "yaml").Content[0]
+                                Set-UDClipboard -Data $yaml
+                                Show-UDToast -Message "Copied YAML to the Clipboard" -BackgroundColor YellowGreen 
+                            }
+                        )
                     }
                 }
             )   
