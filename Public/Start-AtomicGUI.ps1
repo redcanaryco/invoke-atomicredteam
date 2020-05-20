@@ -25,11 +25,11 @@ function Start-AtomicGUI {
             New-UDTextBoxX "InputArgCard$cardNumber-InputArgName" "Input Argument Name"
             New-UDTextAreaX "InputArgCard$cardNumber-InputArgDescription" "Description"        
             New-UDTextBoxX "InputArgCard$cardNumber-InputArgDefault" "Default Value"        
-            New-UDSelect -Label "Type" -Option {
+            New-UDSelect -ID "InputArgCard$cardNumber-InputArgType" -Label "Type" -Option {
                 New-UDSelectOption -Name "Path" -Value "path"
                 New-UDSelectOption -Name "String" -Value "string"
                 New-UDSelectOption -Name "Url" -Value "url"
-                New-UDSelectOption -Name "Integer" -Value "int"
+                New-UDSelectOption -Name "Integer" -Value "integer"
             }
             New-UDButton -Text "Remove this Input Argument"  -OnClick (
                 New-UDEndpoint -Endpoint {
@@ -117,7 +117,8 @@ function Start-AtomicGUI {
                                     $InputArgName = (Get-UDElement -Id "$prefix-InputArgName").Attributes['value']
                                     $InputArgDescription = (Get-UDElement -Id "$prefix-InputArgDescription").Attributes['value']
                                     $InputArgDefault = (Get-UDElement -Id "$prefix-InputArgDefault").Attributes['value']
-                                    $InputArgType = "Path"
+                                    $InputArgType = (Get-UDElement -Id "$prefix-InputArgType").Attributes['value']
+                                    if ("" -eq $InputArgType) { $InputArgType = "String" }
                                     $NewInputArg = New-AtomicTestInputArgument -Name $InputArgName -Description $InputArgDescription -Type $InputArgType -Default $InputArgDefault
                                     $inputArgs += $NewInputArg
                                 }
