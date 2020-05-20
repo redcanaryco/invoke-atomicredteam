@@ -99,8 +99,6 @@ function Start-AtomicGUI {
                         New-UDHeading -Size 3 -Text "Test Definition YAML"
                     } -Content {
                         new-udrow -endpoint {
-                            $InputArg1 = New-AtomicTestInputArgument -Name filename -Description 'location of the payload' -Type Path -Default 'PathToAtomicsFolder\T1118\src\T1118.dll'
-                            $InputArg2 = New-AtomicTestInputArgument -Name source -Description 'location of the source code to compile' -Type Path -Default 'PathToAtomicsFolder\T1118\src\T1118.cs'
                             $testName = (Get-UDElement -Id atomicName).Attributes['value']
                             $testDesc = (Get-UDElement -Id atomicDescription).Attributes['value']
                             $platforms = @()
@@ -110,8 +108,21 @@ function Start-AtomicGUI {
                             $attackCommands = (Get-UDElement -Id attackCommands).Attributes['value']
                             $executor = (Get-UDElement -Id executorSelector).Attributes['value']
                             if ("" -eq $executor) { $executor = "PowerShell" }
-                            # $NewInputArg = [AtomicInputArgument]::new()
-                            $AtomicTest = New-AtomicTest -Name $testName -Description $testDesc -SupportedPlatforms $platforms -InputArguments $InputArg1, $InputArg2 -ExecutorType $executor -ExecutorCommand $attackCommands                                                    
+
+                            $inputArgs = @()
+                            $InputArgCards.GetEnumerator() | ForEach-Object {
+                                if ($_.Value -eq $false) {
+                                    # this was not deleted
+                                    $prefix = $_.key
+                                    $InputArgName = (Get-UDElement -Id "$prefix-InputArgName").Attributes['value']
+                                    $InputArgDescription = (Get-UDElement -Id "$prefix-InputArgDescription").Attributes['value']
+                                    $InputArgDefault = (Get-UDElement -Id "$prefix-InputArgDefault").Attributes['value']
+                                    $InputArgType = "Path"
+                                    $NewInputArg = New-AtomicTestInputArgument -Name $InputArgName -Description $InputArgDescription -Type $InputArgType -Default $InputArgDefault
+                                    $inputArgs += $NewInputArg
+                                }
+                            }
+                            $AtomicTest = New-AtomicTest -Name $testName -Description $testDesc -SupportedPlatforms $platforms -InputArguments $inputArgs -ExecutorType $executor -ExecutorCommand $attackCommands                                                    
                             $message = $AtomicTest | ConvertTo-Yaml
                             New-UDElement -Tag pre -Content { $message }
                         } 
@@ -186,7 +197,7 @@ function Start-AtomicGUI {
                     Start-Sleep 1
                     # InputArgs
                     $cardNumber = 1
-                    Set-UDElement -Id "InputArgCard$cardNumber-InputArgName" -Attributes @{value = "inputArg1" }
+                    Set-UDElement -Id "InputArgCard$cardNumber-InputArgName" -Attributes @{value = "input_arg_1" }
                     Set-UDElement -Id "InputArgCard$cardNumber-InputArgDescription" -Attributes @{value = "InputArg1 description" }        
                     Set-UDElement -Id "InputArgCard$cardNumber-InputArgDefault" -Attributes @{value = "this is the default value" }        
             
