@@ -119,7 +119,7 @@ function Start-AtomicGUI {
                                     $InputArgDefault = (Get-UDElement -Id "$prefix-InputArgDefault").Attributes['value']
                                     $InputArgType = (Get-UDElement -Id "$prefix-InputArgType").Attributes['value']
                                     if ("" -eq $InputArgType) { $InputArgType = "String" }
-                                    $NewInputArg = New-AtomicTestInputArgument -Name $InputArgName -Description $InputArgDescription -Type $InputArgType -Default $InputArgDefault
+                                    $NewInputArg = New-AtomicTestInputArgument -Name $InputArgName -Description $InputArgDescription -Type $InputArgType -Default $InputArgDefault -WarningVariable +warnings
                                     $inputArgs += $NewInputArg
                                 }
                             }
@@ -135,7 +135,7 @@ function Start-AtomicGUI {
                                     $getPrereqCommand = (Get-UDElement -Id "$prefix-getPrereqCommand").Attributes['value']
                                     $preReqEx = (Get-UDElement -Id "preReqEx").Attributes['value']
                                     if ("" -eq $preReqEx) { $preReqEx = "PowerShell" }
-                                    $NewDep = New-AtomicTestDependency -Description $depDescription -PrereqCommand $prereqCommand -GetPrereqCommand $getPrereqCommand 
+                                    $NewDep = New-AtomicTestDependency -Description $depDescription -PrereqCommand $prereqCommand -GetPrereqCommand $getPrereqCommand -WarningVariable +warnings
                                     $dependencies += $NewDep
                                 }
                             }
@@ -145,8 +145,11 @@ function Start-AtomicGUI {
                                 $depParams.add("Dependencies", $dependencies)
                             }
 
-                            $AtomicTest = New-AtomicTest -Name $testName -Description $testDesc -SupportedPlatforms $platforms -InputArguments $inputArgs -ExecutorType $executor -ExecutorCommand $attackCommands @depParams                                           
+                            $AtomicTest = New-AtomicTest -Name $testName -Description $testDesc -SupportedPlatforms $platforms -InputArguments $inputArgs -ExecutorType $executor -ExecutorCommand $attackCommands -WarningVariable +warnings @depParams                                           
                             $yaml = ($AtomicTest | ConvertTo-Yaml) -replace "^", "- " -replace "`n", "`n  "
+                            foreach ($warning in $warnings) {
+                                Show-UDToast $warning -BackgroundColor LightYellow -Duration 5000
+                            }
                             New-UDElement -ID yaml -Tag pre -Content { $yaml }
                         } 
                         # Left arrow button (decrease indentation)
