@@ -22,9 +22,9 @@ function Start-AtomicGUI {
     function New-InputArgCard {
         $cardNumber = $InputArgCards.count + 1
         $newCard = New-UDCard -ID "InputArgCard$cardNumber" -Content {
-            New-UDTextBoxX "InputArgName" "Input Argument Name"
-            New-UDTextAreaX "InputArgDescription" "Description"        
-            New-UDTextBoxX "InputArgDefault" "Default Value"        
+            New-UDTextBoxX "InputArgCard$cardNumber-InputArgName" "Input Argument Name"
+            New-UDTextAreaX "InputArgCard$cardNumber-InputArgDescription" "Description"        
+            New-UDTextBoxX "InputArgCard$cardNumber-InputArgDefault" "Default Value"        
             New-UDSelect -Label "Type" -Option {
                 New-UDSelectOption -Name "Path" -Value "path"
                 New-UDSelectOption -Name "String" -Value "string"
@@ -46,9 +46,9 @@ function Start-AtomicGUI {
     function New-depCard {
         $cardNumber = $depCards.count + 1
         $newCard = New-UDCard -ID "depCard$cardNumber" -Content {
-            New-UDTextBoxX "depDescription" "Prereq Description"
-            New-UDTextAreaX "prereqCommand" "Check prereqs Command"        
-            New-UDTextAreaX "getPrereqCommand" "Get Prereqs Command"        
+            New-UDTextBoxX "depCard$cardNumber-depDescription" "Prereq Description"
+            New-UDTextAreaX "depCard$cardNumber-prereqCommand" "Check prereqs Command"        
+            New-UDTextAreaX "depCard$cardNumber-getPrereqCommand" "Get Prereqs Command"        
             New-UDButton -Text "Remove this Prereq"  -OnClick (
                 New-UDEndpoint -Endpoint {
                     Remove-UDElement -Id "depCard$cardNumber"
@@ -104,12 +104,13 @@ function Start-AtomicGUI {
                             $testName = (Get-UDElement -Id atomicName).Attributes['value']
                             $testDesc = (Get-UDElement -Id atomicDescription).Attributes['value']
                             $platforms = @()
-                            if ((Get-UDElement -Id spWindows).Attributes['checked']){$platforms += "Windows"}
-                            if ((Get-UDElement -Id spLinux).Attributes['checked']){$platforms += "Linux"}
-                            if ((Get-UDElement -Id spMacOS).Attributes['checked']){$platforms += "macOS"}
+                            if ((Get-UDElement -Id spWindows).Attributes['checked']) { $platforms += "Windows" }
+                            if ((Get-UDElement -Id spLinux).Attributes['checked']) { $platforms += "Linux" }
+                            if ((Get-UDElement -Id spMacOS).Attributes['checked']) { $platforms += "macOS" }
                             $attackCommands = (Get-UDElement -Id attackCommands).Attributes['value']
                             $executor = (Get-UDElement -Id executorSelector).Attributes['value']
-                            if("" -eq $executor) {$executor = "PowerShell"}
+                            if ("" -eq $executor) { $executor = "PowerShell" }
+                            # $NewInputArg = [AtomicInputArgument]::new()
                             $AtomicTest = New-AtomicTest -Name $testName -Description $testDesc -SupportedPlatforms $platforms -InputArguments $InputArg1, $InputArg2 -ExecutorType $executor -ExecutorCommand $attackCommands                                                    
                             $message = $AtomicTest | ConvertTo-Yaml
                             New-UDElement -Tag pre -Content { $message }
@@ -140,7 +141,7 @@ function Start-AtomicGUI {
 
             # input args
             New-UDCard -Id "inputCard" -Endpoint {
-                New-UDButton -Text "Add Input Argument (Optional)"  -OnClick (
+                New-UDButton -Text "Add Input Argument (Optional)" -OnClick (
                     New-UDEndpoint -Endpoint {
                         Add-UDElement -ParentId "inputCard" -Content {
                             New-InputArgCard
@@ -151,7 +152,7 @@ function Start-AtomicGUI {
 
             # prereqs
             New-UDCard -Id "depCard" -Endpoint {
-                New-UDButton -Text "Add Prerequisite (Optional)"  -OnClick (
+                New-UDButton -Text "Add Prerequisite (Optional)" -OnClick (
                     New-UDEndpoint -Endpoint {
                         Add-UDElement -ParentId "depCard" -Content {
                             if ($null -eq (Get-UDElement -Id preReqEx)) {
@@ -164,6 +165,39 @@ function Start-AtomicGUI {
                 )
             }   
         }
+
+        # button to fill form with test data for development purposes
+        New-UDButton -Text "Fill Test Data" -OnClick (
+            New-UDEndpoint -Endpoint {
+                Add-UDElement -ParentId "depCard" -Content {
+                    Set-UDElement -Id atomicName -Attributes @{value = "My new atomic" }
+                    Set-UDElement -Id atomicDescription -Attributes @{value = "This is the atomic description" }
+                    Set-UDElement -Id attackCommands -Attributes @{value = "echo this`necho that" }
+                    Add-UDElement -ParentId "inputCard" -Content {
+                        New-InputArgCard
+                    }
+                    Add-UDElement -ParentId "depCard" -Content {
+                        if ($null -eq (Get-UDElement -Id preReqEx)) {
+                            New-UDLayout -columns 4 {
+                                New-UDSelectX 'preReqEx' "Executor for Prereq Commands" }
+                        }
+                        New-depCard
+                    }
+                    Start-Sleep 1
+                    # InputArgs
+                    $cardNumber = 1
+                    Set-UDElement -Id "InputArgCard$cardNumber-InputArgName" -Attributes @{value = "inputArg1" }
+                    Set-UDElement -Id "InputArgCard$cardNumber-InputArgDescription" -Attributes @{value = "InputArg1 description" }        
+                    Set-UDElement -Id "InputArgCard$cardNumber-InputArgDefault" -Attributes @{value = "this is the default value" }        
+            
+                    # dependencies
+                    Set-UDElement -Id "depCard$cardNumber-depDescription" -Attributes @{value = "This file must exist" }
+                    Set-UDElement -Id "depCard$cardNumber-prereqCommand" -Attributes @{value = "if (this) then that" }       
+                    Set-UDElement -Id "depCard$cardNumber-getPrereqCommand" -Attributes @{value = "iwr" }       
+            
+                }
+            }
+        )
      
     }
     ############## End of the Dashboard
