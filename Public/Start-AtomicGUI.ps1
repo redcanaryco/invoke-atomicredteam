@@ -146,22 +146,28 @@ function Start-AtomicGUI {
                             }
 
                             $AtomicTest = New-AtomicTest -Name $testName -Description $testDesc -SupportedPlatforms $platforms -InputArguments $inputArgs -ExecutorType $executor -ExecutorCommand $attackCommands @depParams                                           
-                            $yaml = $AtomicTest | ConvertTo-Yaml
+                            $yaml = ($AtomicTest | ConvertTo-Yaml) -replace "^", "- " -replace "`n", "`n  "
                             New-UDElement -ID yaml -Tag pre -Content { $yaml }
                         } 
+                        # Left arrow button (decrease indentation)
                         New-UDButton -Icon arrow_circle_left -OnClick (
                             New-UDEndpoint -Endpoint {
                                 $yaml = (Get-UDElement -Id "yaml").Content[0]
-                                $newYaml = $yaml + "!!!!!!!!!!!!"
                                 Set-UDElement -Id "yaml" -Content {
-                                    $newYaml
+                                    $yaml -replace "^  ", "" -replace "`n  ", "`n"
                                 }
                             }
                         )
+                        # Right arrow button (increase indentation)
                         New-UDButton -Icon arrow_circle_right -OnClick (
                             New-UDEndpoint -Endpoint {
+                                $yaml = (Get-UDElement -Id "yaml").Content[0]
+                                Set-UDElement -Id "yaml" -Content {
+                                    $yaml -replace "^", "  " -replace "`n", "`n  "
+                                }
                             }
                         )
+                        # Copy Yaml to clipboard
                         New-UDButton -Text "Copy" -OnClick (
                             New-UDEndpoint -Endpoint {
                                 $yaml = (Get-UDElement -Id "yaml").Content[0]
