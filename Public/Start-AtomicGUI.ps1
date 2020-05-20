@@ -6,14 +6,14 @@ function Start-AtomicGUI {
     ############## Function Definitions Made Available to EndPoints
     function New-UDTextAreaX ($ID, $PlaceHolder) {
         New-UDElement -Tag div -Attributes @{class = "input-field col" } -Content {
-            New-UDElement -Tag "textarea" -Attributes @{ id = $ID; class = "materialize-textarea ud-input" }
+            New-UDElement -Tag "textarea" -id  $ID -Attributes @{ class = "materialize-textarea ud-input" }
             New-UDElement -Tag Label -Attributes @{for = $ID } -Content { $PlaceHolder }
         }
     }
 
     function New-UDTextBoxX ($ID, $PlaceHolder) {
         New-UDElement -Tag div -Attributes @{class = "input-field col" } -Content {
-            New-UDElement -Tag "input" -Attributes @{ id = $ID; class = "ud-input"; type = "text" }
+            New-UDElement -Tag "input" -id $ID -Attributes @{ class = "ud-input"; type = "text" }
             New-UDElement -Tag Label -Attributes @{for = $ID } -Content { $PlaceHolder }
         }
     }
@@ -62,10 +62,10 @@ function Start-AtomicGUI {
 
     function New-UDSelectX ($Id, $Label) {
         New-UDSelect -Label $Label -Id $Id -Option {
-            New-UDSelectOption -Name "PowerShell" -Value "powershell"
-            New-UDSelectOption -Name "Command Prompt" -Value "command_prompt"
-            New-UDSelectOption -Name "Bash" -Value "bash"
-            New-UDSelectOption -Name "Sh" -Value "sh"
+            New-UDSelectOption -Name "PowerShell" -Value "PowerShell" -Selected
+            New-UDSelectOption -Name "Command Prompt" -Value "CommandPrompt" 
+            New-UDSelectOption -Name "Bash" -Value "Bash"
+            New-UDSelectOption -Name "Sh" -Value "Sh"
         }
     }
 
@@ -80,9 +80,9 @@ function Start-AtomicGUI {
     ############## Static Definitions
     $supportedPlatforms = New-UDLayout -Columns 4 {
         New-UDElement -Tag Label -Attributes @{ style = @{"font-size" = "15px" } } -Content { "Supported Platforms:" } 
-        New-UDCheckbox -FilledIn -Label "Windows" -Checked
-        New-UDCheckbox -FilledIn -Label "Linux" 
-        New-UDCheckbox -FilledIn -Label "macOS"
+        New-UDCheckbox -FilledIn -Label "Windows" -Checked -Id spWindows
+        New-UDCheckbox -FilledIn -Label "Linux" -Id spLinux
+        New-UDCheckbox -FilledIn -Label "macOS"-Id spMacOS
     }
 
     $executorRow = New-UDLayout -Columns 4 {
@@ -93,20 +93,27 @@ function Start-AtomicGUI {
     $genarateYamlButton = New-UDRow -Columns {
         New-UDColumn -Size 8 -Content { }
         New-UDColumn -Size 4 -Content {
-            New-UDButton -Text "Generate Test Definition YAML"  -OnClick (
+            New-UDButton -Text "Generate Test Definition YAML" -OnClick (
                 New-UDEndpoint -Endpoint {
                     Show-UDModal -Header {
                         New-UDHeading -Size 3 -Text "Test Definition YAML"
                     } -Content {
                         new-udrow -endpoint {
-
                             $InputArg1 = New-AtomicTestInputArgument -Name filename -Description 'location of the payload' -Type Path -Default 'PathToAtomicsFolder\T1118\src\T1118.dll'
                             $InputArg2 = New-AtomicTestInputArgument -Name source -Description 'location of the source code to compile' -Type Path -Default 'PathToAtomicsFolder\T1118\src\T1118.cs'
-                            
-                            $AtomicTest = New-AtomicTest -Name 'InstallUtil uninstall method call' -Description 'Executes the Uninstall Method' -SupportedPlatforms Windows -InputArguments $InputArg1, $InputArg2 -ExecutorType CommandPrompt -ExecutorCommand 'C:\Windows\Microsoft.NET\Framework\v4.0.30319\csc.exe /target:library /out:#{filename}  #{source}'                                                    
+                            $testName = (Get-UDElement -Id atomicName).Attributes['value']
+                            $testDesc = (Get-UDElement -Id atomicDescription).Attributes['value']
+                            $platforms = @()
+                            if ((Get-UDElement -Id spWindows).Attributes['checked']){$platforms += "Windows"}
+                            if ((Get-UDElement -Id spLinux).Attributes['checked']){$platforms += "Linux"}
+                            if ((Get-UDElement -Id spMacOS).Attributes['checked']){$platforms += "macOS"}
+                            $attackCommands = (Get-UDElement -Id attackCommands).Attributes['value']
+                            $executor = (Get-UDElement -Id executorSelector).Attributes['value']
+                            if("" -eq $executor) {$executor = "PowerShell"}
+                            $AtomicTest = New-AtomicTest -Name $testName -Description $testDesc -SupportedPlatforms $platforms -InputArguments $InputArg1, $InputArg2 -ExecutorType $executor -ExecutorCommand $attackCommands                                                    
                             $message = $AtomicTest | ConvertTo-Yaml
                             New-UDElement -Tag pre -Content { $message }
-                        }
+                        } 
                     }
                 }
             )   
@@ -120,7 +127,7 @@ function Start-AtomicGUI {
 
         New-UDCard -Id "mainCard" -Content {
             New-UDCard -Content {
-                New-UDTextBoxX "atomicName" "Atomic Test Name"
+                New-UDTextBoxX 'atomicName' "Atomic Test Name"
                 New-UDTextAreaX "atomicDescription" "Atomic Test Description"
                 $supportedPlatforms
                 # Attack Commands
