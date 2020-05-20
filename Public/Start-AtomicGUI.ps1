@@ -31,12 +31,14 @@ function Start-AtomicGUI {
         $newCard = New-UDCard -ID "InputArgCard$cardNumber" -Content {
             New-UDTextBoxX "InputArgCard$cardNumber-InputArgName" "Input Argument Name"
             New-UDTextAreaX "InputArgCard$cardNumber-InputArgDescription" "Description"        
-            New-UDTextBoxX "InputArgCard$cardNumber-InputArgDefault" "Default Value"        
-            New-UDSelect -ID "InputArgCard$cardNumber-InputArgType" -Label "Type" -Option {
-                New-UDSelectOption -Name "Path" -Value "path"
-                New-UDSelectOption -Name "String" -Value "string"
-                New-UDSelectOption -Name "Url" -Value "url"
-                New-UDSelectOption -Name "Integer" -Value "integer"
+            New-UDTextBoxX "InputArgCard$cardNumber-InputArgDefault" "Default Value" 
+            New-UDLayout -columns 4 {
+                New-UDSelect -ID "InputArgCard$cardNumber-InputArgType" -Label "Type" -Option {
+                    New-UDSelectOption -Name "Path" -Value "path"
+                    New-UDSelectOption -Name "String" -Value "string"
+                    New-UDSelectOption -Name "Url" -Value "url"
+                    New-UDSelectOption -Name "Integer" -Value "integer"
+                }
             }
             New-UDButton -Text "Remove this Input Argument"  -OnClick (
                 New-UDEndpoint -Endpoint {
@@ -226,17 +228,17 @@ function Start-AtomicGUI {
 
             # prereqs
             New-UDCard -Id "depCard" -Endpoint {
-                New-UDButton -Text "Add Prerequisite (Optional)" -OnClick (
-                    New-UDEndpoint -Endpoint {
-                        Add-UDElement -ParentId "depCard" -Content {
-                            if ($null -eq (Get-UDElement -Id preReqEx)) {
-                                New-UDLayout -columns 4 {
-                                    New-UDSelectX 'preReqEx' "Executor for Prereq Commands" }
+                New-UDLayout -columns 4 {
+                    New-UDButton -Text "Add Prerequisite (Optional)" -OnClick (
+                        New-UDEndpoint -Endpoint {
+                            Add-UDElement -ParentId "depCard" -Content {
+                                New-depCard
                             }
-                            New-depCard
                         }
-                    }
-                )
+                    )
+                    New-UDSelectX 'preReqEx' "Executor for Prereq Commands" 
+
+                }
             }   
         }
 
@@ -272,6 +274,6 @@ function Start-AtomicGUI {
     }
     ############## End of the Dashboard
 
-    Start-UDDashboard -port $port -Dashboard $db #-AutoReload
+    Start-UDDashboard -port $port -Dashboard $db -Name "AtomicGUI"
     start-process http://localhost:$port
 }
