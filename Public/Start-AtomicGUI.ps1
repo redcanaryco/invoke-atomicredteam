@@ -108,7 +108,7 @@ function Start-AtomicGUI {
                             $attackCommands = (Get-UDElement -Id attackCommands).Attributes['value']
                             $executor = (Get-UDElement -Id executorSelector).Attributes['value']
                             if ("" -eq $executor) { $executor = "PowerShell" }
-
+                            # input args
                             $inputArgs = @()
                             $InputArgCards.GetEnumerator() | ForEach-Object {
                                 if ($_.Value -eq $false) {
@@ -123,7 +123,28 @@ function Start-AtomicGUI {
                                     $inputArgs += $NewInputArg
                                 }
                             }
-                            $AtomicTest = New-AtomicTest -Name $testName -Description $testDesc -SupportedPlatforms $platforms -InputArguments $inputArgs -ExecutorType $executor -ExecutorCommand $attackCommands                                                    
+                            # dependencies
+                            $dependencies = @()
+                            $preReqEx = ""
+                            $depCards.GetEnumerator() | ForEach-Object {
+                                if ($_.Value -eq $false) { # a value of true means the card was deleted, so only add dependencies from non-deleted cards
+                                    $prefix = $_.key
+                                    $depDescription = (Get-UDElement -Id "$prefix-depDescription").Attributes['value']
+                                    $prereqCommand = (Get-UDElement -Id "$prefix-prereqCommand").Attributes['value']
+                                    $getPrereqCommand = (Get-UDElement -Id "$prefix-getPrereqCommand").Attributes['value']
+                                    $preReqEx = (Get-UDElement -Id "preReqEx").Attributes['value']
+                                    if ("" -eq $preReqEx) { $preReqEx = "PowerShell" }
+                                    $NewDep = New-AtomicTestDependency -Description $depDescription -PrereqCommand $prereqCommand -GetPrereqCommand $getPrereqCommand 
+                                    $dependencies += $NewDep
+                                }
+                            }
+                            $depParams = @{}
+                            if($dependencies.count -gt 0) {
+                                $depParams.add("DependencyExecutorType", $preReqEx)
+                                $depParams.add("Dependencies", $dependencies)
+                            }
+
+                            $AtomicTest = New-AtomicTest -Name $testName -Description $testDesc -SupportedPlatforms $platforms -InputArguments $inputArgs -ExecutorType $executor -ExecutorCommand $attackCommands @depParams                                           
                             $message = $AtomicTest | ConvertTo-Yaml
                             New-UDElement -Tag pre -Content { $message }
                         } 
@@ -188,13 +209,13 @@ function Start-AtomicGUI {
                     Add-UDElement -ParentId "inputCard" -Content {
                         New-InputArgCard
                     }
-                    Add-UDElement -ParentId "depCard" -Content {
-                        if ($null -eq (Get-UDElement -Id preReqEx)) {
-                            New-UDLayout -columns 4 {
-                                New-UDSelectX 'preReqEx' "Executor for Prereq Commands" }
-                        }
-                        New-depCard
-                    }
+                    # Add-UDElement -ParentId "depCard" -Content {
+                    #     if ($null -eq (Get-UDElement -Id preReqEx)) {
+                    #         New-UDLayout -columns 4 {
+                    #             New-UDSelectX 'preReqEx' "Executor for Prereq Commands" }
+                    #     }
+                    #     New-depCard
+                    # }
                     Start-Sleep 1
                     # InputArgs
                     $cardNumber = 1
