@@ -1,5 +1,12 @@
 function Start-AtomicGUI {
     # Install-Module -Name UniversalDashboard.Community -RequiredVersion 2.9.0 -scope CurrentUser
+    $UDcommunityInstalled = Get-InstalledModule -Name "UniversalDashboard.Community" -ErrorAction:SilentlyContinue
+    $UDinstalled = Get-InstalledModule -Name "UniversalDashboard" -ErrorAction:SilentlyContinue
+    if (-not $UDcommunityInstalled -and -not $UDinstalled) { 
+        Write-Host "Installing UniversalDashboard.Community"
+        Install-Module -Name UniversalDashboard.Community -Scope CurrentUser -Force
+    }
+
     Get-UDDashboard | Stop-UDDashboard
     $port = 8888
 
@@ -87,7 +94,7 @@ function Start-AtomicGUI {
 
     $executorRow = New-UDLayout -Columns 4 {
         New-UDSelectX 'executorSelector' "Executor for Attack Commands"
-        New-UDCheckbox -FilledIn -Label "Requires Elevation to Execute Successfully?" 
+        New-UDCheckbox -ID elevationRequired -FilledIn -Label "Requires Elevation to Execute Successfully?" 
     }
 
     $genarateYamlButton = New-UDRow -Columns {
@@ -107,6 +114,8 @@ function Start-AtomicGUI {
                             if ((Get-UDElement -Id spMacOS).Attributes['checked']) { $platforms += "macOS" }
                             $attackCommands = (Get-UDElement -Id attackCommands).Attributes['value']
                             $executor = (Get-UDElement -Id executorSelector).Attributes['value']
+                            $elevationRequired = (Get-UDElement -Id elevationRequired).Attributes['checked']
+                            $cleanupCommands = (Get-UDElement -Id cleanupCommands).Attributes['value']
                             if ("" -eq $executor) { $executor = "PowerShell" }
                             # input args
                             $inputArgs = @()
@@ -144,6 +153,8 @@ function Start-AtomicGUI {
                                 $depParams.add("DependencyExecutorType", $preReqEx)
                                 $depParams.add("Dependencies", $dependencies)
                             }
+                            if (($cleanupCommands -ne "") -and ($null -ne $cleanupCommands)) { $depParams.add("ExecutorCleanupCommand", $cleanupCommands) }
+                            $depParams.add("ExecutorElevationRequired", $elevationRequired)
 
                             $AtomicTest = New-AtomicTest -Name $testName -Description $testDesc -SupportedPlatforms $platforms -InputArguments $inputArgs -ExecutorType $executor -ExecutorCommand $attackCommands -WarningVariable +warnings @depParams                                           
                             $yaml = ($AtomicTest | ConvertTo-Yaml) -replace "^", "- " -replace "`n", "`n  "
@@ -229,38 +240,34 @@ function Start-AtomicGUI {
             }   
         }
 
-        # button to fill form with test data for development purposes
-        New-UDButton -Text "Fill Test Data" -OnClick (
-            New-UDEndpoint -Endpoint {
-                Add-UDElement -ParentId "depCard" -Content {
-                    Set-UDElement -Id atomicName -Attributes @{value = "My new atomic" }
-                    Set-UDElement -Id atomicDescription -Attributes @{value = "This is the atomic description" }
-                    Set-UDElement -Id attackCommands -Attributes @{value = "echo this`necho that" }
-                    Add-UDElement -ParentId "inputCard" -Content {
-                        New-InputArgCard
+        if ($false) {
+            # button to fill form with test data for development purposes
+            New-UDButton -Text "Fill Test Data" -OnClick (
+                New-UDEndpoint -Endpoint {
+                    Add-UDElement -ParentId "depCard" -Content {
+                        Set-UDElement -Id atomicName -Attributes @{value = "My new atomic" }
+                        Set-UDElement -Id atomicDescription -Attributes @{value = "This is the atomic description" }
+                        Set-UDElement -Id attackCommands -Attributes @{value = "echo this`necho that" }
+                        Set-UDElement -Id cleanupCommands -Attributes @{value = "cleanup commands here`nand here..." }
+                        Add-UDElement -ParentId "inputCard" -Content {
+                            New-InputArgCard
+                        }
+                        Start-Sleep 1
+                        # InputArgs
+                        $cardNumber = 1
+                        Set-UDElement -Id "InputArgCard$cardNumber-InputArgName" -Attributes @{value = "input_arg_1" }
+                        Set-UDElement -Id "InputArgCard$cardNumber-InputArgDescription" -Attributes @{value = "InputArg1 description" }        
+                        Set-UDElement -Id "InputArgCard$cardNumber-InputArgDefault" -Attributes @{value = "this is the default value" }        
+            
+                        # dependencies
+                        Set-UDElement -Id "depCard$cardNumber-depDescription" -Attributes @{value = "This file must exist" }
+                        Set-UDElement -Id "depCard$cardNumber-prereqCommand" -Attributes @{value = "if (this) then that" }       
+                        Set-UDElement -Id "depCard$cardNumber-getPrereqCommand" -Attributes @{value = "iwr" }       
+            
                     }
-                    # Add-UDElement -ParentId "depCard" -Content {
-                    #     if ($null -eq (Get-UDElement -Id preReqEx)) {
-                    #         New-UDLayout -columns 4 {
-                    #             New-UDSelectX 'preReqEx' "Executor for Prereq Commands" }
-                    #     }
-                    #     New-depCard
-                    # }
-                    Start-Sleep 1
-                    # InputArgs
-                    $cardNumber = 1
-                    Set-UDElement -Id "InputArgCard$cardNumber-InputArgName" -Attributes @{value = "input_arg_1" }
-                    Set-UDElement -Id "InputArgCard$cardNumber-InputArgDescription" -Attributes @{value = "InputArg1 description" }        
-                    Set-UDElement -Id "InputArgCard$cardNumber-InputArgDefault" -Attributes @{value = "this is the default value" }        
-            
-                    # dependencies
-                    Set-UDElement -Id "depCard$cardNumber-depDescription" -Attributes @{value = "This file must exist" }
-                    Set-UDElement -Id "depCard$cardNumber-prereqCommand" -Attributes @{value = "if (this) then that" }       
-                    Set-UDElement -Id "depCard$cardNumber-getPrereqCommand" -Attributes @{value = "iwr" }       
-            
                 }
-            }
-        )
+            )
+        }
      
     }
     ############## End of the Dashboard
