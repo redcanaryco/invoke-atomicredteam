@@ -277,6 +277,6 @@ function Start-AtomicGUI {
     }
     ############## End of the Dashboard
 
-    Start-UDDashboard -port $port -Dashboard $db -Name "AtomicGUI"
+    Start-UDDashboard -port $port -Dashboard $db -Name "AtomicGUI" -ListenAddress 127.0.0.1
     start-process http://localhost:$port
 }
