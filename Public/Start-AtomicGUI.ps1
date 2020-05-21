@@ -2,7 +2,7 @@ function Start-AtomicGUI {
     param (
         [Int] $port = 8487
     )
-    # Install-Module -Name UniversalDashboard.Community -RequiredVersion 2.9.0 -scope CurrentUser
+    # Install-Module UniversalDashboard if not already installed
     $UDcommunityInstalled = Get-InstalledModule -Name "UniversalDashboard.Community" -ErrorAction:SilentlyContinue
     $UDinstalled = Get-InstalledModule -Name "UniversalDashboard" -ErrorAction:SilentlyContinue
     if (-not $UDcommunityInstalled -and -not $UDinstalled) { 
@@ -163,7 +163,7 @@ function Start-AtomicGUI {
                             $AtomicTest = New-AtomicTest -Name $testName -Description $testDesc -SupportedPlatforms $platforms -InputArguments $inputArgs -ExecutorType $executor -ExecutorCommand $attackCommands -WarningVariable +warnings @depParams                                           
                             $yaml = ($AtomicTest | ConvertTo-Yaml) -replace "^", "- " -replace "`n", "`n  "
                             foreach ($warning in $warnings) {
-                                Show-UDToast $warning -BackgroundColor LightYellow -Duration 5000
+                                Show-UDToast $warning -BackgroundColor LightYellow -Duration 10000
                             }
                             New-UDElement -ID yaml -Tag pre -Content { $yaml }
                         } 
