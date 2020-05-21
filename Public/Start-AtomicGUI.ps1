@@ -284,4 +284,5 @@ function Start-AtomicGUI {
 }
 function Stop-AtomicGUI {
     Get-UDDashboard | Stop-UDDashboard
+    Write-Host "Stopped all Dashboards"
 }
