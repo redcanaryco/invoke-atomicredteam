@@ -1,4 +1,7 @@
 function Start-AtomicGUI {
+    param (
+        [Int] $port = 8487
+    )
     # Install-Module -Name UniversalDashboard.Community -RequiredVersion 2.9.0 -scope CurrentUser
     $UDcommunityInstalled = Get-InstalledModule -Name "UniversalDashboard.Community" -ErrorAction:SilentlyContinue
     $UDinstalled = Get-InstalledModule -Name "UniversalDashboard" -ErrorAction:SilentlyContinue
@@ -8,7 +11,6 @@ function Start-AtomicGUI {
     }
 
     Get-UDDashboard | Stop-UDDashboard
-    $port = 8888
 
     ############## Function Definitions Made Available to EndPoints
     function New-UDTextAreaX ($ID, $PlaceHolder) {
@@ -279,4 +281,7 @@ function Start-AtomicGUI {
 
     Start-UDDashboard -port $port -Dashboard $db -Name "AtomicGUI" -ListenAddress 127.0.0.1
     start-process http://localhost:$port
+}
+function Stop-AtomicGUI {
+    Get-UDDashboard | Stop-UDDashboard
 }
