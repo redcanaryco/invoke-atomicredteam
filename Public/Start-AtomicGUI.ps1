@@ -255,8 +255,7 @@ function Start-AtomicGUI {
             }   
         }
 
-        if ($false) {
-            # button to fill form with test data for development purposes
+        if ($false) { # button to fill form with test data for development purposes
             New-UDButton -Text "Fill Test Data" -OnClick ( $epFillTestData )
         }
      
