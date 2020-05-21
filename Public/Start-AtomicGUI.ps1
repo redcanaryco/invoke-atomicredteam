@@ -10,8 +10,6 @@ function Start-AtomicGUI {
         Install-Module -Name UniversalDashboard.Community -Scope CurrentUser -Force
     }
 
-    Get-UDDashboard | Stop-UDDashboard
-
     ############## Function Definitions Made Available to EndPoints
     function New-UDTextAreaX ($ID, $PlaceHolder) {
         New-UDElement -Tag div -Attributes @{class = "input-field col" } -Content {
@@ -88,6 +86,119 @@ function Start-AtomicGUI {
         -Variable @("InputArgCards", "depCards", "yaml") `
         -Module @("..\Invoke-AtomicRedTeam.psd1")
 
+    ############## EndPoint (ep) Definitions: Dynamic code called to generate content for an element or perfrom onClick actions
+    $BuildAndDisplayYamlScriptBlock = {   
+        $testName = (Get-UDElement -Id atomicName).Attributes['value']
+        $testDesc = (Get-UDElement -Id atomicDescription).Attributes['value']
+        $platforms = @()
+        if ((Get-UDElement -Id spWindows).Attributes['checked']) { $platforms += "Windows" }
+        if ((Get-UDElement -Id spLinux).Attributes['checked']) { $platforms += "Linux" }
+        if ((Get-UDElement -Id spMacOS).Attributes['checked']) { $platforms += "macOS" }
+        $attackCommands = (Get-UDElement -Id attackCommands).Attributes['value']
+        $executor = (Get-UDElement -Id executorSelector).Attributes['value']
+        $elevationRequired = (Get-UDElement -Id elevationRequired).Attributes['checked']
+        $cleanupCommands = (Get-UDElement -Id cleanupCommands).Attributes['value']
+        if ("" -eq $executor) { $executor = "PowerShell" }
+        # input args
+        $inputArgs = @()
+        $InputArgCards.GetEnumerator() | ForEach-Object {
+            if ($_.Value -eq $false) {
+                # this was not deleted
+                $prefix = $_.key
+                $InputArgName = (Get-UDElement -Id "$prefix-InputArgName").Attributes['value']
+                $InputArgDescription = (Get-UDElement -Id "$prefix-InputArgDescription").Attributes['value']
+                $InputArgDefault = (Get-UDElement -Id "$prefix-InputArgDefault").Attributes['value']
+                $InputArgType = (Get-UDElement -Id "$prefix-InputArgType").Attributes['value']
+                if ("" -eq $InputArgType) { $InputArgType = "String" }
+                $NewInputArg = New-AtomicTestInputArgument -Name $InputArgName -Description $InputArgDescription -Type $InputArgType -Default $InputArgDefault -WarningVariable +warnings
+                $inputArgs += $NewInputArg
+            }
+        }
+        # dependencies
+        $dependencies = @()
+        $preReqEx = ""
+        $depCards.GetEnumerator() | ForEach-Object {
+            if ($_.Value -eq $false) {
+                # a value of true means the card was deleted, so only add dependencies from non-deleted cards
+                $prefix = $_.key
+                $depDescription = (Get-UDElement -Id "$prefix-depDescription").Attributes['value']
+                $prereqCommand = (Get-UDElement -Id "$prefix-prereqCommand").Attributes['value']
+                $getPrereqCommand = (Get-UDElement -Id "$prefix-getPrereqCommand").Attributes['value']
+                $preReqEx = (Get-UDElement -Id "preReqEx").Attributes['value']
+                if ("" -eq $preReqEx) { $preReqEx = "PowerShell" }
+                $NewDep = New-AtomicTestDependency -Description $depDescription -PrereqCommand $prereqCommand -GetPrereqCommand $getPrereqCommand -WarningVariable +warnings
+                $dependencies += $NewDep
+            }
+        }
+        $depParams = @{ }
+        if ($dependencies.count -gt 0) {
+            $depParams.add("DependencyExecutorType", $preReqEx)
+            $depParams.add("Dependencies", $dependencies)
+        }
+        if (($cleanupCommands -ne "") -and ($null -ne $cleanupCommands)) { $depParams.add("ExecutorCleanupCommand", $cleanupCommands) }
+        $depParams.add("ExecutorElevationRequired", $elevationRequired)
+
+        $AtomicTest = New-AtomicTest -Name $testName -Description $testDesc -SupportedPlatforms $platforms -InputArguments $inputArgs -ExecutorType $executor -ExecutorCommand $attackCommands -WarningVariable +warnings @depParams                                           
+        $yaml = ($AtomicTest | ConvertTo-Yaml) -replace "^", "- " -replace "`n", "`n  "
+        foreach ($warning in $warnings) { Show-UDToast $warning -BackgroundColor LightYellow -Duration 10000 }
+        New-UDElement -ID yaml -Tag pre -Content { $yaml }
+    } 
+
+    $epYamlModal = New-UDEndpoint -Endpoint {
+        Show-UDModal -Header { New-UDHeading -Size 3 -Text "Test Definition YAML" } -Content {
+            new-udrow -endpoint $BuildAndDisplayYamlScriptBlock
+            # Left arrow button (decrease indentation)
+            New-UDButton -Icon arrow_circle_left -OnClick (
+                New-UDEndpoint -Endpoint {
+                    $yaml = (Get-UDElement -Id "yaml").Content[0]
+                    if (-not $yaml.startsWith("- ")) {
+                        Set-UDElement -Id "yaml" -Content {
+                            $yaml -replace "^  ", "" -replace "`n  ", "`n"
+                        }
+                    }
+                }
+            )
+            # Right arrow button (increase indentation)
+            New-UDButton -Icon arrow_circle_right -OnClick (
+                New-UDEndpoint -Endpoint {
+                    $yaml = (Get-UDElement -Id "yaml").Content[0]
+                    Set-UDElement -Id "yaml" -Content {
+                        $yaml -replace "^", "  " -replace "`n", "`n  "
+                    }
+                }
+            )
+            # Copy Yaml to clipboard
+            New-UDButton -Text "Copy" -OnClick (
+                New-UDEndpoint -Endpoint {
+                    $yaml = (Get-UDElement -Id "yaml").Content[0]
+                    Set-UDClipboard -Data $yaml
+                    Show-UDToast -Message "Copied YAML to the Clipboard" -BackgroundColor YellowGreen 
+                }
+            )
+        }
+    }
+
+    $epFillTestData = New-UDEndpoint -Endpoint {
+        Add-UDElement -ParentId "depCard" -Content {
+            Set-UDElement -Id atomicName -Attributes @{value = "My new atomic" }
+            Set-UDElement -Id atomicDescription -Attributes @{value = "This is the atomic description" }
+            Set-UDElement -Id attackCommands -Attributes @{value = "echo this`necho that" }
+            Set-UDElement -Id cleanupCommands -Attributes @{value = "cleanup commands here`nand here..." }
+            Add-UDElement -ParentId "inputCard" -Content { New-InputArgCard }
+            Start-Sleep 1
+            # InputArgs
+            $cardNumber = 1
+            Set-UDElement -Id "InputArgCard$cardNumber-InputArgName" -Attributes @{value = "input_arg_1" }
+            Set-UDElement -Id "InputArgCard$cardNumber-InputArgDescription" -Attributes @{value = "InputArg1 description" }        
+            Set-UDElement -Id "InputArgCard$cardNumber-InputArgDefault" -Attributes @{value = "this is the default value" }        
+            # dependencies
+            Set-UDElement -Id "depCard$cardNumber-depDescription" -Attributes @{value = "This file must exist" }
+            Set-UDElement -Id "depCard$cardNumber-prereqCommand" -Attributes @{value = "if (this) then that" }       
+            Set-UDElement -Id "depCard$cardNumber-getPrereqCommand" -Attributes @{value = "iwr" }       
+        }
+    }
+    ############## End EndPoint (ep) Definitions
+
     ############## Static Definitions
     $supportedPlatforms = New-UDLayout -Columns 4 {
         New-UDElement -Tag Label -Attributes @{ style = @{"font-size" = "15px" } } -Content { "Supported Platforms:" } 
@@ -104,107 +215,14 @@ function Start-AtomicGUI {
     $genarateYamlButton = New-UDRow -Columns {
         New-UDColumn -Size 8 -Content { }
         New-UDColumn -Size 4 -Content {
-            New-UDButton -Text "Generate Test Definition YAML" -OnClick (
-                New-UDEndpoint -Endpoint {
-                    Show-UDModal -Header {
-                        New-UDHeading -Size 3 -Text "Test Definition YAML"
-                    } -Content {
-                        new-udrow -endpoint {
-                            $testName = (Get-UDElement -Id atomicName).Attributes['value']
-                            $testDesc = (Get-UDElement -Id atomicDescription).Attributes['value']
-                            $platforms = @()
-                            if ((Get-UDElement -Id spWindows).Attributes['checked']) { $platforms += "Windows" }
-                            if ((Get-UDElement -Id spLinux).Attributes['checked']) { $platforms += "Linux" }
-                            if ((Get-UDElement -Id spMacOS).Attributes['checked']) { $platforms += "macOS" }
-                            $attackCommands = (Get-UDElement -Id attackCommands).Attributes['value']
-                            $executor = (Get-UDElement -Id executorSelector).Attributes['value']
-                            $elevationRequired = (Get-UDElement -Id elevationRequired).Attributes['checked']
-                            $cleanupCommands = (Get-UDElement -Id cleanupCommands).Attributes['value']
-                            if ("" -eq $executor) { $executor = "PowerShell" }
-                            # input args
-                            $inputArgs = @()
-                            $InputArgCards.GetEnumerator() | ForEach-Object {
-                                if ($_.Value -eq $false) {
-                                    # this was not deleted
-                                    $prefix = $_.key
-                                    $InputArgName = (Get-UDElement -Id "$prefix-InputArgName").Attributes['value']
-                                    $InputArgDescription = (Get-UDElement -Id "$prefix-InputArgDescription").Attributes['value']
-                                    $InputArgDefault = (Get-UDElement -Id "$prefix-InputArgDefault").Attributes['value']
-                                    $InputArgType = (Get-UDElement -Id "$prefix-InputArgType").Attributes['value']
-                                    if ("" -eq $InputArgType) { $InputArgType = "String" }
-                                    $NewInputArg = New-AtomicTestInputArgument -Name $InputArgName -Description $InputArgDescription -Type $InputArgType -Default $InputArgDefault -WarningVariable +warnings
-                                    $inputArgs += $NewInputArg
-                                }
-                            }
-                            # dependencies
-                            $dependencies = @()
-                            $preReqEx = ""
-                            $depCards.GetEnumerator() | ForEach-Object {
-                                if ($_.Value -eq $false) {
-                                    # a value of true means the card was deleted, so only add dependencies from non-deleted cards
-                                    $prefix = $_.key
-                                    $depDescription = (Get-UDElement -Id "$prefix-depDescription").Attributes['value']
-                                    $prereqCommand = (Get-UDElement -Id "$prefix-prereqCommand").Attributes['value']
-                                    $getPrereqCommand = (Get-UDElement -Id "$prefix-getPrereqCommand").Attributes['value']
-                                    $preReqEx = (Get-UDElement -Id "preReqEx").Attributes['value']
-                                    if ("" -eq $preReqEx) { $preReqEx = "PowerShell" }
-                                    $NewDep = New-AtomicTestDependency -Description $depDescription -PrereqCommand $prereqCommand -GetPrereqCommand $getPrereqCommand -WarningVariable +warnings
-                                    $dependencies += $NewDep
-                                }
-                            }
-                            $depParams = @{ }
-                            if ($dependencies.count -gt 0) {
-                                $depParams.add("DependencyExecutorType", $preReqEx)
-                                $depParams.add("Dependencies", $dependencies)
-                            }
-                            if (($cleanupCommands -ne "") -and ($null -ne $cleanupCommands)) { $depParams.add("ExecutorCleanupCommand", $cleanupCommands) }
-                            $depParams.add("ExecutorElevationRequired", $elevationRequired)
-
-                            $AtomicTest = New-AtomicTest -Name $testName -Description $testDesc -SupportedPlatforms $platforms -InputArguments $inputArgs -ExecutorType $executor -ExecutorCommand $attackCommands -WarningVariable +warnings @depParams                                           
-                            $yaml = ($AtomicTest | ConvertTo-Yaml) -replace "^", "- " -replace "`n", "`n  "
-                            foreach ($warning in $warnings) {
-                                Show-UDToast $warning -BackgroundColor LightYellow -Duration 10000
-                            }
-                            New-UDElement -ID yaml -Tag pre -Content { $yaml }
-                        } 
-                        # Left arrow button (decrease indentation)
-                        New-UDButton -Icon arrow_circle_left -OnClick (
-                            New-UDEndpoint -Endpoint {
-                                $yaml = (Get-UDElement -Id "yaml").Content[0]
-                                if (-not $yaml.startsWith("- ")) {
-                                    Set-UDElement -Id "yaml" -Content {
-                                        $yaml -replace "^  ", "" -replace "`n  ", "`n"
-                                    }
-                                }
-                            }
-                        )
-                        # Right arrow button (increase indentation)
-                        New-UDButton -Icon arrow_circle_right -OnClick (
-                            New-UDEndpoint -Endpoint {
-                                $yaml = (Get-UDElement -Id "yaml").Content[0]
-                                Set-UDElement -Id "yaml" -Content {
-                                    $yaml -replace "^", "  " -replace "`n", "`n  "
-                                }
-                                    
-                            }
-                        )
-                        # Copy Yaml to clipboard
-                        New-UDButton -Text "Copy" -OnClick (
-                            New-UDEndpoint -Endpoint {
-                                $yaml = (Get-UDElement -Id "yaml").Content[0]
-                                Set-UDClipboard -Data $yaml
-                                Show-UDToast -Message "Copied YAML to the Clipboard" -BackgroundColor YellowGreen 
-                            }
-                        )
-                    }
-                }
-            )   
+            New-UDButton -Text "Generate Test Definition YAML" -OnClick ( $epYamlModal )
         }
     }
 
     ############## End Static Definitions
 
     ############## The Dashboard
+    Get-UDDashboard | Stop-UDDashboard
     $db = New-UDDashboard -Title "Atomic Test Creation" -EndpointInitialization $ei -Content {
 
         New-UDCard -Id "mainCard" -Content {
@@ -242,38 +260,13 @@ function Start-AtomicGUI {
                         }
                     )
                     New-UDSelectX 'preReqEx' "Executor for Prereq Commands" 
-
                 }
             }   
         }
 
         if ($false) {
             # button to fill form with test data for development purposes
-            New-UDButton -Text "Fill Test Data" -OnClick (
-                New-UDEndpoint -Endpoint {
-                    Add-UDElement -ParentId "depCard" -Content {
-                        Set-UDElement -Id atomicName -Attributes @{value = "My new atomic" }
-                        Set-UDElement -Id atomicDescription -Attributes @{value = "This is the atomic description" }
-                        Set-UDElement -Id attackCommands -Attributes @{value = "echo this`necho that" }
-                        Set-UDElement -Id cleanupCommands -Attributes @{value = "cleanup commands here`nand here..." }
-                        Add-UDElement -ParentId "inputCard" -Content {
-                            New-InputArgCard
-                        }
-                        Start-Sleep 1
-                        # InputArgs
-                        $cardNumber = 1
-                        Set-UDElement -Id "InputArgCard$cardNumber-InputArgName" -Attributes @{value = "input_arg_1" }
-                        Set-UDElement -Id "InputArgCard$cardNumber-InputArgDescription" -Attributes @{value = "InputArg1 description" }        
-                        Set-UDElement -Id "InputArgCard$cardNumber-InputArgDefault" -Attributes @{value = "this is the default value" }        
-            
-                        # dependencies
-                        Set-UDElement -Id "depCard$cardNumber-depDescription" -Attributes @{value = "This file must exist" }
-                        Set-UDElement -Id "depCard$cardNumber-prereqCommand" -Attributes @{value = "if (this) then that" }       
-                        Set-UDElement -Id "depCard$cardNumber-getPrereqCommand" -Attributes @{value = "iwr" }       
-            
-                    }
-                }
-            )
+            New-UDButton -Text "Fill Test Data" -OnClick ( $epFillTestData )
         }
      
     }
@@ -282,6 +275,7 @@ function Start-AtomicGUI {
     Start-UDDashboard -port $port -Dashboard $db -Name "AtomicGUI" -ListenAddress 127.0.0.1
     start-process http://localhost:$port
 }
+
 function Stop-AtomicGUI {
     Get-UDDashboard | Stop-UDDashboard
     Write-Host "Stopped all Dashboards"
