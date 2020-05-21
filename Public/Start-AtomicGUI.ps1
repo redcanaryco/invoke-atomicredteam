@@ -222,7 +222,6 @@ function Start-AtomicGUI {
     ############## End Static Definitions
 
     ############## The Dashboard
-    Get-UDDashboard | Stop-UDDashboard
     $db = New-UDDashboard -Title "Atomic Test Creation" -EndpointInitialization $ei -Content {
 
         New-UDCard -Id "mainCard" -Content {
@@ -241,11 +240,7 @@ function Start-AtomicGUI {
             # input args
             New-UDCard -Id "inputCard" -Endpoint {
                 New-UDButton -Text "Add Input Argument (Optional)" -OnClick (
-                    New-UDEndpoint -Endpoint {
-                        Add-UDElement -ParentId "inputCard" -Content {
-                            New-InputArgCard
-                        }
-                    }
+                    New-UDEndpoint -Endpoint { Add-UDElement -ParentId "inputCard" -Content { New-InputArgCard } }
                 )
             }
 
@@ -253,11 +248,7 @@ function Start-AtomicGUI {
             New-UDCard -Id "depCard" -Endpoint {
                 New-UDLayout -columns 4 {
                     New-UDButton -Text "Add Prerequisite (Optional)" -OnClick (
-                        New-UDEndpoint -Endpoint {
-                            Add-UDElement -ParentId "depCard" -Content {
-                                New-depCard
-                            }
-                        }
+                        New-UDEndpoint -Endpoint { Add-UDElement -ParentId "depCard" -Content { New-depCard } }
                     )
                     New-UDSelectX 'preReqEx' "Executor for Prereq Commands" 
                 }
@@ -272,11 +263,12 @@ function Start-AtomicGUI {
     }
     ############## End of the Dashboard
 
+    Stop-AtomicGUI
     Start-UDDashboard -port $port -Dashboard $db -Name "AtomicGUI" -ListenAddress 127.0.0.1
     start-process http://localhost:$port
 }
 
 function Stop-AtomicGUI {
-    Get-UDDashboard | Stop-UDDashboard
-    Write-Host "Stopped all Dashboards"
+    Get-UDDashboard -Name 'AtomicGUI' | Stop-UDDashboard
+    Write-Host "Stopped all AtomicGUI Dashboards"
 }
