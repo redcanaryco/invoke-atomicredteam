@@ -179,23 +179,23 @@ function Start-AtomicGUI {
     }
 
     $epFillTestData = New-UDEndpoint -Endpoint {
-        Add-UDElement -ParentId "depCard" -Content {
-            Set-UDElement -Id atomicName -Attributes @{value = "My new atomic" }
-            Set-UDElement -Id atomicDescription -Attributes @{value = "This is the atomic description" }
-            Set-UDElement -Id attackCommands -Attributes @{value = "echo this`necho that" }
-            Set-UDElement -Id cleanupCommands -Attributes @{value = "cleanup commands here`nand here..." }
-            Add-UDElement -ParentId "inputCard" -Content { New-InputArgCard }
-            Start-Sleep 1
-            # InputArgs
-            $cardNumber = 1
-            Set-UDElement -Id "InputArgCard$cardNumber-InputArgName" -Attributes @{value = "input_arg_1" }
-            Set-UDElement -Id "InputArgCard$cardNumber-InputArgDescription" -Attributes @{value = "InputArg1 description" }        
-            Set-UDElement -Id "InputArgCard$cardNumber-InputArgDefault" -Attributes @{value = "this is the default value" }        
-            # dependencies
-            Set-UDElement -Id "depCard$cardNumber-depDescription" -Attributes @{value = "This file must exist" }
-            Set-UDElement -Id "depCard$cardNumber-prereqCommand" -Attributes @{value = "if (this) then that" }       
-            Set-UDElement -Id "depCard$cardNumber-getPrereqCommand" -Attributes @{value = "iwr" }       
-        }
+        Add-UDElement -ParentId "inputCard" -Content { New-InputArgCard }        
+        Add-UDElement -ParentId "depCard"   -Content { New-depCard }
+        Start-Sleep 1
+        Set-UDElement -Id atomicName -Attributes @{value = "My new atomic" }
+        Set-UDElement -Id atomicDescription -Attributes @{value = "This is the atomic description" }
+        Set-UDElement -Id attackCommands -Attributes @{value = "echo this`necho that" }
+        Set-UDElement -Id cleanupCommands -Attributes @{value = "cleanup commands here`nand here..." }
+        # InputArgs
+        $cardNumber = 1
+        Set-UDElement -Id "InputArgCard$cardNumber-InputArgName" -Attributes @{value = "input_arg_1" }
+        Set-UDElement -Id "InputArgCard$cardNumber-InputArgDescription" -Attributes @{value = "InputArg1 description" }        
+        Set-UDElement -Id "InputArgCard$cardNumber-InputArgDefault" -Attributes @{value = "this is the default value" }        
+        # dependencies
+        Set-UDElement -Id "depCard$cardNumber-depDescription" -Attributes @{value = "This file must exist" }
+        Set-UDElement -Id "depCard$cardNumber-prereqCommand" -Attributes @{value = "if (this) then that" }       
+        Set-UDElement -Id "depCard$cardNumber-getPrereqCommand" -Attributes @{value = "iwr" }       
+        
     }
     ############## End EndPoint (ep) Definitions
 
@@ -223,17 +223,14 @@ function Start-AtomicGUI {
 
     ############## The Dashboard
     $db = New-UDDashboard -Title "Atomic Test Creation" -EndpointInitialization $ei -Content {
-
         New-UDCard -Id "mainCard" -Content {
             New-UDCard -Content {
                 New-UDTextBoxX 'atomicName' "Atomic Test Name"
                 New-UDTextAreaX "atomicDescription" "Atomic Test Description"
                 $supportedPlatforms
-                # Attack Commands
                 New-UDTextAreaX "attackCommands" "Attack Commands"
                 $executorRow
                 New-UDTextAreaX "cleanupCommands" "Cleanup Commands (Optional)"
-                # Generate Test Definition Yaml Button
                 $genarateYamlButton  
             }
 
@@ -255,10 +252,8 @@ function Start-AtomicGUI {
             }   
         }
 
-        if ($false) { # button to fill form with test data for development purposes
-            New-UDButton -Text "Fill Test Data" -OnClick ( $epFillTestData )
-        }
-     
+        # button to fill form with test data for development purposes
+        if ($false) { New-UDButton -Text "Fill Test Data" -OnClick ( $epFillTestData ) }
     }
     ############## End of the Dashboard
 
