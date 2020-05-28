@@ -1,7 +1,7 @@
 # The class definitions that these functions rely upon are located in Private\AtomicClassSchema.ps1
 
 function New-AtomicTechnique {
-<#
+    <#
 .SYNOPSIS
 
 Specifies a new atomic red team technique. The output of this function is designed to be piped directly to ConvertTo-Yaml, eliminating the need to work with YAML directly.
@@ -84,7 +84,7 @@ The output of New-AtomicTechnique is designed to be piped to ConvertTo-Yaml.
 }
 
 function New-AtomicTest {
-<#
+    <#
 .SYNOPSIS
 
 Specifies an atomic test.
@@ -263,10 +263,14 @@ The output of New-AtomicTest can be piped to ConvertTo-Yaml. The resulting outpu
         }
     }
 
-    if ($DependencyExecutorType) { $AtomicTestInstance.dependency_executor_name = $DependencyExecutorType }
-    $AtomicTestInstance.dependencies = $Dependencies
+    if ($DependencyExecutorType) { 
+        switch ($DependencyExecutorType) {
+            'CommandPrompt' { $AtomicTestInstance.dependency_executor_name = 'command_prompt' }
+            default { $AtomicTestInstance.dependency_executor_name = $DependencyExecutorType.ToLower() }
+        }
+    }    $AtomicTestInstance.dependencies = $Dependencies
 
-    [Hashtable] $InputArgHashtable = @{}
+    [Hashtable] $InputArgHashtable = @{ }
 
     if ($InputArguments.Count) {
         # Determine if any of the input argument names repeat. They must be unique.
@@ -294,11 +298,11 @@ The output of New-AtomicTest can be piped to ConvertTo-Yaml. The resulting outpu
     # Extract all specified input arguments from executor and any dependencies.
     $Regex = [Regex] '#\{(?<ArgName>[^}]+)\}'
     [String[]] $InputArgumentNamesFromExecutor = $StringsWithPotentialInputArgs |
-        ForEach-Object { $Regex.Matches($_) } |
-        Select-Object -ExpandProperty Groups |
-        Where-Object { $_.Name -eq 'ArgName' } |
-        Select-Object -ExpandProperty Value |
-        Sort-Object -Unique
+    ForEach-Object { $Regex.Matches($_) } |
+    Select-Object -ExpandProperty Groups |
+    Where-Object { $_.Name -eq 'ArgName' } |
+    Select-Object -ExpandProperty Value |
+    Sort-Object -Unique
 
 
     # Validate that all executor arguments are defined as input arguments
@@ -327,7 +331,7 @@ The output of New-AtomicTest can be piped to ConvertTo-Yaml. The resulting outpu
 }
 
 function New-AtomicTestDependency {
-<#
+    <#
 .SYNOPSIS
 
 Specifies a new dependency that must be met prior to execution of an atomic test.
@@ -395,7 +399,7 @@ Note: due to a bug in PowerShell classes, the get_prereq_command property will n
 }
 
 function New-AtomicTestInputArgument {
-<#
+    <#
 .SYNOPSIS
 
 Specifies an input to an atomic test that is a requirement to run the test (think of these like function arguments).
@@ -497,7 +501,8 @@ Outputs an object representing an atomic test input argument. This object is int
             # 'Path' { }
             # 'String' { }
         }
-    } else {
+    }
+    else {
         $AtomicInputArgInstance.type = $TypeOverride
     }
 
