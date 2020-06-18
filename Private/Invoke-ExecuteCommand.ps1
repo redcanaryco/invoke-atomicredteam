@@ -5,7 +5,7 @@ function Invoke-ExecuteCommand ($finalCommand, $executor, $TimeoutSeconds, $sess
         Write-Verbose -Message 'Invoking Atomic Tests using defined executor'
         if ($executor -eq "command_prompt" -or $executor -eq "sh" -or $executor -eq "bash") {
             $finalCommand = $finalCommand -replace "[\\`"]", "`\$&"
-            $execCommand = $finalCommand.Replace("`n", " & ")
+            $execCommand = $finalCommand -replace "(?<!;)`n", " & "
             $execPrefix = "-c"
             $execExe = $executor
             if ($executor -eq "command_prompt") { $execPrefix = "/c"; $execExe = "cmd.exe" }
