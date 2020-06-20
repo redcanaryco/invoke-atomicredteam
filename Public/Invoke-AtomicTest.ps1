@@ -213,6 +213,9 @@ function Invoke-AtomicTest {
                     }
                     elseif ($GetPrereqs) {
                         Write-KeyValue "GetPrereq's for: " $testId
+                        if ( $test.executor.elevation_required -and -not $isElevated) {
+                            Write-Host -ForegroundColor Red "Elevation required but not provided"
+                        }
                         if ($nul -eq $test.dependencies) { Write-KeyValue "No Preqs Defined"; continue }
                         foreach ($dep in $test.dependencies) {
                             $executor = Get-PrereqExecutor $test
@@ -236,9 +239,6 @@ function Invoke-AtomicTest {
                                     Write-Host -ForegroundColor Red "Failed to meet prereq: $description"
                                 }
                             }
-                        }
-                        if ( $test.executor.elevation_required -and -not $isElevated) {
-                            Write-Host -ForegroundColor Red "Elevation required but not provided"
                         }
                     }
                     elseif ($Cleanup) {
