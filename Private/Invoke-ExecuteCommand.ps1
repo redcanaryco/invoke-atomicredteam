@@ -9,7 +9,6 @@ function Invoke-ExecuteCommand ($finalCommand, $executor, $TimeoutSeconds, $sess
             if ($executor -eq "command_prompt") { 
                     $execPrefix = "/c"; 
                     $execExe = "cmd.exe"; 
-		    $finalCommand = $finalCommand -replace "[\\`"]", "`^$&"
                     $execCommand = $finalCommand -replace "`n", " & " 
             }
             else {
