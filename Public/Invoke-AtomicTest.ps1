@@ -133,7 +133,7 @@ function Invoke-AtomicTest {
             if (Test-Path -Path $pathToYaml) { $AtomicTechniqueHash = Get-AtomicTechnique -Path $pathToYaml }
             else {
                 Write-Host -Fore Red "ERROR: $PathToYaml does not exist`nCheck your Atomic Number and your PathToAtomicsFolder parameter"
-                continue
+                return
             }
             $techniqueCount = 0
 
