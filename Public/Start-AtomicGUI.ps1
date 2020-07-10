@@ -222,7 +222,7 @@ function Start-AtomicGUI {
     ############## End Static Definitions
 
     ############## The Dashboard
-    $db = New-UDDashboard -Title "Atomic Test Creation" -EndpointInitialization $ei -Content {
+    $db = New-UDDashboard -Title "Atomic Test Creation" -IdleTimeout 10080 -EndpointInitialization $ei -Content {
         New-UDCard -Id "mainCard" -Content {
             New-UDCard -Content {
                 New-UDTextBoxX 'atomicName' "Atomic Test Name"
