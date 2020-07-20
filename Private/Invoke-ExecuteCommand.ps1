@@ -39,7 +39,7 @@ function Invoke-ExecuteCommand ($finalCommand, $executor, $TimeoutSeconds, $sess
             $res = invoke-command -Session $session -ScriptBlock { Invoke-Process -filename $Using:execExe -Arguments $Using:arguments -TimeoutSeconds $Using:TimeoutSeconds -stdoutFile "art-out.txt" -stderrFile "art-err.txt"  }
         }
         else {
-            $res = Invoke-Process -filename $execExe -Arguments $arguments -TimeoutSeconds $TimeoutSeconds
+            $res = Invoke-Process -filename $execExe -Arguments $arguments -TimeoutSeconds $TimeoutSeconds -stdoutFile "art-out.txt" -stderrFile "art-err.txt" 
         }
 
     )
