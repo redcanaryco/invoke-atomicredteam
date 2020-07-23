@@ -113,7 +113,13 @@ function Invoke-AtomicTest {
         $TimeoutSeconds = 120,
 
         [Parameter(Mandatory = $false, ParameterSetName = 'technique')]
-        [System.Management.Automation.Runspaces.PSSession[]]$Session
+        [System.Management.Automation.Runspaces.PSSession[]]$Session,
+
+        [Parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'technique')]
+        [switch]
+        $Interactive = $false
 
     )
     BEGIN { } # Intentionally left blank and can be removed
@@ -251,26 +257,27 @@ function Invoke-AtomicTest {
                         Write-KeyValue "Executing test: " $testId
                         $startTime = get-date
                         $final_command = Merge-InputArgs $test.executor.command $test $InputArgs $PathToPayloads
-                        $res = Invoke-ExecuteCommand $final_command $test.executor.name  $TimeoutSeconds $session
-                        if ($session) { write-output (Invoke-Command -Session $session -scriptblock { Get-Content $($Using:tmpDir + "art-out.txt"); Get-Content $($Using:tmpDir + "art-err.txt"); Remove-Item $($Using:tmpDir + "art-out.txt"), $($Using:tmpDir + "art-err.txt") -Force -ErrorAction Ignore })}
-                        # It is possible that we have a null $session BUT we also
-                        #   have some stdout and stderr captured from the executed command.
-                        # IF there are some stdout and stderr files present then we want to 
-                        #   write this output to the pipe and then cleanup those files.
-                        $stdoutFilename = $tmpDir + "art-out.txt"
-                        if (Test-Path $stdoutFilename -PathType leaf) { 
-                            Write-Output (Get-Content $stdoutFilename)
-                            Remove-Item $stdoutFilename
+                        $res = Invoke-ExecuteCommand $final_command $test.executor.name $TimeoutSeconds $session $Interactive
+                        if ($session) {
+                            write-output (Invoke-Command -Session $session -scriptblock { Get-Content $($Using:tmpDir + "art-out.txt"); Get-Content $($Using:tmpDir + "art-err.txt"); Remove-Item $($Using:tmpDir + "art-out.txt"), $($Using:tmpDir + "art-err.txt") -Force -ErrorAction Ignore })
                         }
-                        $stderrFilename = $tmpDir + "art-err.txt"
-                        if (Test-Path $stderrFilename -PathType leaf) { 
-                            Write-Output (Get-Content $stderrFilename)
-                            Remove-Item $stderrFilename
+                        else {
+                            # It is possible to have a null $session BUT also have stdout and stderr captured from 
+                            #   the executed command. IF so then write the output to the pipe and cleanup the files.
+                            $stdoutFilename = $tmpDir + "art-out.txt"
+                            if (Test-Path $stdoutFilename -PathType leaf) { 
+                                Write-Output (Get-Content $stdoutFilename)
+                                Remove-Item $stdoutFilename
+                            }
+                            $stderrFilename = $tmpDir + "art-err.txt"
+                            if (Test-Path $stderrFilename -PathType leaf) { 
+                                Write-Output (Get-Content $stderrFilename)
+                                Remove-Item $stderrFilename
+                            }
                         }
                         Write-ExecutionLog $startTime $AT $testCount $test.name $ExecutionLogPath $targetHostname $targetUser $test.auto_generated_guid
                         Write-KeyValue "Done executing test: " $testId
                     }
- 
                 } # End of foreach Test in single Atomic Technique
             } # End of foreach Technique in Atomic Tests
         } # End of Invoke-AtomicTestSingle function
