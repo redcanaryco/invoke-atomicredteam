@@ -18,7 +18,7 @@ function Invoke-ExecuteCommand ($finalCommand, $executor, $TimeoutSeconds, $sess
             $arguments = "$execPrefix `"$execCommand`""
         }
         elseif ($executor -eq "powershell") {
-            $execCommand = $finalCommand -replace "[```"]", "`\$&"
+            $execCommand = $finalCommand -replace "`"", "`\`"`""
             if ($session) {
                 if ($targetPlatform -eq "windows") {
                         $execExe = "powershell.exe"
