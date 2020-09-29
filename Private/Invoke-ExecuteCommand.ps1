@@ -4,10 +4,17 @@ function Invoke-ExecuteCommand ($finalCommand, $executor, $TimeoutSeconds, $sess
         $finalCommand = $finalCommand.trim()
         Write-Verbose -Message 'Invoking Atomic Tests using defined executor'
         if ($executor -eq "command_prompt" -or $executor -eq "sh" -or $executor -eq "bash") {
-            $execCommand = $finalCommand.Replace("`n", " & ")
             $execPrefix = "-c"
             $execExe = $executor
-            if ($executor -eq "command_prompt") { $execPrefix = "/c"; $execExe = "cmd.exe" }
+            if ($executor -eq "command_prompt") { 
+                    $execPrefix = "/c"; 
+                    $execExe = "cmd.exe"; 
+                    $execCommand = $finalCommand -replace "`n", " & " 
+            }
+            else {
+                    $finalCommand = $finalCommand -replace "[\\`"]", "`\$&"
+                    $execCommand = $finalCommand -replace "(?<!;)\n", "; "
+            }
             $arguments = "$execPrefix `"$execCommand`""
         }
         elseif ($executor -eq "powershell") {
