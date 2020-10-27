@@ -3,12 +3,14 @@
 
 function Invoke-MalDoc($macro_code, $sub_name, $office_version, $office_product, $vba_arguments) {
 
+#Read macrocode from file
     $macro_string = [System.IO.File]::ReadAllText($macro_code)
     
+#Variable Replacement
     foreach ($key in $vba_arguments.keys){
         $value = $vba_arguments.$key
         $var_name = "{#$key}"
-		$macro_string = $macro_string -replace $var_name, $value
+	$macro_string = $macro_string -replace $var_name, $value
     }
     
     if ($office_product -eq "Word") {
