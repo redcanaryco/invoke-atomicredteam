@@ -1,4 +1,4 @@
-function Invoke-ExecuteCommand ($finalCommand, $executor, $TimeoutSeconds, $session = $null) {
+function Invoke-ExecuteCommand ($finalCommand, $executor, $TimeoutSeconds, $session = $null, $interactive) {
     $null = @(
         if ($null -eq $finalCommand) { return 0 }
         $finalCommand = $finalCommand.trim()
@@ -46,9 +46,17 @@ function Invoke-ExecuteCommand ($finalCommand, $executor, $TimeoutSeconds, $sess
             $res = invoke-command -Session $session -ScriptBlock { Invoke-Process -filename $Using:execExe -Arguments $Using:arguments -TimeoutSeconds $Using:TimeoutSeconds -stdoutFile "art-out.txt" -stderrFile "art-err.txt"  }
         }
         else {
-            $res = Invoke-Process -filename $execExe -Arguments $arguments -TimeoutSeconds $TimeoutSeconds
+            if ($interactive) {
+                # This use case is: Local execution of tests that contain interactive prompts
+                #   In this situation, let the stdout/stderr flow to the console
+                $res = Invoke-Process -filename $execExe -Arguments $arguments -TimeoutSeconds $TimeoutSeconds
+            }
+            else {
+                # Local execution that DO NOT contain interactive prompts
+                #   In this situation, capture the stdout/stderr for Invoke-AtomicTest to send to the caller
+                $res = Invoke-Process -filename $execExe -Arguments $arguments -TimeoutSeconds $TimeoutSeconds -stdoutFile "art-out.txt" -stderrFile "art-err.txt" 
+            }
         }
-
     )
     $res
 }
