@@ -259,19 +259,19 @@ function Invoke-AtomicTest {
                         $final_command = Merge-InputArgs $test.executor.command $test $InputArgs $PathToPayloads
                         $res = Invoke-ExecuteCommand $final_command $test.executor.name $TimeoutSeconds $session -Interactive:$Interactive
                         if ($session) {
-                            write-output (Invoke-Command -Session $session -scriptblock { Get-Content $($Using:tmpDir + "art-out.txt"); Get-Content $($Using:tmpDir + "art-err.txt"); Remove-Item $($Using:tmpDir + "art-out.txt"), $($Using:tmpDir + "art-err.txt") -Force -ErrorAction Ignore })
+                            write-output (Invoke-Command -Session $session -scriptblock { (Get-Content $($Using:tmpDir + "art-out.txt")) -replace '\x00',''); (Get-Content $($Using:tmpDir + "art-err.txt")) -replace '\x00',''); Remove-Item $($Using:tmpDir + "art-out.txt"), $($Using:tmpDir + "art-err.txt") -Force -ErrorAction Ignore })
                         }
-                        else {
+                        elseif (-not $interactive) {
                             # It is possible to have a null $session BUT also have stdout and stderr captured from 
                             #   the executed command. IF so then write the output to the pipe and cleanup the files.
                             $stdoutFilename = $tmpDir + "art-out.txt"
                             if (Test-Path $stdoutFilename -PathType leaf) { 
-                                Write-Output (Get-Content $stdoutFilename)
+                                Write-Output ((Get-Content $stdoutFilename) -replace '\x00','')
                                 Remove-Item $stdoutFilename
                             }
                             $stderrFilename = $tmpDir + "art-err.txt"
                             if (Test-Path $stderrFilename -PathType leaf) { 
-                                Write-Output (Get-Content $stderrFilename)
+                                Write-Output ((Get-Content $stderrFilename) -replace '\x00','')
                                 Remove-Item $stderrFilename
                             }
                         }
