@@ -259,7 +259,7 @@ function Invoke-AtomicTest {
                         $final_command = Merge-InputArgs $test.executor.command $test $InputArgs $PathToPayloads
                         $res = Invoke-ExecuteCommand $final_command $test.executor.name $TimeoutSeconds $session -Interactive:$Interactive
                         if ($session) {
-                            write-output (Invoke-Command -Session $session -scriptblock { (Get-Content $($Using:tmpDir + "art-out.txt")) -replace '\x00',''); (Get-Content $($Using:tmpDir + "art-err.txt")) -replace '\x00',''); Remove-Item $($Using:tmpDir + "art-out.txt"), $($Using:tmpDir + "art-err.txt") -Force -ErrorAction Ignore })
+                            write-output (Invoke-Command -Session $session -scriptblock { (Get-Content $($Using:tmpDir + "art-out.txt")) -replace '\x00',''; (Get-Content $($Using:tmpDir + "art-err.txt")) -replace '\x00',''; Remove-Item $($Using:tmpDir + "art-out.txt"), $($Using:tmpDir + "art-err.txt") -Force -ErrorAction Ignore })
                         }
                         elseif (-not $interactive) {
                             # It is possible to have a null $session BUT also have stdout and stderr captured from 
