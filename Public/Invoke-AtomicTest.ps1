@@ -230,14 +230,14 @@ function Invoke-AtomicTest {
                             $final_command_prereq = Merge-InputArgs $dep.prereq_command $test $InputArgs $PathToPayloads
                             if ($executor -ne "powershell") { $final_command_prereq = ($final_command_prereq.trim()).Replace("`n", " && ") }
                             $final_command_get_prereq = Merge-InputArgs $dep.get_prereq_command $test $InputArgs $PathToPayloads
-                            $res = Invoke-ExecuteCommand $final_command_prereq $executor $TimeoutSeconds $session -Interactive:$Interactive
+                            $res = Invoke-ExecuteCommand $final_command_prereq $executor $TimeoutSeconds $session -Interactive:$true
 
                             if ($res -eq 0) {
                                 Write-KeyValue "Prereq already met: " $description
                             }
                             else {
                                 $res = Invoke-ExecuteCommand $final_command_get_prereq $executor $TimeoutSeconds $session -Interactive:$Interactive
-                                $res = Invoke-ExecuteCommand $final_command_prereq $executor $TimeoutSeconds $session -Interactive:$Interactive
+                                $res = Invoke-ExecuteCommand $final_command_prereq $executor $TimeoutSeconds $session -Interactive:$true
                                 if ($res -eq 0) {
                                     Write-KeyValue "Prereq successfully met: " $description
                                 }
@@ -262,21 +262,22 @@ function Invoke-AtomicTest {
                         Write-KeyValue "Done executing test: " $testId
                     }
                     if ($session) {
-                        write-output (Invoke-Command -Session $session -scriptblock { Get-Content $($Using:tmpDir + "art-out.txt"); Get-Content $($Using:tmpDir + "art-err.txt"); Remove-Item $($Using:tmpDir + "art-out.txt"), $($Using:tmpDir + "art-err.txt") -Force -ErrorAction Ignore })
+                        write-output (Invoke-Command -Session $session -scriptblock { (Get-Content $($Using:tmpDir + "art-out.txt")) -replace '\x00', ''; (Get-Content $($Using:tmpDir + "art-err.txt")) -replace '\x00', ''; Remove-Item $($Using:tmpDir + "art-out.txt"), $($Using:tmpDir + "art-err.txt") -Force -ErrorAction Ignore })
                     }
-                    else {
+                    elseif (-not $interactive) {
                         # It is possible to have a null $session BUT also have stdout and stderr captured from 
                         #   the executed command. IF so then write the output to the pipe and cleanup the files.
                         $stdoutFilename = $tmpDir + "art-out.txt"
                         if (Test-Path $stdoutFilename -PathType leaf) { 
-                            Write-Output (Get-Content $stdoutFilename)
+                            Write-Output ((Get-Content $stdoutFilename) -replace '\x00', '')
                             Remove-Item $stdoutFilename
                         }
                         $stderrFilename = $tmpDir + "art-err.txt"
                         if (Test-Path $stderrFilename -PathType leaf) { 
-                            Write-Output (Get-Content $stderrFilename)
+                            Write-Output ((Get-Content $stderrFilename) -replace '\x00', '')
                             Remove-Item $stderrFilename
                         }
+                    }
                 } # End of foreach Test in single Atomic Technique
             } # End of foreach Technique in Atomic Tests
         } # End of Invoke-AtomicTestSingle function
