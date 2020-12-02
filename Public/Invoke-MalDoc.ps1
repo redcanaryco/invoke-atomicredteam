@@ -1,6 +1,3 @@
-# Maldoc Handler
-# This function uses COM objects to emulate the creation and execution of malicious office documents
-
 function Invoke-MalDoc {
     <#
     .SYNOPSIS
