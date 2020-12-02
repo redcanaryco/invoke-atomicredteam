@@ -6,9 +6,9 @@ function Invoke-MalDoc {
     .DESCRIPTION
     A module to programatically execute Microsoft Word and Exel Documents containing macros. The module will add a registry key to allow PowerShell to interact with VBA. Use the `-Cleanup` flag to revert this change
     .PARAMETER macroCode
-    [Required] The VBA code to be executed. By default, this macro code will be wrapped in a sub routine, called "Test" by default. If you don't want your macro code to be wrapped in a sub routine use the `-noWrap` flag. To specify the subroutine name use the `-sub` parameter.
+    [Required] The VBA code to be executed. By default, this macro code will be wrapped in a sub routine, called "Test" by default. If you don't want your macro code to be wrapped in a subroutine use the `-noWrap` flag. To specify the subroutine name use the `-sub` parameter.
     .PARAMETER officeVersion
-    [Required] The Microsoft Office version to use for executing the document. E.g. "16.0"
+    [Required] The Microsoft Office version to use for executing the document. e.g. "16.0"
     .PARAMETER officeProduct
     [Required] The Microsoft Office application in which to create and execute the macro, either "Word" or "Excel".
     .PARAMETER sub
@@ -20,6 +20,12 @@ function Invoke-MalDoc {
     C:\PS> Invoke-Maldoc -macroCode "MsgBox `"Hello`"" -officeVersion "16.0" -officeProduct "Word"
     -----------
     Create a macro enabled Microsoft Word Document (using the installed Office version 16.0). The macro code `MsgBox "Hello"` will be wrapped inside of a subroutine call "Test" and then executed.
+    
+    .EXAMPLE
+    C:\PS> $macroCode = Get-Content path/to/macro.txt -Raw
+    C:\PS> Invoke-Maldoc -macroCode $macroCode -officeVersion "16.0" -officeProduct "Word"
+    -----------
+    Create a macro enabled Microsoft Word Document (using the installed Office version 16.0). The macro code read from `path/to/macro.txt` will be wrapped inside of a subroutine call "Test" and then executed.
     
     .EXAMPLE
     C:\PS> Invoke-Maldoc -macroCode "MsgBox `"Hello`"" -officeVersion "15.0" -officeProduct "Excel" -sub "DoIt"
