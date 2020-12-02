@@ -4,7 +4,7 @@ function Invoke-MalDoc {
     A module to programatically execute Microsoft Word and Exel Documents containing macros.
 
     .DESCRIPTION
-    A module to programatically execute Microsoft Word and Exel Documents containing macros. The module will add a registry key to allow PowerShell to interact with VBA. Use the `-Cleanup` flag to revert this change
+    A module to programatically execute Microsoft Word and Exel Documents containing macros. The module will temporarily add a registry key to allow PowerShell to interact with VBA.
     .PARAMETER macroCode
     [Required] The VBA code to be executed. By default, this macro code will be wrapped in a sub routine, called "Test" by default. If you don't want your macro code to be wrapped in a subroutine use the `-noWrap` flag. To specify the subroutine name use the `-sub` parameter.
     .PARAMETER officeVersion
@@ -36,10 +36,6 @@ function Invoke-MalDoc {
     C:\PS> Invoke-Maldoc -macroCode "Sub Exec()`nMsgBox `"Hello`"`nEnd Sub" -officeVersion "16.0" -officeProduct "Word" -noWrap -sub "Exec"
     -----------
     Create a macro enabled Microsoft Word Document (using the installed Office version 16.0). The macroCode will be unmodified (i.e. not wrapped insided a subroutine) and the "Exec" subroutine will be executed.
-
-    .EXAMPLE
-    C:\PS> Invoke-Maldoc -officeVersion "16.0" -officeProduct "Word" -Cleanup
-    Remove the Office Security AccessVBOM registry key
 #>
 
     Param(
@@ -57,29 +53,22 @@ function Invoke-MalDoc {
         [String]$sub = "Test",
 
         [Parameter(Position = 4, Mandatory = $false, ParameterSetName = 'execution')]
-        [switch]$noWrap,
-
-        [Parameter(Mandatory = $True, ParameterSetName = 'cleanup')]
-        [switch]$Cleanup
+        [switch]$noWrap
     )
 
-    if ($Cleanup) {
-        Remove-ItemProperty -Path 'HKCU:\Software\Microsoft\Office\$officeVersion\$officeProduct\Security\' -Name 'AccessVBOM' -ErrorAction Ignore
+    Set-ItemProperty -Path "HKCU:\Software\Microsoft\Office\$officeVersion\$officeProduct\Security\" -Name 'AccessVBOM' -Value 1
+    if (-not $noWrap) {
+        $macroCode = "Sub $sub()`n" + $macroCode + "`nEnd Sub"
+    } 
+    $app = New-Object -ComObject "$officeProduct.Application"
+    if ($officeProduct -eq "Word") {
+        $null = $app.Documents.Add()
     }
     else {
-        if (-not $noWrap) {
-            $macroCode = "Sub $sub()`n" + $macroCode + "`nEnd Sub"
-        } 
-        Set-ItemProperty -Path "HKCU:\Software\Microsoft\Office\$officeVersion\$officeProduct\Security\" -Name 'AccessVBOM' -Value 1
-        $app = New-Object -ComObject "$officeProduct.Application"
-        if ($officeProduct -eq "Word") {
-            $null = $app.Documents.Add()
-        }
-        else {
-            $null = $app.Workbooks.Add()
-        }
-        $null = $app.VBE.ActiveVBProject.VBComponents.Add(1)
-        $app.VBE.ActiveVBProject.VBComponents.Item("Module1").CodeModule.AddFromString($macroCode)
-        $app.Run($sub)
+        $null = $app.Workbooks.Add()
     }
+    $null = $app.VBE.ActiveVBProject.VBComponents.Add(1)
+    $app.VBE.ActiveVBProject.VBComponents.Item("Module1").CodeModule.AddFromString($macroCode)
+    $app.Run($sub)
+    Remove-ItemProperty -Path 'HKCU:\Software\Microsoft\Office\$officeVersion\$officeProduct\Security\' -Name 'AccessVBOM' -ErrorAction Ignore
 }
