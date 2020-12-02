@@ -39,7 +39,7 @@ function Invoke-MalDoc {
 #>
 
     Param(
-        [Parameter(Position = 0, Mandatory = $True, ParameterSetName = 'execution')]
+        [Parameter(Position = 0, Mandatory = $True)]
         [String]$macroCode,
 
         [Parameter(Position = 1, Mandatory = $True)]
@@ -49,10 +49,10 @@ function Invoke-MalDoc {
         [ValidateSet("Word", "Excel")]
         [String]$officeProduct,
 
-        [Parameter(Position = 3, Mandatory = $false, ParameterSetName = 'execution')]
+        [Parameter(Position = 3, Mandatory = $false)]
         [String]$sub = "Test",
 
-        [Parameter(Position = 4, Mandatory = $false, ParameterSetName = 'execution')]
+        [Parameter(Position = 4, Mandatory = $false)]
         [switch]$noWrap
     )
 
