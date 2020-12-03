@@ -77,5 +77,5 @@ function Invoke-MalDoc {
     [System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) | Out-Null
     [System.GC]::Collect()
     [System.GC]::WaitForPendingFinalizers()
-    Remove-ItemProperty -Path 'HKCU:\Software\Microsoft\Office\$officeVersion\$officeProduct\Security\' -Name 'AccessVBOM' -ErrorAction Ignore
+    Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Office\$officeVersion\$officeProduct\Security\" -Name 'AccessVBOM' -ErrorAction Ignore
 }
