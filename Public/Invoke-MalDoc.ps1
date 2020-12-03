@@ -62,13 +62,21 @@ function Invoke-MalDoc {
     } 
     $app = New-Object -ComObject "$officeProduct.Application"
     if ($officeProduct -eq "Word") {
-        $null = $app.Documents.Add()
+        $doc = $app.Documents.Add()
+        $null = $app.ActiveDocument.VBProject.VBComponents.Add(1)
     }
     else {
         $null = $app.Workbooks.Add()
+        $null = $app.VBE.ActiveVBProject.VBComponents.Add(1)
+
     }
-    $null = $app.VBE.ActiveVBProject.VBComponents.Add(1)
     $app.VBE.ActiveVBProject.VBComponents.Item("Module1").CodeModule.AddFromString($macroCode)
     $app.Run($sub)
+    if ($officeProduct -eq "Word") {
+        $doc.Close(0)
+    }
+    else {
+        $app.Quit()
+    }
     Remove-ItemProperty -Path 'HKCU:\Software\Microsoft\Office\$officeVersion\$officeProduct\Security\' -Name 'AccessVBOM' -ErrorAction Ignore
 }
