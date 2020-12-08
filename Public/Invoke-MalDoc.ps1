@@ -50,6 +50,9 @@ function Invoke-MalDoc {
         [Parameter(Position = 0, Mandatory = $True, ParameterSetName = "code")]
         [String]$macroCode,
 
+        [Parameter(Position = 0, Mandatory = $True, ParameterSetName = "file")]
+        [String]$macroFile,
+
         [Parameter(Position = 1, Mandatory = $False)]
         [String]$officeVersion,
 
@@ -61,10 +64,7 @@ function Invoke-MalDoc {
         [String]$sub = "Test",
 
         [Parameter(Position = 4, Mandatory = $false, ParameterSetName = "code")]
-        [switch]$noWrap,
-
-        [Parameter(Position = 0, Mandatory = $True, ParameterSetName = "file")]
-        [String]$macroFile
+        [switch]$noWrap
     )
 
     $app = New-Object -ComObject "$officeProduct.Application"
