@@ -50,7 +50,7 @@ function Invoke-MalDoc {
         [Parameter(Position = 0, Mandatory = $True, ParameterSetName = "code")]
         [String]$macroCode,
 
-        [Parameter(Position = 0, Mandatory = $True, ParameterSetName = "file")]
+        [Parameter(Position = 5, Mandatory = $True, ParameterSetName = "file")]
         [String]$macroFile,
 
         [Parameter(Position = 1, Mandatory = $False)]
