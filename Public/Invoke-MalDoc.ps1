@@ -58,7 +58,9 @@ function Invoke-MalDoc {
 
     $app = New-Object -ComObject "$officeProduct.Application"
     if(-not $officeVersion) { $officeVersion = $app.Version } 
-    Set-ItemProperty -Path "HKCU:\Software\Microsoft\Office\$officeVersion\$officeProduct\Security\" -Name 'AccessVBOM' -Value 1
+    $Key = "HKCU:\Software\Microsoft\Office\$officeVersion\$officeProduct\Security\"
+	if(-not (Test-Path $key)) { New-Item $Key }
+    Set-ItemProperty -Path $Key -Name 'AccessVBOM' -Value 1
     if (-not $noWrap) {
         $macroCode = "Sub $sub()`n" + $macroCode + "`nEnd Sub"
     } 
