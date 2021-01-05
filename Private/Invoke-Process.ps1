@@ -35,8 +35,21 @@ function Invoke-Process {
             # wait for complete
             $Timeout = [System.TimeSpan]::FromSeconds(($TimeoutSeconds))
             if (-not $process.WaitForExit($Timeout.TotalMilliseconds)) {
-                Write-Host -ForegroundColor Red "Process Timed out after $TimeoutSeconds seconds, use '-TimeoutSeconds' to specify a different timeout"
                 Invoke-KillProcessTree $process.id
+
+                Write-Host -ForegroundColor Red "Process Timed out after $TimeoutSeconds seconds, use '-TimeoutSeconds' to specify a different timeout"
+                if ($stdoutFile) {
+                    # Add a warning in stdoutFile in case of timeout
+                    # problem: $stdoutFile was locked in writing by the process we just killed, sometimes it's too fast and the lock isn't released immediately
+                    # solution: retry at most 10 times with 100ms between each attempt
+                    For($i=0;$i -lt 10;$i++) { 
+                        try {
+                            "<timeout>" | Out-File (Join-Path $WorkingDirectory $stdoutFile) -Append -Encoding ASCII
+                            break # if we're here it means the file wasn't locked and Out-File worked, so we can leave the retry loop
+                        } catch {} # file is locked
+                        Start-Sleep -m 100
+                    }
+                }
             }
 
             if ($IsLinux -or $IsMacOS) {
