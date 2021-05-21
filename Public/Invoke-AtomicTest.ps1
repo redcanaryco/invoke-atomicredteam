@@ -11,6 +11,10 @@
     PS/> Invoke-AtomicTest T1117 -Cleanup
 .EXAMPLE Generate Atomic Test (Output Test Definition Details)
     PS/> Invoke-AtomicTest T1117 -ShowDetails
+.EXAMPLE Invoke a test and flow the standard/error output to the console
+    PS/> Invoke-AtomicTest T1117 -Interactive
+.EXAMPLE Invoke a test and keep standard/error output files for later processing. This edge case has specific requirements. See https://github.com/redcanaryco/invoke-atomicredteam/issues/60
+    PS/> Invoke-AtomicTest T1117 -KeepStdOutStdErrFiles
 .NOTES
     Create Atomic Tests from yaml files described in Atomic Red Team. https://github.com/redcanaryco/atomic-red-team/tree/master/atomics
 .LINK
@@ -119,7 +123,13 @@ function Invoke-AtomicTest {
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'technique')]
         [switch]
-        $Interactive = $false
+        $Interactive = $false,
+
+        [Parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'technique')]
+        [switch]
+        $KeepStdOutStdErrFiles = $false
 
     )
     BEGIN { } # Intentionally left blank and can be removed
@@ -262,7 +272,7 @@ function Invoke-AtomicTest {
                         Write-KeyValue "Done executing test: " $testId
                     }
                     if ($session) {
-                        write-output (Invoke-Command -Session $session -scriptblock { (Get-Content $($Using:tmpDir + "art-out.txt")) -replace '\x00', ''; (Get-Content $($Using:tmpDir + "art-err.txt")) -replace '\x00', ''; Remove-Item $($Using:tmpDir + "art-out.txt"), $($Using:tmpDir + "art-err.txt") -Force -ErrorAction Ignore })
+                        write-output (Invoke-Command -Session $session -scriptblock { (Get-Content $($Using:tmpDir + "art-out.txt")) -replace '\x00', ''; (Get-Content $($Using:tmpDir + "art-err.txt")) -replace '\x00', ''; if(-not $KeepStdOutStdErrFiles) { Remove-Item $($Using:tmpDir + "art-out.txt"), $($Using:tmpDir + "art-err.txt") -Force -ErrorAction Ignore }})
                     }
                     elseif (-not $interactive) {
                         # It is possible to have a null $session BUT also have stdout and stderr captured from 
@@ -270,12 +280,16 @@ function Invoke-AtomicTest {
                         $stdoutFilename = $tmpDir + "art-out.txt"
                         if (Test-Path $stdoutFilename -PathType leaf) { 
                             Write-Output ((Get-Content $stdoutFilename) -replace '\x00', '')
-                            Remove-Item $stdoutFilename
+                            if(-not $KeepStdOutStdErrFiles) {
+                                Remove-Item $stdoutFilename
+                            }
                         }
                         $stderrFilename = $tmpDir + "art-err.txt"
                         if (Test-Path $stderrFilename -PathType leaf) { 
                             Write-Output ((Get-Content $stderrFilename) -replace '\x00', '')
-                            Remove-Item $stderrFilename
+                            if(-not $KeepStdOutStdErrFiles) { 
+                                Remove-Item $stderrFilename
+                            }
                         }
                     }
                 } # End of foreach Test in single Atomic Technique
