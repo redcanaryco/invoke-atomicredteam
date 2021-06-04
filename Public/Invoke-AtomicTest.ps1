@@ -285,9 +285,9 @@ function Invoke-AtomicTest {
         if ($AtomicTechnique -eq "All") {
             function Invoke-AllTests() {
                 $AllAtomicTests = New-Object System.Collections.ArrayList
-                Get-ChildItem $PathToAtomicsFolder -Recurse -Filter *.yaml -File | ForEach-Object {
-                    $currentTechnique = [System.IO.Path]::GetFileNameWithoutExtension($_.FullName)
-                    if ( $currentTechnique -ne "index" ) { $AllAtomicTests.Add($currentTechnique) | Out-Null }
+                Get-ChildItem $PathToAtomicsFolder -Directory -Filter T* | ForEach-Object {
+                    $currentTechnique = [System.IO.Path]::GetFileName($_.FullName)
+                    if ( $currentTechnique -match "T[0-9]{4}.?([0-9]{3})?" ) { $AllAtomicTests.Add($currentTechnique) | Out-Null }
                 }
                 $AllAtomicTests.GetEnumerator() | Foreach-Object { Invoke-AtomicTestSingle $_ }
             }
