@@ -105,7 +105,7 @@ filter Get-AtomicTechnique {
 
     $ValidSupportedPlatforms = @('windows', 'macos', 'linux', 'office-365', 'azure-ad', 'google-workspace', 'saas', 'iaas', 'containers', 'iaas:aws', 'iaas:azure', 'iaas:gcp')
     $ValidInputArgTypes = @('Path', 'Url', 'String', 'Integer', 'Float')
-    $ValidExecutorTypes = @('command_prompt', 'sh', 'bash', 'powershell', 'manual', 'aws', 'az', 'gcloud')
+    $ValidExecutorTypes = @('command_prompt', 'sh', 'bash', 'powershell', 'manual')
 
     # ConvertFrom-Yaml will throw a .NET exception rather than a PowerShell error.
     # Capture the exception and convert to PowerShell error so that the user can decide
