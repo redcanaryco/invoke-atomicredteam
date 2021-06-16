@@ -338,6 +338,3 @@ function Invoke-AtomicTest {
     } # End of PROCESS block
     END { } # Intentionally left blank and can be removed
 }
-
-# Import-Module "C:\Users\asmith\Documents\code\invoke-atomicredteam\Invoke-AtomicRedTeam.psd1" -Force
-# Invoke-AtomicTest T0000 -testnumber 1
