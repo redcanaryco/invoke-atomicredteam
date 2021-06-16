@@ -6,9 +6,6 @@ function Invoke-ExecuteCommand ($finalCommand, $executor, $TimeoutSeconds, $sess
         if ($executor -eq "command_prompt" -or $executor -eq "sh" -or $executor -eq "bash") {
             $execPrefix = "-c"
             $execExe = $executor
-            # handle executor loosely (example: if sh specified but OS is windows, use command_prompt)
-            if (($IsLinux -or $IsMacOS) -and ($executor -eq "command_prompt") ) { $executor = "sh" }
-            if ( (-not ($IsLinux -or $IsMacOS))  -and ($executor -eq "sh" -or $executor -eq "bash") ) { $executor = "command_prompt"}
             if ($executor -eq "command_prompt") { 
                     $execPrefix = "/c"; 
                     $execExe = "cmd.exe"; 
