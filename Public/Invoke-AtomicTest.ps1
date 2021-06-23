@@ -139,8 +139,18 @@ function Invoke-AtomicTest {
         Write-Verbose -Message 'Attempting to run Atomic Techniques'
         Write-Host -ForegroundColor Cyan "PathToAtomicsFolder = $PathToAtomicsFolder`n"
         
-        $targetPlatform, $isElevated, $tmpDir, $targetHostname, $targetUser = Get-TargetInfo $Session
+        $executionPlatform, $isElevated, $tmpDir, $executionHostname, $executionUser = Get-TargetInfo $Session
         $PathToPayloads = if ($Session) { "$tmpDir`AtomicRedTeam" }  else { $PathToAtomicsFolder }
+
+        function Platform-IncludesCloud {
+            $cloud = ('office-365', 'azure-ad', 'google-workspace', 'saas', 'iaas', 'containers', 'iaas:aws', 'iaas:azure', 'iaas:gcp')
+            foreach ($platform in $test.supported_platforms) {
+                if ($cloud -contains $platform) {
+                    return $true
+                }
+            }
+            return $false
+        }
 
         function Invoke-AtomicTestSingle ($AT) {
 
@@ -169,14 +179,24 @@ function Invoke-AtomicTest {
                 $testCount = 0
                 foreach ($test in $technique.atomic_tests) {
 
-                    Write-Verbose -Message 'Determining tests for target operating system'
+                    Write-Verbose -Message 'Determining tests for target platform'
 
                     $testCount++
-
-                    if (-Not $test.supported_platforms.Contains($targetPlatform)) {
-                        Write-Verbose -Message "Unable to run non-$targetPlatform tests"
+                    
+                    if ( -not $(Platform-IncludesCloud) -and -Not $test.supported_platforms.Contains($executionPlatform) ) {
+                        Write-Verbose -Message "Unable to run non-$executionPlatform tests"
                         continue
                     }
+
+                    if ( $executionPlatform -eq "windows" -and ($test.executor.name -eq "sh" -or $test.executor.name -eq "bash")) {
+                        Write-Verbose -Message "Unable to run sh or bash on $executionPlatform"
+                        continue    
+                    }
+                    if ( ("linux", "macos") -contains $executionPlatform -and $test.executor.name -eq "command_prompt") {
+                        Write-Verbose -Message "Unable to run cmd.exe on $executionPlatform"
+                        continue    
+                    }
+                    
 
                     if ($null -ne $TestNumbers) {
                         if (-Not ($TestNumbers -contains $testCount) ) { continue }
@@ -268,11 +288,11 @@ function Invoke-AtomicTest {
                         $startTime = get-date
                         $final_command = Merge-InputArgs $test.executor.command $test $InputArgs $PathToPayloads
                         $res = Invoke-ExecuteCommand $final_command $test.executor.name $TimeoutSeconds $session -Interactive:$Interactive
-                        Write-ExecutionLog $startTime $AT $testCount $test.name $ExecutionLogPath $targetHostname $targetUser $test.auto_generated_guid
+                        Write-ExecutionLog $startTime $AT $testCount $test.name $ExecutionLogPath $executionHostname $executionUser $test.auto_generated_guid
                         Write-KeyValue "Done executing test: " $testId
                     }
                     if ($session) {
-                        write-output (Invoke-Command -Session $session -scriptblock { (Get-Content $($Using:tmpDir + "art-out.txt")) -replace '\x00', ''; (Get-Content $($Using:tmpDir + "art-err.txt")) -replace '\x00', ''; if(-not $KeepStdOutStdErrFiles) { Remove-Item $($Using:tmpDir + "art-out.txt"), $($Using:tmpDir + "art-err.txt") -Force -ErrorAction Ignore }})
+                        write-output (Invoke-Command -Session $session -scriptblock { (Get-Content $($Using:tmpDir + "art-out.txt")) -replace '\x00', ''; (Get-Content $($Using:tmpDir + "art-err.txt")) -replace '\x00', ''; if (-not $KeepStdOutStdErrFiles) { Remove-Item $($Using:tmpDir + "art-out.txt"), $($Using:tmpDir + "art-err.txt") -Force -ErrorAction Ignore } })
                     }
                     elseif (-not $interactive) {
                         # It is possible to have a null $session BUT also have stdout and stderr captured from 
@@ -280,14 +300,14 @@ function Invoke-AtomicTest {
                         $stdoutFilename = $tmpDir + "art-out.txt"
                         if (Test-Path $stdoutFilename -PathType leaf) { 
                             Write-Output ((Get-Content $stdoutFilename) -replace '\x00', '')
-                            if(-not $KeepStdOutStdErrFiles) {
+                            if (-not $KeepStdOutStdErrFiles) {
                                 Remove-Item $stdoutFilename
                             }
                         }
                         $stderrFilename = $tmpDir + "art-err.txt"
                         if (Test-Path $stderrFilename -PathType leaf) { 
                             Write-Output ((Get-Content $stderrFilename) -replace '\x00', '')
-                            if(-not $KeepStdOutStdErrFiles) { 
+                            if (-not $KeepStdOutStdErrFiles) { 
                                 Remove-Item $stderrFilename
                             }
                         }
