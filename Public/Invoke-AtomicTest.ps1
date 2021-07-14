@@ -27,14 +27,6 @@ function Invoke-AtomicTest {
         PositionalBinding = $false,
         ConfirmImpact = 'Medium')]
     Param(
-        [Parameter(Mandatory = $true,
-            Position = 0,
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'technique')]
-        [ValidateNotNullOrEmpty()]
-        [String]
-        $AtomicTechnique,
-
         [Parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'technique')]
@@ -132,9 +124,14 @@ function Invoke-AtomicTest {
         $KeepStdOutStdErrFiles = $false
 
     )
+    DynamicParam {
+        Get-DynamicFlowParamAtomics -Params $PSBoundParameters
+    }
     BEGIN { } # Intentionally left blank and can be removed
     PROCESS {
         $PathToAtomicsFolder = (Resolve-Path $PathToAtomicsFolder).Path
+
+        $AtomicTechnique = $PSBoundParameters['AtomicTechnique'] # Populate dynamic parameter to current scope
         
         Write-Verbose -Message 'Attempting to run Atomic Techniques'
         Write-Host -ForegroundColor Cyan "PathToAtomicsFolder = $PathToAtomicsFolder`n"
@@ -337,4 +334,108 @@ function Invoke-AtomicTest {
 
     } # End of PROCESS block
     END { } # Intentionally left blank and can be removed
+}
+
+# Below is the code for the dynamic parameters for atomics
+
+function Get-DynamicFlowParamAtomics()
+{
+    param(
+        $Params
+    )
+    $Dictionary = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
+
+    $PathToAtomicsFolder = (Resolve-Path $Params['PathToAtomicsFolder']).Path
+    New-DynamicParam -Name AtomicTechnique -ValueFromPipelineByPropertyName -Mandatory -ParameterSetName 'technique' -Position 0 -type string -ValidateSet $(((gci $PathToAtomicsFolder\T*\* -Filter *.yaml).name) -replace "\.yaml","") -DPDictionary $Dictionary
+
+    $Dictionary
+}
+
+# Generic dynamic param function
+
+Function New-DynamicParam ()
+{
+    param(
+        [string]
+        $Name,
+
+        [System.Type]
+        $Type = [string],
+
+        [string[]]
+        $Alias = @(),
+
+        [string[]]
+        $ValidateSet,
+
+        [switch]
+        $Mandatory,
+
+        [string]
+        $ParameterSetName="__AllParameterSets",
+
+        [int]
+        $Position,
+
+        [switch]
+        $ValueFromPipelineByPropertyName,
+
+        [string]
+        $HelpMessage,
+
+        [validatescript({
+            if(-not ( $_ -is [System.Management.Automation.RuntimeDefinedParameterDictionary] -or -not $_) )
+            {
+                Throw "DPDictionary must be a System.Management.Automation.RuntimeDefinedParameterDictionary object, or not exist"
+            }
+            $True
+        })]
+        $DPDictionary = $false
+
+    )
+    $ParamAttr = New-Object System.Management.Automation.ParameterAttribute
+    $ParamAttr.ParameterSetName = $ParameterSetName
+    if($Mandatory)
+    {
+        $ParamAttr.Mandatory = $True
+    }
+    if($Position -ne $null)
+    {
+        $ParamAttr.Position=$Position
+    }
+    if($ValueFromPipelineByPropertyName)
+    {
+        $ParamAttr.ValueFromPipelineByPropertyName = $True
+    }
+    if($HelpMessage)
+    {
+        $ParamAttr.HelpMessage = $HelpMessage
+    }
+
+    $AttributeCollection = New-Object -type System.Collections.ObjectModel.Collection[System.Attribute]
+    $AttributeCollection.Add($ParamAttr)
+
+    if($ValidateSet)
+    {
+        $ParamOptions = New-Object System.Management.Automation.ValidateSetAttribute -ArgumentList $ValidateSet
+        $AttributeCollection.Add($ParamOptions)
+    }
+
+    if($Alias.count -gt 0) {
+        $ParamAlias = New-Object System.Management.Automation.AliasAttribute -ArgumentList $Alias
+        $AttributeCollection.Add($ParamAlias)
+    }
+
+    $Parameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter -ArgumentList @($Name, $Type, $AttributeCollection)
+
+    if($DPDictionary)
+    {
+        $DPDictionary.Add($Name, $Parameter)
+    }
+    else
+    {
+        $Dictionary = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
+        $Dictionary.Add($Name, $Parameter)
+        $Dictionary
+    }
 }
