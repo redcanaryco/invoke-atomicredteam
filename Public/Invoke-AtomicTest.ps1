@@ -351,7 +351,10 @@ function Get-DynamicFlowParamAtomics()
         $PathToAtomicsFolder = $( if ($IsLinux -or $IsMacOS) { $Env:HOME + "/AtomicRedTeam/atomics" } else { $env:HOMEDRIVE + "\AtomicRedTeam\atomics" })
     }
 
-    New-DynamicParam -Name AtomicTechnique -ValueFromPipelineByPropertyName -Mandatory -ParameterSetName 'technique' -Position 0 -type string -ValidateSet $(((gci $PathToAtomicsFolder\T*\* -Filter *.yaml).name) -replace "\.yaml","") -DPDictionary $Dictionary
+    $ValidateSetAtomics = @("All")
+    $ValidateSetAtomics += $(((gci $PathToAtomicsFolder\T*\* -Filter *.yaml).name) -replace "\.yaml","")
+
+    New-DynamicParam -Name AtomicTechnique -ValueFromPipelineByPropertyName -Mandatory -ParameterSetName 'technique' -Position 0 -type string -ValidateSet $ValidateSetAtomics -DPDictionary $Dictionary
 
     $Dictionary
 }
