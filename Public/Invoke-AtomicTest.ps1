@@ -344,8 +344,13 @@ function Get-DynamicFlowParamAtomics()
         $Params
     )
     $Dictionary = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
+    
+    if ($Params.containskey('PathToAtomicsFolder')) {
+        $PathToAtomicsFolder = (Resolve-Path $Params['PathToAtomicsFolder']).Path
+    } else {
+        $PathToAtomicsFolder = $( if ($IsLinux -or $IsMacOS) { $Env:HOME + "/AtomicRedTeam/atomics" } else { $env:HOMEDRIVE + "\AtomicRedTeam\atomics" })
+    }
 
-    $PathToAtomicsFolder = (Resolve-Path $Params['PathToAtomicsFolder']).Path
     New-DynamicParam -Name AtomicTechnique -ValueFromPipelineByPropertyName -Mandatory -ParameterSetName 'technique' -Position 0 -type string -ValidateSet $(((gci $PathToAtomicsFolder\T*\* -Filter *.yaml).name) -replace "\.yaml","") -DPDictionary $Dictionary
 
     $Dictionary
