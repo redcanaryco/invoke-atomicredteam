@@ -4,7 +4,7 @@
     RootModule        = 'Invoke-AtomicRedTeam.psm1'
 
     # Version number of this module.
-    ModuleVersion     = '1.0.0.0'
+    ModuleVersion     = '1.0.1.0'
 
     # ID used to uniquely identify this module
     GUID              = '8f492621-18f8-432e-9532-b1d54d3e90bd'
@@ -24,6 +24,9 @@
     # Minimum version of the Windows PowerShell engine required by this module
     PowerShellVersion = '5.0'
 
+    # Modules that must be imported into the global environment prior to importing this module
+    RequiredModules = @('powershell-yaml')
+    
     # Script files (.ps1) that are run in the caller's environment prior to importing this module.
     # AtomicClassSchema.ps1 needs to be present in the caller's scope in order for the built-in classes to surface properly.
     ScriptsToProcess  = @('Private\AtomicClassSchema.ps1')
@@ -62,9 +65,13 @@
 
             # ReleaseNotes of this module
             ReleaseNotes = @'
+1.0.1
+-----
+* Adding 'powershell-yaml' to RequiredModules in the module manifest
+            
 1.0.0
 -----
-Initial release for submission to the PowerShell Gallery
+* Initial release for submission to the PowerShell Gallery
 '@
 
         } # End of PSData hashtable
