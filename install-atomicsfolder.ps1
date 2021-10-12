@@ -67,6 +67,7 @@ function Install-AtomicsFolder {
             $path = Join-Path $DownloadPath "$Branch.zip"
             [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
             write-verbose "Beginning download of atomics folder from Github"
+            $ProgressPreference = 'SilentlyContinue' # no progressbar for much faster download
             Invoke-WebRequest $url -OutFile $path
 
             write-verbose "Extracting ART to $InstallPath"
