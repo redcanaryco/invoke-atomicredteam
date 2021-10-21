@@ -67,7 +67,11 @@ function Install-AtomicsFolder {
             $path = Join-Path $DownloadPath "$Branch.zip"
             [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
             write-verbose "Beginning download of atomics folder from Github"
-            $ProgressPreference = 'SilentlyContinue' # no progressbar for much faster download
+			
+			# disable progress bar for faster performances
+			$ProgressPreference_backup = $global:ProgressPreference
+            $global:ProgressPreference = "SilentlyContinue"
+			
             Invoke-WebRequest $url -OutFile $path
 
             write-verbose "Extracting ART to $InstallPath"
@@ -77,7 +81,10 @@ function Install-AtomicsFolder {
             Move-Item $atomicsFolderUnzipped $InstallPath
             Remove-Item $zipDest -Recurse -Force
             Remove-Item $path
-
+			
+			
+			# restore progress bar preferences
+			$global:ProgressPreference = $ProgressPreference_backup
         }
         else {
             Write-Host -ForegroundColor Yellow "An atomics folder already exists at $InstallPathwAtomics. No changes were made."
