@@ -20,7 +20,7 @@ function Invoke-ExecuteCommand ($finalCommand, $executor, $TimeoutSeconds, $sess
         elseif ($executor -eq "powershell") {
             $execCommand = $finalCommand -replace "`"", "`\`"`""
             if ($session) {
-                if ($targetPlatform -eq "windows") {
+                if ((Get-TargetInfo $session)[0] -eq "windows") {
                         $execExe = "powershell.exe"
                 }
                 else {
