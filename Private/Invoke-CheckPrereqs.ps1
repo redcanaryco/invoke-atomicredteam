@@ -1,4 +1,4 @@
-function Invoke-CheckPrereqs ($test, $isElevated, $customInputArgs, $PathToAtomicsFolder, $TimeoutSeconds, $session = $null) {
+function Invoke-CheckPrereqs ($test, $isElevated, $executionPlatform, $customInputArgs, $PathToAtomicsFolder, $TimeoutSeconds, $session = $null) {
     $FailureReasons = New-Object System.Collections.ArrayList
     if ( $test.executor.elevation_required -and -not $isElevated) {
         $FailureReasons.add("Elevation required but not provided`n") | Out-Null
