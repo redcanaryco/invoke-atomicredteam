@@ -1,4 +1,4 @@
-function Invoke-ExecuteCommand ($finalCommand, $executor, $TimeoutSeconds, $session = $null, $interactive) {
+function Invoke-ExecuteCommand ($finalCommand, $executor, $executionPlatform, $TimeoutSeconds, $session = $null, $interactive) {
     $null = @(
         if ($null -eq $finalCommand) { return 0 }
         $finalCommand = $finalCommand.trim()
@@ -20,7 +20,7 @@ function Invoke-ExecuteCommand ($finalCommand, $executor, $TimeoutSeconds, $sess
         elseif ($executor -eq "powershell") {
             $execCommand = $finalCommand -replace "`"", "`\`"`""
             if ($session) {
-                if ((Get-TargetInfo $session)[0] -eq "windows") {
+                if ($executionPlatform -eq "windows") {
                         $execExe = "powershell.exe"
                 }
                 else {
