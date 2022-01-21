@@ -301,14 +301,14 @@ function Invoke-AtomicTest {
                         if (Test-Path $stdoutFilename -PathType leaf) { 
                             Write-Output ((Get-Content $stdoutFilename) -replace '\x00', '')
                             if (-not $KeepStdOutStdErrFiles) {
-                                Remove-Item $stdoutFilename
+                                try {Remove-Item $stdoutFilename -ErrorAction Stop} catch {}
                             }
                         }
                         $stderrFilename = $tmpDir + "art-err.txt"
                         if (Test-Path $stderrFilename -PathType leaf) { 
                             Write-Output ((Get-Content $stderrFilename) -replace '\x00', '')
                             if (-not $KeepStdOutStdErrFiles) { 
-                                Remove-Item $stderrFilename
+                                try {Remove-Item $stderrFilename -ErrorAction Stop} catch {}
                             }
                         }
                     }
