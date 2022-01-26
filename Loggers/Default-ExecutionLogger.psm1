@@ -1,4 +1,8 @@
-function Write-ExecutionLog($startTime, $technique, $testNum, $testName, $logPath, $targetHostname, $targetUser, $guid) {
+function Start-ExecutionLog($startTime, $logPath, $targetHostname, $targetUser, $commandLine) {
+
+}
+
+function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testName, $testGuid, $testExecutor, $testDescription, $command, $logPath, $targetHostname, $targetUser, $stdOut, $stdErr) {
     if (!(Test-Path $logPath)) { 
         New-Item $logPath -Force -ItemType File | Out-Null
     } 
@@ -13,6 +17,10 @@ function Write-ExecutionLog($startTime, $technique, $testNum, $testName, $logPat
         "Test Name"              = $testName; 
         "Hostname"               = $targetHostname; 
         "Username"               = $targetUser
-        "GUID"                   = $guid
+        "GUID"                   = $testGuid
     } | Export-Csv -Path $LogPath -NoTypeInformation -Append
+}
+
+function Stop-ExecutionLog($startTime, $logPath, $targetHostname, $targetUser) {
+
 }
