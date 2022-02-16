@@ -1,8 +1,8 @@
-function Start-ExecutionLog($startTime, $logPath, $targetHostname, $targetUser, $commandLine) {
+function Start-ExecutionLog($startTime, $logPath, $targetHostname, $targetUser, $commandLine, $isWindows) {
 
 }
 
-function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testName, $testGuid, $testExecutor, $testDescription, $command, $logPath, $targetHostname, $targetUser, $stdOut, $stdErr) {
+function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testName, $testGuid, $testExecutor, $testDescription, $command, $logPath, $targetHostname, $targetUser, $stdOut, $stdErr, $isWindows) {
     if (!(Test-Path $logPath)) { 
         New-Item $logPath -Force -ItemType File | Out-Null
     } 
@@ -21,6 +21,6 @@ function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testNa
     } | Export-Csv -Path $LogPath -NoTypeInformation -Append
 }
 
-function Stop-ExecutionLog($startTime, $logPath, $targetHostname, $targetUser) {
+function Stop-ExecutionLog($startTime, $logPath, $targetHostname, $targetUser, $isWindows) {
 
 }
