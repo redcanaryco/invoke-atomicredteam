@@ -271,8 +271,8 @@ function Invoke-AtomicTest {
                 $commandLine = "$commandLine -LoggingModule $LoggingModule"
             }
 
-            $startTime = Get-Date (Get-Date).ToUniversalTime() -UFormat '+%Y-%m-%dT%H:%M:%S.000Z'
-            Start-ExecutionLog $startTime $ExecutionLogPath $executionHostname $executionUser $commandLine
+            $startTime = Get-Date
+            Start-ExecutionLog $startTime $ExecutionLogPath $executionHostname $executionUser $commandLine (-Not($IsLinux -or $IsMacOS))
         }
 
         function Platform-IncludesCloud {
@@ -419,12 +419,12 @@ function Invoke-AtomicTest {
                     }
                     else {
                         Write-KeyValue "Executing test: " $testId
-                        $startTime = Get-Date (Get-Date).ToUniversalTime() -UFormat '+%Y-%m-%dT%H:%M:%S.000Z'
+                        $startTime = Get-Date
                         $final_command = Merge-InputArgs $test.executor.command $test $InputArgs $PathToPayloads
                         $res = Invoke-ExecuteCommand $final_command $test.executor.name $executionPlatform $TimeoutSeconds $session -Interactive:$Interactive
-                        $stopTime = Get-Date (Get-Date).ToUniversalTime() -UFormat '+%Y-%m-%dT%H:%M:%S.000Z'
+                        $stopTime = Get-Date
                         if($isLoggingModuleSet) {
-                            Write-ExecutionLog $startTime $stopTime $AT $order $test.name $test.auto_generated_guid $test.executor.name $test.description $final_command $ExecutionLogPath $executionHostname $executionUser $res.StandardOutput $res.ErrorOutput
+                            Write-ExecutionLog $startTime $stopTime $AT $order $test.name $test.auto_generated_guid $test.executor.name $test.description $final_command $ExecutionLogPath $executionHostname $executionUser $res.StandardOutput $res.ErrorOutput (-Not($IsLinux -or $IsMacOS))
                             $order++
                         }
                         Write-KeyValue "Done executing test: " $testId
@@ -474,7 +474,7 @@ function Invoke-AtomicTest {
         }
 
         if($isLoggingModuleSet) {
-            Stop-ExecutionLog $startTime $ExecutionLogPath $executionHostname $executionUser
+            Stop-ExecutionLog $startTime $ExecutionLogPath $executionHostname $executionUser (-Not($IsLinux -or $IsMacOS))
         }
 
     } # End of PROCESS block

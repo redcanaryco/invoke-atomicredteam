@@ -145,7 +145,6 @@ function Invoke-Process {
             # ProcessStartInfo
             $psi = New-object System.Diagnostics.ProcessStartInfo 
             $psi.CreateNoWindow = $true
-            $psi.LoadUserProfile = $true
             $psi.UseShellExecute = $false
             $psi.RedirectStandardOutput = $true
             $psi.RedirectStandardError = $true
