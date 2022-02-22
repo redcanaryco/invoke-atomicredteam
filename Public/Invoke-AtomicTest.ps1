@@ -93,11 +93,6 @@ function Invoke-AtomicTest {
 
         [Parameter(Mandatory = $false,
             ParameterSetName = 'technique')]
-        [switch]
-        $NoExecutionLog = $false,
-
-        [Parameter(Mandatory = $false,
-            ParameterSetName = 'technique')]
         [String]
         $ExecutionLogPath = $( if ($IsLinux -or $IsMacOS) { "/tmp/Invoke-AtomicTest-ExecutionLog.csv" } else { "$env:TEMP\Invoke-AtomicTest-ExecutionLog.csv" }),
 
@@ -237,10 +232,6 @@ function Invoke-AtomicTest {
 
             if($Cleanup -ne $false) {
                 $commandLine = "$commandLine -Cleanup $Cleanup"
-            }
-
-            if($NoExecutionLog -ne $false) {
-                $commandLine = "$commandLine -NoExecutionLog $NoExecutionLog"
             }
 
             $commandLine = "$commandLine -ExecutionLogPath $ExecutionLogPath"
