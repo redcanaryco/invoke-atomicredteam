@@ -129,7 +129,12 @@ function Invoke-AtomicTest {
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'technique')]
         [switch]
-        $KeepStdOutStdErrFiles = $false
+        $KeepStdOutStdErrFiles = $false,
+
+        [Parameter(Mandatory = $false,
+            ParameterSetName = 'technique')]
+        [String]
+        $LoggingModule
 
     )
     BEGIN { } # Intentionally left blank and can be removed
@@ -141,6 +146,138 @@ function Invoke-AtomicTest {
         
         $executionPlatform, $isElevated, $tmpDir, $executionHostname, $executionUser = Get-TargetInfo $Session
         $PathToPayloads = if ($Session) { "$tmpDir`AtomicRedTeam" }  else { $PathToAtomicsFolder }
+
+        Function Get-Logger {
+            Param([string]$name)
+            if(-not(Get-Module -name $name))
+            {
+                if(Get-Module -ListAvailable |
+                    Where-Object { $_.name -eq $name })
+                {
+                    Import-Module -Name $name -Force
+                    $true
+                } #end if module available then import
+                else {
+                    $false
+                } #module not available
+            } # end if not module
+            else {
+                $true
+            } #module already loaded
+        } #end function Get-Logger
+
+        $isLoggingModuleSet = $false
+        if(-not $NoExecutionLog) {
+            $isLoggingModuleSet = $true
+            if(-not $PSBoundParameters.ContainsKey('LoggingModule')) {
+                Import-Module "$PSScriptRoot\Default-ExecutionLogger.psm1" -Force
+                $LoggingModule = "Default-ExecutionLogger"
+            }
+        }
+
+        if($isLoggingModuleSet) {
+            if(Get-Logger -name $LoggingModule) {
+                Write-Host "Using Logger: ", $LoggingModule
+            } else {
+                Write-Host "Logger not found: ", $LoggingModule
+            }
+
+            if((Get-Command Start-ExecutionLog -erroraction silentlycontinue).Source -eq $LoggingModule) {
+                if((Get-Command Write-ExecutionLog -erroraction silentlycontinue).Source -eq $LoggingModule) {
+                    if((Get-Command Stop-ExecutionLog -erroraction silentlycontinue).Source -eq $LoggingModule) {
+                        Write-Host "All logging commands found"
+                    } else {
+                        Write-Host "Stop-ExecutionLog not found or loaded from the wrong module"
+                        return
+                    }
+                } else {
+                    Write-Host "Write-ExecutionLog not found or loaded from the wrong module"
+                    return
+                }
+            } else {
+                Write-Host "Start-ExecutionLog not found or loaded from the wrong module"
+                return
+            }
+        }
+
+        if($isLoggingModuleSet) {
+            
+            # Here we're rebuilding an equivalent command line to put in the logs
+            $commandLine = "Invoke-AtomicTest $AtomicTechnique"
+
+            if($ShowDetails -ne $false) {
+                $commandLine = "$commandLine -ShowDetails $ShowDetails"
+            }
+
+            if($ShowDetailsBrief -ne $false) {
+                $commandLine = "$commandLine -ShowDetailsBrief $ShowDetailsBrief"
+            }
+
+            if($TestNumbers -ne $null) {
+                $commandLine = "$commandLine -TestNumbers $TestNumbers"
+            }
+
+            if($TestNames -ne $null) {
+                $commandLine = "$commandLine -TestNames $TestNames"
+            }
+
+            if($TestGuids -ne $null) {
+                $commandLine = "$commandLine -TestGuids $TestGuids"
+            }
+
+            $commandLine = "$commandLine -PathToAtomicsFolder $PathToAtomicsFolder"
+
+            if($CheckPrereqs -ne $false) {
+                $commandLine = "$commandLine -CheckPrereqs $CheckPrereqs"
+            }
+
+            if($PromptForInputArgs -ne $false) {
+                $commandLine = "$commandLine -PromptForInputArgs $PromptForInputArgs"
+            }
+
+            if($GetPrereqs -ne $false) {
+                $commandLine = "$commandLine -GetPrereqs $GetPrereqs"
+            }
+
+            if($Cleanup -ne $false) {
+                $commandLine = "$commandLine -Cleanup $Cleanup"
+            }
+
+            if($NoExecutionLog -ne $false) {
+                $commandLine = "$commandLine -NoExecutionLog $NoExecutionLog"
+            }
+
+            $commandLine = "$commandLine -ExecutionLogPath $ExecutionLogPath"
+
+            if($Force -ne $false) {
+                $commandLine = "$commandLine -Force $Force"
+            }
+
+            if($InputArgs -ne $null) {
+                $commandLine = "$commandLine -InputArgs $InputArgs"
+            }
+
+            $commandLine = "$commandLine -TimeoutSeconds $TimeoutSeconds"
+
+            if($Session -ne $null) {
+                $commandLine = "$commandLine -Session $Session"
+            }
+
+            if($Interactive -ne $false) {
+                $commandLine = "$commandLine -Interactive $Interactive"
+            }
+
+            if($KeepStdOutStdErrFiles -ne $false) {
+                $commandLine = "$commandLine -KeepStdOutStdErrFiles $KeepStdOutStdErrFiles"
+            }
+
+            if($LoggingModule -ne $null) {
+                $commandLine = "$commandLine -LoggingModule $LoggingModule"
+            }
+
+            $startTime = Get-Date
+            Start-ExecutionLog $startTime $ExecutionLogPath $executionHostname $executionUser $commandLine (-Not($IsLinux -or $IsMacOS))
+        }
 
         function Platform-IncludesCloud {
             $cloud = ('office-365', 'azure-ad', 'google-workspace', 'saas', 'iaas', 'containers', 'iaas:aws', 'iaas:azure', 'iaas:gcp')
@@ -177,6 +314,7 @@ function Invoke-AtomicTest {
                 Write-Debug -Message "Gathering tests for Technique $technique"
 
                 $testCount = 0
+                $order = 1
                 foreach ($test in $technique.atomic_tests) {
 
                     Write-Verbose -Message 'Determining tests for target platform'
@@ -262,13 +400,13 @@ function Invoke-AtomicTest {
                             $final_command_get_prereq = Merge-InputArgs $dep.get_prereq_command $test $InputArgs $PathToPayloads
                             $res = Invoke-ExecuteCommand $final_command_prereq $executor $executionPlatform $TimeoutSeconds $session -Interactive:$true
 
-                            if ($res -eq 0) {
+                            if ($res.ExitCode -eq 0) {
                                 Write-KeyValue "Prereq already met: " $description
                             }
                             else {
                                 $res = Invoke-ExecuteCommand $final_command_get_prereq $executor $executionPlatform $TimeoutSeconds $session -Interactive:$Interactive
                                 $res = Invoke-ExecuteCommand $final_command_prereq $executor $executionPlatform $TimeoutSeconds $session -Interactive:$true
-                                if ($res -eq 0) {
+                                if ($res.ExitCode -eq 0) {
                                     Write-KeyValue "Prereq successfully met: " $description
                                 }
                                 else {
@@ -285,10 +423,14 @@ function Invoke-AtomicTest {
                     }
                     else {
                         Write-KeyValue "Executing test: " $testId
-                        $startTime = get-date
+                        $startTime = Get-Date
                         $final_command = Merge-InputArgs $test.executor.command $test $InputArgs $PathToPayloads
                         $res = Invoke-ExecuteCommand $final_command $test.executor.name $executionPlatform $TimeoutSeconds $session -Interactive:$Interactive
-                        Write-ExecutionLog $startTime $AT $testCount $test.name $ExecutionLogPath $executionHostname $executionUser $test.auto_generated_guid
+                        $stopTime = Get-Date
+                        if($isLoggingModuleSet) {
+                            Write-ExecutionLog $startTime $stopTime $AT $order $test.name $test.auto_generated_guid $test.executor.name $test.description $final_command $ExecutionLogPath $executionHostname $executionUser $res.StandardOutput $res.ErrorOutput (-Not($IsLinux -or $IsMacOS))
+                            $order++
+                        }
                         Write-KeyValue "Done executing test: " $testId
                     }
                     if ($session) {
@@ -308,7 +450,7 @@ function Invoke-AtomicTest {
                         if (Test-Path $stderrFilename -PathType leaf) { 
                             Write-Output ((Get-Content $stderrFilename) -replace '\x00', '')
                             if (-not $KeepStdOutStdErrFiles) { 
-                                try {Remove-Item $stderrFilename -ErrorAction Stop} catch {}
+                                try {Remove-Item $stdoutFilename -ErrorAction Stop} catch {}
                             }
                         }
                     }
@@ -333,6 +475,10 @@ function Invoke-AtomicTest {
         }
         else {
             Invoke-AtomicTestSingle $AtomicTechnique
+        }
+
+        if($isLoggingModuleSet) {
+            Stop-ExecutionLog $startTime $ExecutionLogPath $executionHostname $executionUser (-Not($IsLinux -or $IsMacOS))
         }
 
     } # End of PROCESS block
