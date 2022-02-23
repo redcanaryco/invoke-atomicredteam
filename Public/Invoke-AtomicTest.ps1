@@ -93,6 +93,11 @@ function Invoke-AtomicTest {
 
         [Parameter(Mandatory = $false,
             ParameterSetName = 'technique')]
+        [switch]
+        $NoExecutionLog = $false,
+
+        [Parameter(Mandatory = $false,
+            ParameterSetName = 'technique')]
         [String]
         $ExecutionLogPath = $( if ($IsLinux -or $IsMacOS) { "/tmp/Invoke-AtomicTest-ExecutionLog.csv" } else { "$env:TEMP\Invoke-AtomicTest-ExecutionLog.csv" }),
 
@@ -162,8 +167,12 @@ function Invoke-AtomicTest {
         } #end function Get-Logger
 
         $isLoggingModuleSet = $false
-        if($PSBoundParameters.ContainsKey('LoggingModule')) {
+        if(-not $NoExecutionLog) {
             $isLoggingModuleSet = $true
+            if(-not $PSBoundParameters.ContainsKey('LoggingModule')) {
+                Import-Module "$PSScriptRoot\Default-ExecutionLogger.psm1" -Force
+                $LoggingModule = "Default-ExecutionLogger"
+            }
         }
 
         if($isLoggingModuleSet) {
@@ -232,6 +241,10 @@ function Invoke-AtomicTest {
 
             if($Cleanup -ne $false) {
                 $commandLine = "$commandLine -Cleanup $Cleanup"
+            }
+
+            if($NoExecutionLog -ne $false) {
+                $commandLine = "$commandLine -NoExecutionLog $NoExecutionLog"
             }
 
             $commandLine = "$commandLine -ExecutionLogPath $ExecutionLogPath"
