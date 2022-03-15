@@ -172,6 +172,8 @@ function Invoke-AtomicTest {
             if(-not $PSBoundParameters.ContainsKey('LoggingModule')) {
                 Import-Module "$PSScriptRoot\Default-ExecutionLogger.psm1" -Force
                 $LoggingModule = "Default-ExecutionLogger"
+            } else {
+                Remove-Module -Name "Default-ExecutionLogger" -erroraction silentlycontinue
             }
         }
 
