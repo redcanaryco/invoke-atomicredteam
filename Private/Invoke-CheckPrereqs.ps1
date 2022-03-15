@@ -9,7 +9,7 @@ function Invoke-CheckPrereqs ($test, $isElevated, $executionPlatform, $customInp
         if($executor -ne "powershell") { $final_command = ($final_Command.trim()).Replace("`n", " && ") }
         $res = Invoke-ExecuteCommand $final_command $executor $executionPlatform $TimeoutSeconds  $session
         $description = Merge-InputArgs $dep.description $test $customInputArgs $PathToAtomicsFolder
-        if ($res -ne 0) {
+        if ($res.ExitCode -ne 0) {
             $FailureReasons.add($description) | Out-Null
         }
     }

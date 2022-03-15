@@ -34,8 +34,12 @@ function Invoke-ExecuteCommand ($finalCommand, $executor, $executionPlatform, $T
         }
         else {
             Write-Warning -Message "Unable to generate or execute the command line properly. Unknown executor"
-            $res = -1
-            return $res
+            return [PSCustomObject]@{
+                    StandardOutput = ""
+                    ErrorOutput = ""
+                    ExitCode = -1
+                    IsTimeOut = $false
+                }
         }
         if ($session) {
             $scriptParentPath = Split-Path $import -Parent
