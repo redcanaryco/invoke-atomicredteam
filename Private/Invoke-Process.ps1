@@ -36,7 +36,6 @@ function Invoke-Process {
                     $x = $Event.SourceEventArgs.Data
                     if (-not [String]::IsNullOrEmpty($x))
                     {
-                        [System.Console]::WriteLine($x)
                         $Event.MessageData.AppendLine($x)
                     }
                 }
@@ -45,32 +44,37 @@ function Invoke-Process {
 
                 # execution
                 $process.Start() > $null
-                $process.PriorityClass = [System.Diagnostics.ProcessPriorityClass]::Normal
                 $process.BeginOutputReadLine()
                 $process.BeginErrorReadLine()
-                
+                $StdIn = $process.StandardInput
+                $StdIn.Close()
                 # wait for complete
                 $Timeout = [System.TimeSpan]::FromSeconds(($TimeoutSeconds))
                 $isTimeout = $false
                 if (-not $Process.WaitForExit($Timeout.TotalMilliseconds))
                 {
                     $isTimeout = $true
-                    Write-Host -ForegroundColor Red "Process Timed out after $TimeoutSeconds seconds, use '-TimeoutSeconds' to specify a different timeout"
                     Invoke-KillProcessTree $process.id
+                    Write-Host -ForegroundColor Red "Process Timed out after $TimeoutSeconds seconds, use '-TimeoutSeconds' to specify a different timeout"
+                } else {
+                    $process.WaitForExit()
                 }
-                $process.WaitForExit(5000)
                 $process.CancelOutputRead()
                 $process.CancelErrorRead()
-
-                # verbose Event Result
-                $stdEvent, $errorEvent | VerboseOutput
 
                 # Unregister Event to recieve Asynchronous Event output (should be called before process.Dispose())
                 Unregister-Event -SourceIdentifier $stdEvent.Name
                 Unregister-Event -SourceIdentifier $errorEvent.Name
 
-                # verbose Event Result
-                $stdEvent, $errorEvent | VerboseOutput
+                $stdOutString = $stdSb.ToString().Trim()
+                if($stdOutString.Length -gt 0) {
+                    Write-Host $stdOutString
+                }
+
+                $stdErrString = $errorSb.ToString().Trim()
+                if($stdErrString.Length -gt 0) {
+                    Write-Host $stdErrString
+                }
 
                 # Get Process result
                 return GetCommandResult -Process $process -StandardStringBuilder $stdSb -ErrorStringBuilder $errorSb -IsTimeOut $isTimeout
@@ -141,13 +145,13 @@ function Invoke-Process {
                 [string]$WorkingDirectory
             )
 
-            "Execute command : '{0} {1}', WorkingSpace '{2}'" -f $FileName, $Arguments, $WorkingDirectory | VerboseOutput
             # ProcessStartInfo
             $psi = New-object System.Diagnostics.ProcessStartInfo 
             $psi.CreateNoWindow = $true
             $psi.UseShellExecute = $false
             $psi.RedirectStandardOutput = $true
             $psi.RedirectStandardError = $true
+            $psi.RedirectStandardInput = $true
             $psi.FileName = $FileName
             $psi.Arguments+= $Arguments
             $psi.WorkingDirectory = $WorkingDirectory
@@ -178,18 +182,12 @@ function Invoke-Process {
                 [Bool]$IsTimeout
             )
             
-            'Get command result string.' | VerboseOutput
             return [PSCustomObject]@{
                 StandardOutput = $StandardStringBuilder.ToString().Trim()
                 ErrorOutput = $ErrorStringBuilder.ToString().Trim()
                 ExitCode = $Process.ExitCode
                 IsTimeOut = $IsTimeout
             }
-        }
-
-        filter VerboseOutput
-        {
-            $_ | Out-String -Stream | Write-Verbose
         }
     }
 }
