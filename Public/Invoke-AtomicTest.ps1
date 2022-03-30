@@ -179,7 +179,7 @@ function Invoke-AtomicTest {
 
         if($isLoggingModuleSet) {
             if(Get-Logger -name $LoggingModule) {
-                Write-Host "Using Logger: ", $LoggingModule
+                Write-Verbose "Using Logger: ", $LoggingModule
             } else {
                 Write-Host "Logger not found: ", $LoggingModule
             }
@@ -187,7 +187,7 @@ function Invoke-AtomicTest {
             if((Get-Command Start-ExecutionLog -erroraction silentlycontinue).Source -eq $LoggingModule) {
                 if((Get-Command Write-ExecutionLog -erroraction silentlycontinue).Source -eq $LoggingModule) {
                     if((Get-Command Stop-ExecutionLog -erroraction silentlycontinue).Source -eq $LoggingModule) {
-                        Write-Host "All logging commands found"
+                        Write-Verbose "All logging commands found"
                     } else {
                         Write-Host "Stop-ExecutionLog not found or loaded from the wrong module"
                         return
