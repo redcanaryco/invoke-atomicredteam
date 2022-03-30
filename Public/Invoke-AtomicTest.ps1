@@ -179,7 +179,7 @@ function Invoke-AtomicTest {
 
         if($isLoggingModuleSet) {
             if(Get-Logger -name $LoggingModule) {
-                Write-Verbose "Using Logger: ", $LoggingModule
+                Write-Verbose "Using Logger: $LoggingModule"
             } else {
                 Write-Host "Logger not found: ", $LoggingModule
             }
