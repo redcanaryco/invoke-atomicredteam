@@ -32,7 +32,7 @@ function Invoke-AtomicTest {
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'technique')]
         [ValidateNotNullOrEmpty()]
-        [String]
+        [String[]]
         $AtomicTechnique,
 
         [Parameter(Mandatory = $false,
@@ -203,6 +203,23 @@ function Invoke-AtomicTest {
         }
 
         if($isLoggingModuleSet) {
+            # Since there might a comma(T1559-1,2,3) Powershell takes it as array.
+            # So converting it back to string.
+            if($AtomicTechnique -is [array]) {
+                $AtomicTechnique = $AtomicTechnique -join ","
+            }
+            
+            # Splitting Atomic Technique short form into technique and test numbers.
+            $AtomicTechniqueParams =  ($AtomicTechnique -split '-')
+            $AtomicTechnique = $AtomicTechniqueParams[0]
+
+            if($AtomicTechniqueParams.Length -gt 1){
+                $ShortTestNumbers = $AtomicTechniqueParams[-1]
+            }
+
+            if($TestNumbers -eq $null -and $ShortTestNumbers -ne $null) {
+                $TestNumbers = $ShortTestNumbers -split ','
+            }
             
             # Here we're rebuilding an equivalent command line to put in the logs
             $commandLine = "Invoke-AtomicTest $AtomicTechnique"
