@@ -28,56 +28,33 @@ function Invoke-Process {
                 # new Process
                 $process = NewProcess -FileName $FileName -Arguments $Arguments -WorkingDirectory $WorkingDirectory
                 
-                # Event Handler for Output
-                $stdSb = New-Object -TypeName System.Text.StringBuilder
-                $errorSb = New-Object -TypeName System.Text.StringBuilder
-                $scripBlock = 
-                {
-                    $x = $Event.SourceEventArgs.Data
-                    if (-not [String]::IsNullOrEmpty($x))
-                    {
-                        $Event.MessageData.AppendLine($x)
-                    }
-                }
-                $stdEvent = Register-ObjectEvent -InputObject $process -EventName OutputDataReceived -Action $scripBlock -MessageData $stdSb
-                $errorEvent = Register-ObjectEvent -InputObject $process -EventName ErrorDataReceived -Action $scripBlock -MessageData $errorSb
-
                 # execution
                 $process.Start() > $null
-                $process.BeginOutputReadLine()
-                $process.BeginErrorReadLine()
                 $StdIn = $process.StandardInput
                 $StdIn.Close()
                 # wait for complete
                 $Timeout = [System.TimeSpan]::FromSeconds(($TimeoutSeconds))
                 $isTimeout = $false
-                if (-not $Process.WaitForExit($Timeout.TotalMilliseconds))
+                $return = $Process.WaitForExit($Timeout.TotalMilliseconds)
+                if (-not $return)
                 {
                     $isTimeout = $true
                     Invoke-KillProcessTree $process.id
                     Write-Host -ForegroundColor Red "Process Timed out after $TimeoutSeconds seconds, use '-TimeoutSeconds' to specify a different timeout"
-                } else {
-                    $process.WaitForExit()
                 }
-                $process.CancelOutputRead()
-                $process.CancelErrorRead()
+                $stdOutString = $process.StandardOutput.ReadToEndAsync().Result.Trim();
+                $stdErrString = $process.StandardError.ReadToEndAsync().Result.Trim();
 
-                # Unregister Event to recieve Asynchronous Event output (should be called before process.Dispose())
-                Unregister-Event -SourceIdentifier $stdEvent.Name
-                Unregister-Event -SourceIdentifier $errorEvent.Name
-
-                $stdOutString = $stdSb.ToString().Trim()
                 if($stdOutString.Length -gt 0) {
                     Write-Host $stdOutString
                 }
-
-                $stdErrString = $errorSb.ToString().Trim()
+                
                 if($stdErrString.Length -gt 0) {
                     Write-Host $stdErrString
                 }
 
                 # Get Process result
-                return GetCommandResult -Process $process -StandardStringBuilder $stdSb -ErrorStringBuilder $errorSb -IsTimeOut $isTimeout
+                return GetCommandResult -Process $process -StandardString $stdOutString -ErrorString $stdErrString -IsTimeOut $isTimeout
             }
             else {
                 # This is the enitrety of the "old style" code, kept for interactive tests
@@ -173,18 +150,20 @@ function Invoke-Process {
                 [System.Diagnostics.Process]$Process,
 
                 [parameter(Mandatory = $true)]
-                [System.Text.StringBuilder]$StandardStringBuilder,
+                [AllowEmptyString()]
+                [System.String]$StandardString,
 
                 [parameter(Mandatory = $true)]
-                [System.Text.StringBuilder]$ErrorStringBuilder,
+                [AllowEmptyString()]
+                [System.String]$ErrorString,
 
                 [parameter(Mandatory = $true)]
                 [Bool]$IsTimeout
             )
             
             return [PSCustomObject]@{
-                StandardOutput = $StandardStringBuilder.ToString().Trim()
-                ErrorOutput = $ErrorStringBuilder.ToString().Trim()
+                StandardOutput = $StandardString
+                ErrorOutput = $ErrorString
                 ExitCode = $Process.ExitCode
                 IsTimeOut = $IsTimeout
             }
