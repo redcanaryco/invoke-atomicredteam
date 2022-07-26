@@ -11,7 +11,7 @@ function Invoke-Process {
         [string]$Arguments = "",
         
         [Parameter(Mandatory = $false, Position = 3)]
-        [Int]$TimeoutSeconds = 15,
+        [Int]$TimeoutSeconds = 120,
 
         [Parameter(Mandatory = $false, Position =4)]
         [String]$stdoutFile = $null,
@@ -23,6 +23,8 @@ function Invoke-Process {
     end {
         $WorkingDirectory = if ($IsLinux -or $IsMacOS) { "/tmp" } else { $env:TEMP }
         try {
+            Write-Host -ForegroundColor Cyan "Writing output to $stdOutFile"
+            # new Process
             if ($stdoutFile) {
                 $process = Start-Process -FilePath $FileName -ArgumentList $Arguments -WorkingDirectory $WorkingDirectory -NoNewWindow -PassThru -RedirectStandardOutput $stdoutFile -RedirectStandardError $stderrFile
                 # cache process.Handle, otherwise ExitCode is null from powershell processes
@@ -51,8 +53,13 @@ function Invoke-Process {
                     Write-Host $stdErrString
                 }
 
-                # Get Process result
-                return GetCommandResult -Process $process -StandardString $stdOutString -ErrorString $stdErrString -IsTimeOut $isTimeout
+                return [PSCustomObject]@{
+                    StandardOutput = $stdOutString
+                    ErrorOutput = $stdErrString
+                    ExitCode = $process.ExitCode
+                    IsTimeOut = $isTimeout
+                }
+
             }
             else {
                 # This is the enitrety of the "old style" code, kept for interactive tests
@@ -89,69 +96,4 @@ function Invoke-Process {
         }
     }
 
-    begin
-    {
-        function NewProcess
-        {
-            [OutputType([System.Diagnostics.Process])]
-            [CmdletBinding()]
-            param
-            (
-                [parameter(Mandatory = $true)]
-                [string]$FileName,
-                
-                [parameter(Mandatory = $false)]
-                [string]$Arguments,
-                
-                [parameter(Mandatory = $false)]
-                [string]$WorkingDirectory
-            )
-
-            # ProcessStartInfo
-            $psi = New-object System.Diagnostics.ProcessStartInfo 
-            $psi.CreateNoWindow = $true
-            $psi.UseShellExecute = $false
-            $psi.RedirectStandardOutput = $true
-            $psi.RedirectStandardError = $true
-            $psi.RedirectStandardInput = $true
-            $psi.FileName = $FileName
-            $psi.Arguments+= $Arguments
-            $psi.WorkingDirectory = $WorkingDirectory
-
-            # Set Process
-            $process = New-Object System.Diagnostics.Process 
-            $process.StartInfo = $psi
-            $process.EnableRaisingEvents = $true
-            return $process
-        }
-
-        function GetCommandResult
-        {
-            [OutputType([PSCustomObject])]
-            [CmdletBinding()]
-            param
-            (
-                [parameter(Mandatory = $true)]
-                [System.Diagnostics.Process]$Process,
-
-                [parameter(Mandatory = $true)]
-                [AllowEmptyString()]
-                [System.String]$StandardString,
-
-                [parameter(Mandatory = $true)]
-                [AllowEmptyString()]
-                [System.String]$ErrorString,
-
-                [parameter(Mandatory = $true)]
-                [Bool]$IsTimeout
-            )
-            
-            return [PSCustomObject]@{
-                StandardOutput = $StandardString
-                ErrorOutput = $ErrorString
-                ExitCode = $Process.ExitCode
-                IsTimeOut = $IsTimeout
-            }
-        }
-    }
 }
