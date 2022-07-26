@@ -11,7 +11,7 @@ function Invoke-Process {
         [string]$Arguments = "",
         
         [Parameter(Mandatory = $false, Position = 3)]
-        [Int]$TimeoutSeconds = 120,
+        [Int]$TimeoutSeconds = 15,
 
         [Parameter(Mandatory = $false, Position =4)]
         [String]$stdoutFile = $null,
@@ -23,32 +23,32 @@ function Invoke-Process {
     end {
         $WorkingDirectory = if ($IsLinux -or $IsMacOS) { "/tmp" } else { $env:TEMP }
         try {
+            Write-Host -ForegroundColor Cyan "Writing output to $stdOutFile"
             # new Process
             if ($stdoutFile) {
-                # new Process
-                $process = NewProcess -FileName $FileName -Arguments $Arguments -WorkingDirectory $WorkingDirectory
-                
-                # execution
-                $process.Start() > $null
-                $StdIn = $process.StandardInput
-                $StdIn.Close()
+                $process = Start-Process -FilePath $FileName -ArgumentList $Arguments -WorkingDirectory $WorkingDirectory -NoNewWindow -PassThru -RedirectStandardOutput $stdoutFile -RedirectStandardError $stderrFile
+                # cache process.Handle, otherwise ExitCode is null from powershell processes
+                $handle = $process.Handle
                 # wait for complete
                 $Timeout = [System.TimeSpan]::FromSeconds(($TimeoutSeconds))
                 $isTimeout = $false
-                $return = $Process.WaitForExit($Timeout.TotalMilliseconds)
-                if (-not $return)
+                if (-not $Process.WaitForExit($Timeout.TotalMilliseconds))
                 {
                     $isTimeout = $true
                     Invoke-KillProcessTree $process.id
                     Write-Host -ForegroundColor Red "Process Timed out after $TimeoutSeconds seconds, use '-TimeoutSeconds' to specify a different timeout"
+                } else {
+                    $process.WaitForExit()
                 }
-                $stdOutString = $process.StandardOutput.ReadToEndAsync().Result.Trim();
-                $stdErrString = $process.StandardError.ReadToEndAsync().Result.Trim();
-
+                
+                $stdOutString = Get-Content -Path $stdoutFile -Raw
+                
+                $stdErrString = Get-Content -Path $stderrFile -Raw
+                
                 if($stdOutString.Length -gt 0) {
                     Write-Host $stdOutString
                 }
-                
+
                 if($stdErrString.Length -gt 0) {
                     Write-Host $stdErrString
                 }
@@ -66,20 +66,7 @@ function Invoke-Process {
                 $Timeout = [System.TimeSpan]::FromSeconds(($TimeoutSeconds))
                 if (-not $process.WaitForExit($Timeout.TotalMilliseconds)) {
                     Invoke-KillProcessTree $process.id
-
                     Write-Host -ForegroundColor Red "Process Timed out after $TimeoutSeconds seconds, use '-TimeoutSeconds' to specify a different timeout"
-                    if ($stdoutFile) {
-                        # Add a warning in stdoutFile in case of timeout
-                        # problem: $stdoutFile was locked in writing by the process we just killed, sometimes it's too fast and the lock isn't released immediately
-                        # solution: retry at most 10 times with 100ms between each attempt
-                        For($i=0;$i -lt 10;$i++) { 
-                            try {
-                                "<timeout>" | Out-File (Join-Path $WorkingDirectory $stdoutFile) -Append -Encoding ASCII
-                                break # if we're here it means the file wasn't locked and Out-File worked, so we can leave the retry loop
-                            } catch {} # file is locked
-                            Start-Sleep -m 100
-                        }
-                    }
                 }
 
                 if ($IsLinux -or $IsMacOS) {
