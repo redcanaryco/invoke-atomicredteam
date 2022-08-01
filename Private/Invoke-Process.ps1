@@ -23,7 +23,6 @@ function Invoke-Process {
     end {
         $WorkingDirectory = if ($IsLinux -or $IsMacOS) { "/tmp" } else { $env:TEMP }
         try {
-            Write-Host -ForegroundColor Cyan "Writing output to $stdOutFile"
             # new Process
             if ($stdoutFile) {
                 $process = Start-Process -FilePath $FileName -ArgumentList $Arguments -WorkingDirectory $WorkingDirectory -NoNewWindow -PassThru -RedirectStandardOutput $stdoutFile -RedirectStandardError $stderrFile
