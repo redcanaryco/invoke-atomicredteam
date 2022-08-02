@@ -40,9 +40,9 @@ function Invoke-Process {
                     $process.WaitForExit()
                 }
                 
-                $stdOutString = Get-Content -Path $stdoutFile -Raw
+                $stdOutString = Get-Content -Path $stdoutFile -Raw | Out-String
                 
-                $stdErrString = Get-Content -Path $stderrFile -Raw
+                $stdErrString = Get-Content -Path $stderrFile -Raw | Out-String
                 
                 if($stdOutString.Length -gt 0) {
                     Write-Host $stdOutString
