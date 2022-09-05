@@ -52,7 +52,10 @@ function Install-AtomicRedTeam {
         [switch]$getAtomics = $False,
 
         [Parameter(Mandatory = $False)]
-        [switch]$Force = $False # delete the existing install directory and reinstall
+        [switch]$Force = $False, # delete the existing install directory and reinstall
+
+        [Parameter(Mandatory = $False)]
+        [switch]$NoPayloads = $False # only download atomic yaml files during -getAtomics operation (no /src or /bin dirs)
     )
     Try {
         $InstallPathwIart = Join-Path $InstallPath "invoke-atomicredteam"
@@ -94,7 +97,7 @@ function Install-AtomicRedTeam {
 
             if ($getAtomics) {
                 Write-Verbose "Installing Atomics Folder"
-                Invoke-Expression (New-Object Net.WebClient).DownloadString("https://raw.githubusercontent.com/$RepoOwner/invoke-atomicredteam/master/install-atomicsfolder.ps1"); Install-AtomicsFolder -InstallPath $InstallPath -DownloadPath $DownloadPath -Force:$Force -RepoOwner $RepoOwner
+                Invoke-Expression (New-Object Net.WebClient).DownloadString("https://raw.githubusercontent.com/$RepoOwner/invoke-atomicredteam/master/install-atomicsfolder.ps1"); Install-AtomicsFolder -InstallPath $InstallPath -DownloadPath $DownloadPath -Force:$Force -RepoOwner $RepoOwner -NoPayloads:$NoPayloads
             }
 
             Write-Host "Installation of Invoke-AtomicRedTeam is complete. You can now use the Invoke-AtomicTest function" -Fore Yellow
