@@ -14,6 +14,7 @@ function Invoke_FetchFromZip {
     # load ZIP methods
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     [System.Reflection.Assembly]::LoadWithPartialName('System.IO.Compression') | Out-Null
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
     # read zip archive into memory
     $ms = New-Object IO.MemoryStream
