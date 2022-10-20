@@ -1,0 +1,20 @@
+name: publish-powershell-gallery
+on:
+  push:
+    branches: [ main]
+    tags: [ 'v*.*.*' ]
+jobs:
+  publish-powershell-gallery:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+        
+      - name: publishing
+        run: |
+          Publish-Module -Path '...' -NuGetApiKey ${{ secrets.PSGALLERY }}
+        shell: pwsh
+
+
+
+
