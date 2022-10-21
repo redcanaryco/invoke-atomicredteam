@@ -12,6 +12,7 @@ jobs:
         
       - name: publishing
         run: |
+          cd invoke-atomicredteam
           Publish-Module -Path '.' -NuGetApiKey ${{ secrets.PGALLERY }}
         shell: pwsh
 
