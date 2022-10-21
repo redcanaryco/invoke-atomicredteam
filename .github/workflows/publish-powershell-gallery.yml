@@ -7,14 +7,11 @@ jobs:
   publish-powershell-gallery:
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
-        uses: actions/checkout@v2
-        
-      - name: publishing
-        run: |
-          cd invoke-atomicredteam
-          Publish-Module -Path '.' -NuGetApiKey ${{ secrets.PGALLERY }}
-        shell: pwsh
+      - name: Publish Module to PowerShell Gallery
+        uses: pcgeek86/publish-powershell-module-action@v20
+        id: publish-module
+        with:
+          NuGetApiKey: ${{ secrets.PGALLERY }}
 
 
 
