@@ -7,11 +7,14 @@ jobs:
   publish-powershell-gallery:
     runs-on: ubuntu-latest
     steps:
-      - name: Publish Module to PowerShell Gallery
-        uses: pcgeek86/publish-powershell-module-action@v20
-        id: publish-module
-        with:
-          NuGetApiKey: ${{ secrets.PGALLERY }}
+      - name: checkout
+        uses: actions/checkout@v2
+        
+      - name: publishing
+        run: |
+          Install-Module -Name powershell-yaml -Force
+          Publish-Module -Path '.' -NuGetApiKey ${{ secrets.PGALLERY }}
+        shell: pwsh
 
 
 
