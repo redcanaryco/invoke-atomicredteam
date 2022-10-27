@@ -308,6 +308,56 @@ function Invoke-AtomicTest {
             return $false
         }
 
+        function Test-IncludesTerraform($AT, $testCount) {
+            $AT = $AT.ToUpper()
+            $pathToTerraform = Join-Path $PathToAtomicsFolder "\$AT\$AT-$testCount.tf"
+            $cloud = ('iaas', 'containers', 'iaas:aws', 'iaas:azure', 'iaas:gcp')
+            foreach ($platform in $test.supported_platforms) {
+                if ($cloud -contains $platform) {
+                    return $(Test-Path -Path $pathToTerraform)
+                }
+            }
+            return $false
+        }
+
+        function Build-Terraform($AT, $testCount, $InputArgs) {
+            $pathToTerraform = Join-Path $PathToAtomicsFolder "\$AT\$AT-$testCount.tf"
+            $srcDir = Join-Path $PathToAtomicsFolder $AT "src"
+            $tmpDirPath = Join-Path "$tmpDir" "$AT-$testCount"
+            if($(Test-Path $tmpDirPath)){
+                Remove-Item -LiteralPath $tmpDirPath -Force -Recurse
+            }
+            New-Item $tmpDirPath -ItemType Directory
+            Copy-Item $pathToTerraform -Destination "$tmpDirPath\$AT-$testCount.tf" -Force
+            Copy-Item $srcDir -Destination $tmpDirPath -Force -Recurse
+            $destinationVarsPath = ""
+            if(-not $PromptForInputArgs){
+                $pathToTerraformVars = Join-Path $PathToAtomicsFolder "\$AT\$AT-$testCount.tfvars"
+                $destinationVarsPath = Join-Path "$tmpDirPath" "$AT-$testCount.tfvars"
+                Copy-Item $pathToTerraformVars -Destination $destinationVarsPath -Force
+            }else{
+                $destinationVarsPath = Join-Path "$tmpDirPath" "$AT-$testCount.tfvars.json"
+                $InputArgs | ConvertTo-Json | Out-File -FilePath $destinationVarsPath
+                Get-Content -Path $destinationVarsPath
+            }
+            $currentLocation =  $(Get-Location)
+            Set-Location $tmpDirPath
+            Invoke-Command -ScriptBlock {terraform init; terraform apply -var-file $destinationVarsPath -auto-approve;}
+            Set-Location $currentLocation
+        }
+
+        function Remove-Terraform($AT, $testCount){
+            $currentLocation =  $(Get-Location)
+            $tmpDirPath = Join-Path "$tmpDir" "$AT-$testCount"
+            Set-Location $tmpDirPath
+            $tfVarsFile = Get-ChildItem -Path $tmpDirPath -Recurse -Filter "*.tfvars*" | Select-Object -Expand FullName
+            Invoke-Command -ScriptBlock {terraform destroy -var-file="$tfVarsFile" -auto-approve;}
+            Set-Location $currentLocation
+            if($(Test-Path $tmpDirPath)){
+                Remove-Item -LiteralPath $tmpDirPath -Force -Recurse
+            }
+        }
+
         function Invoke-AtomicTestSingle ($AT) {
 
             $AT = $AT.ToUpper()
@@ -405,6 +455,9 @@ function Invoke-AtomicTest {
                         Write-PrereqResults $FailureReasons $testId
                     }
                     elseif ($GetPrereqs) {
+                        if($(Test-IncludesTerraform $AT $testCount)){
+                            Build-Terraform $AT $testCount $InputArgs
+                        }
                         Write-KeyValue "GetPrereq's for: " $testId
                         if ( $test.executor.elevation_required -and -not $isElevated) {
                             Write-Host -ForegroundColor Red "Elevation required but not provided"
@@ -435,6 +488,9 @@ function Invoke-AtomicTest {
                         }
                     }
                     elseif ($Cleanup) {
+                        if($(Test-IncludesTerraform $AT $testCount)){
+                            Remove-Terraform $AT $testCount
+                        }
                         Write-KeyValue "Executing cleanup for test: " $testId
                         $final_command = Merge-InputArgs $test.executor.cleanup_command $test $InputArgs $PathToPayloads
                         $res = Invoke-ExecuteCommand $final_command $test.executor.name $executionPlatform $TimeoutSeconds $session -Interactive:$Interactive
