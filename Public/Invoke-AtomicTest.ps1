@@ -331,14 +331,14 @@ function Invoke-AtomicTest {
             Copy-Item $pathToTerraform -Destination "$tmpDirPath\$AT-$testCount.tf" -Force
             Copy-Item $srcDir -Destination $tmpDirPath -Force -Recurse
             $destinationVarsPath = ""
-            if(-not $PromptForInputArgs){
-                $pathToTerraformVars = Join-Path $PathToAtomicsFolder "\$AT\$AT-$testCount.tfvars"
-                $destinationVarsPath = Join-Path "$tmpDirPath" "$AT-$testCount.tfvars"
-                Copy-Item $pathToTerraformVars -Destination $destinationVarsPath -Force
-            }else{
+            if($InputArgs){
                 $destinationVarsPath = Join-Path "$tmpDirPath" "$AT-$testCount.tfvars.json"
                 $InputArgs | ConvertTo-Json | Out-File -FilePath $destinationVarsPath
                 Get-Content -Path $destinationVarsPath
+            }else{
+                $pathToTerraformVars = Join-Path $PathToAtomicsFolder "\$AT\$AT-$testCount.tfvars"
+                $destinationVarsPath = Join-Path "$tmpDirPath" "$AT-$testCount.tfvars"
+                Copy-Item $pathToTerraformVars -Destination $destinationVarsPath -Force
             }
             $currentLocation =  $(Get-Location)
             Set-Location $tmpDirPath
