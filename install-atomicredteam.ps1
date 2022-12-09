@@ -58,6 +58,8 @@ function Install-AtomicRedTeam {
         [switch]$NoPayloads = $False # only download atomic yaml files during -getAtomics operation (no /src or /bin dirs)
     )
     Try {
+    (New-Object System.Net.WebClient).Proxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
+
         $InstallPathwIart = Join-Path $InstallPath "invoke-atomicredteam"
         $modulePath = Join-Path "$InstallPath" "invoke-atomicredteam\Invoke-AtomicRedTeam.psd1"
         if ($Force -or -Not (Test-Path -Path $InstallPathwIart )) {
