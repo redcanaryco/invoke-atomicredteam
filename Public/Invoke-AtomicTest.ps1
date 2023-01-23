@@ -310,7 +310,7 @@ function Invoke-AtomicTest {
 
         function Test-IncludesTerraform($AT, $testCount) {
             $AT = $AT.ToUpper()
-            $pathToTerraform = Join-Path $PathToAtomicsFolder "\$AT\$AT-$testCount.tf"
+            $pathToTerraform = Join-Path $PathToAtomicsFolder "\$AT\src\$AT-$testCount\$AT-$testCount.tf"
             $cloud = ('iaas', 'containers', 'iaas:aws', 'iaas:azure', 'iaas:gcp')
             foreach ($platform in $test.supported_platforms) {
                 if ($cloud -contains $platform) {
@@ -320,41 +320,25 @@ function Invoke-AtomicTest {
             return $false
         }
 
-        function Build-Terraform($AT, $testCount, $InputArgs) {
-            $pathToTerraform = Join-Path $PathToAtomicsFolder "\$AT\$AT-$testCount.tf"
-            $srcDir = Join-Path $PathToAtomicsFolder $AT "src"
-            $tmpDirPath = Join-Path "$tmpDir" "$AT-$testCount"
-            if($(Test-Path $tmpDirPath)){
-                Remove-Item -LiteralPath $tmpDirPath -Force -Recurse
-            }
-            New-Item $tmpDirPath -ItemType Directory
-            Copy-Item $pathToTerraform -Destination "$tmpDirPath\$AT-$testCount.tf" -Force
-            Copy-Item $srcDir -Destination $tmpDirPath -Force -Recurse
-            $destinationVarsPath = ""
+        function Build-TFVars($AT, $testCount, $InputArgs) {
+            $tmpDirPath = Join-Path $PathToAtomicsFolder "\$AT\src\$AT-$testCount"
             if($InputArgs){
-                $destinationVarsPath = Join-Path "$tmpDirPath" "$AT-$testCount.tfvars.json"
+                $destinationVarsPath = Join-Path "$tmpDirPath" "terraform.tfvars.json"
                 $InputArgs | ConvertTo-Json | Out-File -FilePath $destinationVarsPath
                 Get-Content -Path $destinationVarsPath
-            }else{
-                $pathToTerraformVars = Join-Path $PathToAtomicsFolder "\$AT\$AT-$testCount.tfvars"
-                $destinationVarsPath = Join-Path "$tmpDirPath" "$AT-$testCount.tfvars"
-                Copy-Item $pathToTerraformVars -Destination $destinationVarsPath -Force
             }
-            $currentLocation =  $(Get-Location)
-            Set-Location $tmpDirPath
-            Invoke-Command -ScriptBlock {terraform init; terraform apply -var-file $destinationVarsPath -auto-approve;}
-            Set-Location $currentLocation
         }
 
-        function Remove-Terraform($AT, $testCount){
-            $currentLocation =  $(Get-Location)
-            $tmpDirPath = Join-Path "$tmpDir" "$AT-$testCount"
-            Set-Location $tmpDirPath
-            $tfVarsFile = Get-ChildItem -Path $tmpDirPath -Recurse -Filter "*.tfvars*" | Select-Object -Expand FullName
-            Invoke-Command -ScriptBlock {terraform destroy -var-file="$tfVarsFile" -auto-approve;}
-            Set-Location $currentLocation
-            if($(Test-Path $tmpDirPath)){
-                Remove-Item -LiteralPath $tmpDirPath -Force -Recurse
+        function Remove-TerraformFiles($AT, $testCount){
+            $tmpDirPath = Join-Path $PathToAtomicsFolder "\$AT\src\$AT-$testCount"
+            Write-Host $tmpDirPath
+            $tfStateFile = Join-Path $tmpDirPath "terraform.tfstate"
+            $tfvarsFile = Join-Path $tmpDirPath "terraform.tfvars.json"
+            if($(Test-Path $tfvarsFile)){
+                Remove-Item -LiteralPath $tfvarsFile -Force
+            }
+            if($(Test-Path $tfStateFile)){
+                (Get-ChildItem -Path $tmpDirPath).Fullname -match "terraform.tfstate*" | Remove-Item -Force
             }
         }
 
@@ -456,7 +440,7 @@ function Invoke-AtomicTest {
                     }
                     elseif ($GetPrereqs) {
                         if($(Test-IncludesTerraform $AT $testCount)){
-                            Build-Terraform $AT $testCount $InputArgs
+                            Build-TFVars $AT $testCount $InputArgs
                         }
                         Write-KeyValue "GetPrereq's for: " $testId
                         if ( $test.executor.elevation_required -and -not $isElevated) {
@@ -488,13 +472,13 @@ function Invoke-AtomicTest {
                         }
                     }
                     elseif ($Cleanup) {
-                        if($(Test-IncludesTerraform $AT $testCount)){
-                            Remove-Terraform $AT $testCount
-                        }
                         Write-KeyValue "Executing cleanup for test: " $testId
                         $final_command = Merge-InputArgs $test.executor.cleanup_command $test $InputArgs $PathToPayloads
                         $res = Invoke-ExecuteCommand $final_command $test.executor.name $executionPlatform $TimeoutSeconds $session -Interactive:$Interactive
                         Write-KeyValue "Done executing cleanup for test: " $testId
+                        if($(Test-IncludesTerraform $AT $testCount)){
+                            Remove-TerraformFiles $AT $testCount
+                        }
                     }
                     else {
                         Write-KeyValue "Executing test: " $testId

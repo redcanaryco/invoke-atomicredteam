@@ -323,10 +323,6 @@ filter Get-AtomicTechnique {
                 $j = 0
 
                 foreach ($InputArgName in $AtomicTest['input_arguments'].Keys) {                                        
-                    
-                    if($InputArgName -eq 'terraform'){
-                        continue
-                    }
 
                     $InputArgument = [AtomicInputArgument]::new()
 
