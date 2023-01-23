@@ -325,7 +325,6 @@ function Invoke-AtomicTest {
             if($InputArgs){
                 $destinationVarsPath = Join-Path "$tmpDirPath" "terraform.tfvars.json"
                 $InputArgs | ConvertTo-Json | Out-File -FilePath $destinationVarsPath
-                Get-Content -Path $destinationVarsPath
             }
         }
 
