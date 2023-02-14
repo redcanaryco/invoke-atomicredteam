@@ -23,11 +23,11 @@ function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testNa
     $msg | Export-Csv -Path $LogPath -NoTypeInformation -Append
 
     # send syslog message if a syslog server is defined in Public/config.ps1
-    if([bool]$syslogServer -and [bool]$syslogPort){
+    if([bool]$artConfig.syslogServer -and [bool]$artConfig.syslogPort){
         $UDPClient = New-Object System.Net.Sockets.UdpClient
         $msg | Add-Member -Name "Tag" -Type NoteProperty -Value "atomicrunner"
         $encodedSyslogMessage = [System.Text.Encoding]::UTF8.GetBytes(($msg | ConvertTo-Json))
-        $UDPClient.Connect($syslogServer,$syslogPort)
+        $UDPClient.Connect($artConfig.syslogServer,$artConfig.syslogPort)
         $null = $UDPClient.Send($encodedSyslogMessage, $encodedSyslogMessage.Length)
     }
 }
