@@ -9,7 +9,7 @@ function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testNa
 
     $timeUTC = (Get-Date($startTime).toUniversalTime() -uformat "%Y-%m-%dT%H:%M:%SZ").ToString()
     $timeLocal = (Get-Date($startTime) -uformat "%Y-%m-%dT%H:%M:%S").ToString()
-    [PSCustomObject][ordered]@{ 
+    $msg = [PSCustomObject][ordered]@{ 
         "Execution Time (UTC)"   = $timeUTC;
         "Execution Time (Local)" = $timeLocal; 
         "Technique"              = $technique; 
@@ -18,7 +18,18 @@ function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testNa
         "Hostname"               = $targetHostname; 
         "Username"               = $targetUser
         "GUID"                   = $testGuid
-    } | Export-Csv -Path $LogPath -NoTypeInformation -Append
+    } 
+    
+    $msg | Export-Csv -Path $LogPath -NoTypeInformation -Append
+
+    # send syslog message if a syslog server is defined in Public/config.ps1
+    if([bool]$syslogServer -and [bool]$syslogPort){
+        $UDPClient = New-Object System.Net.Sockets.UdpClient
+        $msg | Add-Member -Name "Tag" -Type NoteProperty -Value "atomicrunner"
+        $encodedSyslogMessage = [System.Text.Encoding]::UTF8.GetBytes(($msg | ConvertTo-Json))
+        $UDPClient.Connect($syslogServer,$syslogPort)
+        $null = $UDPClient.Send($encodedSyslogMessage, $encodedSyslogMessage.Length)
+    }
 }
 
 function Stop-ExecutionLog($startTime, $logPath, $targetHostname, $targetUser, $isWindows) {

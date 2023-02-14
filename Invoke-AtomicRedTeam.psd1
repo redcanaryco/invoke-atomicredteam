@@ -29,7 +29,7 @@
     
     # Script files (.ps1) that are run in the caller's environment prior to importing this module.
     # AtomicClassSchema.ps1 needs to be present in the caller's scope in order for the built-in classes to surface properly.
-    ScriptsToProcess  = @('Private\AtomicClassSchema.ps1')
+    ScriptsToProcess  = @('Private\AtomicClassSchema.ps1','Public\config.ps1')
 
     # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
     FunctionsToExport = @(
