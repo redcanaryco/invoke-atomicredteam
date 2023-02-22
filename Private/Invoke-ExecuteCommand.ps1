@@ -32,7 +32,7 @@ function Invoke-ExecuteCommand ($finalCommand, $executor, $executionPlatform, $T
                 $execExe = "powershell.exe"; if ($IsLinux -or $IsMacOS) { $execExe = "pwsh" }
             }
             if ($execExe -eq "pwsh"){
-                $arguments = "-Command {$execCommand}"
+                $arguments = "-Command $execCommand"
             }else{
                 $arguments = "& {$execCommand}"
             }
