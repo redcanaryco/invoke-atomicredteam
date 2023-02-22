@@ -31,7 +31,11 @@ function Invoke-ExecuteCommand ($finalCommand, $executor, $executionPlatform, $T
             else {
                 $execExe = "powershell.exe"; if ($IsLinux -or $IsMacOS) { $execExe = "pwsh" }
             }
-            $arguments = "& {$execCommand}"
+            if ($execExe -eq "pwsh"){
+                $arguments = "-Command {$execCommand}"
+            }else{
+                $arguments = "& {$execCommand}"
+            }
         }
         else {
             Write-Warning -Message "Unable to generate or execute the command line properly. Unknown executor"
