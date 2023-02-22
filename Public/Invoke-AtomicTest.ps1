@@ -308,6 +308,39 @@ function Invoke-AtomicTest {
             return $false
         }
 
+        function Test-IncludesTerraform($AT, $testCount) {
+            $AT = $AT.ToUpper()
+            $pathToTerraform = Join-Path $PathToAtomicsFolder "\$AT\src\$AT-$testCount\$AT-$testCount.tf"
+            $cloud = ('iaas', 'containers', 'iaas:aws', 'iaas:azure', 'iaas:gcp')
+            foreach ($platform in $test.supported_platforms) {
+                if ($cloud -contains $platform) {
+                    return $(Test-Path -Path $pathToTerraform)
+                }
+            }
+            return $false
+        }
+
+        function Build-TFVars($AT, $testCount, $InputArgs) {
+            $tmpDirPath = Join-Path $PathToAtomicsFolder "\$AT\src\$AT-$testCount"
+            if($InputArgs){
+                $destinationVarsPath = Join-Path "$tmpDirPath" "terraform.tfvars.json"
+                $InputArgs | ConvertTo-Json | Out-File -FilePath $destinationVarsPath
+            }
+        }
+
+        function Remove-TerraformFiles($AT, $testCount){
+            $tmpDirPath = Join-Path $PathToAtomicsFolder "\$AT\src\$AT-$testCount"
+            Write-Host $tmpDirPath
+            $tfStateFile = Join-Path $tmpDirPath "terraform.tfstate"
+            $tfvarsFile = Join-Path $tmpDirPath "terraform.tfvars.json"
+            if($(Test-Path $tfvarsFile)){
+                Remove-Item -LiteralPath $tfvarsFile -Force
+            }
+            if($(Test-Path $tfStateFile)){
+                (Get-ChildItem -Path $tmpDirPath).Fullname -match "terraform.tfstate*" | Remove-Item -Force
+            }
+        }
+
         function Invoke-AtomicTestSingle ($AT) {
 
             $AT = $AT.ToUpper()
@@ -405,6 +438,9 @@ function Invoke-AtomicTest {
                         Write-PrereqResults $FailureReasons $testId
                     }
                     elseif ($GetPrereqs) {
+                        if($(Test-IncludesTerraform $AT $testCount)){
+                            Build-TFVars $AT $testCount $InputArgs
+                        }
                         Write-KeyValue "GetPrereq's for: " $testId
                         if ( $test.executor.elevation_required -and -not $isElevated) {
                             Write-Host -ForegroundColor Red "Elevation required but not provided"
@@ -439,6 +475,9 @@ function Invoke-AtomicTest {
                         $final_command = Merge-InputArgs $test.executor.cleanup_command $test $InputArgs $PathToPayloads
                         $res = Invoke-ExecuteCommand $final_command $test.executor.name $executionPlatform $TimeoutSeconds $session -Interactive:$Interactive
                         Write-KeyValue "Done executing cleanup for test: " $testId
+                        if($(Test-IncludesTerraform $AT $testCount)){
+                            Remove-TerraformFiles $AT $testCount
+                        }
                     }
                     else {
                         Write-KeyValue "Executing test: " $testId

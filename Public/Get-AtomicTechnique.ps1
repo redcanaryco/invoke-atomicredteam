@@ -322,7 +322,8 @@ filter Get-AtomicTechnique {
 
                 $j = 0
 
-                foreach ($InputArgName in $AtomicTest['input_arguments'].Keys) {
+                foreach ($InputArgName in $AtomicTest['input_arguments'].Keys) {                                        
+
                     $InputArgument = [AtomicInputArgument]::new()
 
                     if (-not $AtomicTest['input_arguments'][$InputArgName].ContainsKey('description')) {
