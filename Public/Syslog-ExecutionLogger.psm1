@@ -3,10 +3,6 @@ function Start-ExecutionLog($startTime, $logPath, $targetHostname, $targetUser, 
 }
 
 function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testName, $testGuid, $testExecutor, $testDescription, $command, $logPath, $targetHostname, $targetUser, $stdOut, $stdErr, $isWindows) {
-    if (!(Test-Path $logPath)) { 
-        New-Item $logPath -Force -ItemType File | Out-Null
-    } 
-
     $timeUTC = (Get-Date($startTime).toUniversalTime() -uformat "%Y-%m-%dT%H:%M:%SZ").ToString()
     $timeLocal = (Get-Date($startTime) -uformat "%Y-%m-%dT%H:%M:%SZ").ToString()
     $msg = [PSCustomObject][ordered]@{ 
@@ -20,7 +16,12 @@ function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testNa
         "GUID"                   = $testGuid
     } 
     
-    $msg | Export-Csv -Path $LogPath -NoTypeInformation -Append
+    # send syslog message if a syslog server is defined in Public/config.ps1
+    if([bool]$artConfig.syslogServer -and [bool]$artConfig.syslogPort){
+        $msg | Add-Member -Name "Tag" -Type NoteProperty -Value "atomicrunner"
+        $jsonMsg = $msg | ConvertTo-Json
+        Send-SyslogMessage -Server $artConfig.syslogServer -Port $artConfig.syslogPort -Message $jsonMsg -Severity "Informational" -Facility "daemon"
+    }
 }
 
 function Stop-ExecutionLog($startTime, $logPath, $targetHostname, $targetUser, $isWindows) {
