@@ -66,10 +66,10 @@ function Invoke-SetupAtomicRunner {
         # sets cronjob string using basepath from config.ps1
         $pwshPath = which pwsh
         $job = "@reboot root $pwshPath -Command Invoke-KickoffAtomicRunner"
-        $exists = crontab -l | select-string -quiet "KickoffAtomicRunner"
-        #checks if the Kickoff-AtomicRunner job exists. If not appends it to the crontab of current user.
+        $exists = cat /etc/crontab|Select-String -Quiet "KickoffAtomicRunner"
+        #checks if the Kickoff-AtomicRunner job exists. If not appends it to the system crontab.
         if ($null -eq $exists) {
-            $(crontab -u $(whoami) -l; echo "$job") | crontab -u $(whoami) -
+            $(echo "$job" >> /etc/crontab)
             write-host "setting cronjob"
         }
         else {
