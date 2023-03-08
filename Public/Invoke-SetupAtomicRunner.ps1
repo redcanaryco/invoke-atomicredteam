@@ -1,5 +1,6 @@
-function Invoke-SetupAtomicRunner {
+#Requires -RunAsAdministrator
 
+function Invoke-SetupAtomicRunner {
     #create AtomicRunner-Logs directory if it doesn't exist
     New-Item -ItemType Directory $artConfig.atomicLogsPath -ErrorAction Ignore
     New-Item -ItemType Directory $artConfig.runnerFolder -ErrorAction Ignore

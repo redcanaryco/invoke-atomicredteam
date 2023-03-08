@@ -40,6 +40,9 @@ function Invoke-KickoffAtomicRunner {
     $log = get-item $artConfig.logFile
     Rotate-Log $log $max_filesize $max_file_age #no need to repeat this. Can reduce further.
 
+    # Update the AtomicRedTeam,Invoke-AtomicRedTeam and Schedule code if configured to do so.
+    Invoke-CodeAndScheduleRefresh
+
     # Invoke the Runner Script
     Invoke-AtomicRunner *>> $all_log_file
 }
@@ -48,4 +51,16 @@ function LogRunnerMsg ($message) {
     $now = "[{0:MM/dd/yy} {0:HH:mm:ss}]" -f (Get-Date)
     Write-Host -fore cyan $message
     Add-Content $artConfig.logFile "$now`: $message"
+}
+
+function Invoke-CodeAndScheduleRefresh() {
+
+    # just return if we aren't at the beginning of the schedule
+
+    # update the atomics (no payloads)
+
+    # update the execution framework (Invoke-AtomicRedTeam)
+
+    # update the schedule
+
 }
