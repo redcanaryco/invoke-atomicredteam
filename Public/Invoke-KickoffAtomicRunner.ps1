@@ -41,7 +41,12 @@ function Invoke-KickoffAtomicRunner {
     Rotate-Log $log $max_filesize $max_file_age #no need to repeat this. Can reduce further.
 
     # Invoke the Runner Script
-    Invoke-AtomicRunner *>> $all_log_file
+    if ($artConfig.debug) {
+        Invoke-AtomicRunner *>> $all_log_file
+    }
+    else {
+        Invoke-AtomicRunner
+    }
 }
 
 function LogRunnerMsg ($message) {
