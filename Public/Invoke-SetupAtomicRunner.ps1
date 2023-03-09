@@ -129,5 +129,3 @@ function Invoke-SetupAtomicRunner {
         Invoke-AtomicRunner -GetPrereqs
     }
 }
-
-Invoke-SetupAtomicRunner
