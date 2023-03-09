@@ -6,19 +6,20 @@ function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testNa
     $timeUTC = (Get-Date($startTime).toUniversalTime() -uformat "%Y-%m-%dT%H:%M:%SZ").ToString()
     $timeLocal = (Get-Date($startTime) -uformat "%Y-%m-%dT%H:%M:%SZ").ToString()
     $msg = [PSCustomObject][ordered]@{ 
-        "Execution Time (UTC)"   = $timeUTC;
-        "Execution Time (Local)" = $timeLocal; 
-        "Technique"              = $technique; 
-        "Test Number"            = $testNum; 
-        "Test Name"              = $testName; 
-        "Hostname"               = $targetHostname; 
+        "Execution Time (UTC)"   = $timeUTC
+        "Execution Time (Local)" = $timeLocal 
+        "Technique"              = $technique
+        "Test Number"            = $testNum
+        "Test Name"              = $testName
+        "Hostname"               = $targetHostname
         "Username"               = $targetUser
         "GUID"                   = $testGuid
+        "Tag" = "atomicrunner"
+        "CustomTag" = $artConfig.CustomTag
     } 
     
     # send syslog message if a syslog server is defined in Public/config.ps1
     if([bool]$artConfig.syslogServer -and [bool]$artConfig.syslogPort){
-        $msg | Add-Member -Name "Tag" -Type NoteProperty -Value "atomicrunner"
         $jsonMsg = $msg | ConvertTo-Json
         Send-SyslogMessage -Server $artConfig.syslogServer -Port $artConfig.syslogPort -Message $jsonMsg -Severity "Informational" -Facility "daemon"
     }
