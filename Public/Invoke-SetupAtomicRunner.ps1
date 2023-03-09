@@ -67,7 +67,7 @@ function Invoke-SetupAtomicRunner {
         # sets cronjob string using basepath from config.ps1
         $pwshPath = which pwsh
         $job = "@reboot root $pwshPath -Command Invoke-KickoffAtomicRunner"
-        $exists = cat /etc/crontab|Select-String -Quiet "KickoffAtomicRunner"
+        $exists = cat /etc/crontab | Select-String -Quiet "KickoffAtomicRunner"
         #checks if the Kickoff-AtomicRunner job exists. If not appends it to the system crontab.
         if ($null -eq $exists) {
             $(echo "$job" >> /etc/crontab)
@@ -82,10 +82,8 @@ function Invoke-SetupAtomicRunner {
     $root = Split-Path $PSScriptRoot -Parent
     $pathToPSD1 = Join-Path $root "Invoke-AtomicRedTeam.psd1"
     $importStatement = "Import-Module ""$pathToPSD1"" -Force"
-    $profileContent = ""
-    if (Test-Path -Path $profile) { #read in $profile if it exists
-        $profileContent = Get-Content $profile
-    }
+    New-Item $PROFILE -ErrorAction Ignore
+    $profileContent = Get-Content $profile
     $line = $profileContent | Select-String ".*import-module.*invoke-atomicredTeam.psd1" | Select-Object -ExpandProperty Line
     if ($line) {
         $profileContent | ForEach-Object { $_.replace( $line, "$importStatement") } | Set-Content $profile

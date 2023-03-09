@@ -117,11 +117,10 @@ function Invoke-AtomicRunner {
         function Get-TimingVariable ($sched) {
             $atcount = $sched.Count
             if ($null -eq $atcount) { $atcount = 1 }
-            $weeklyminutes = $artConfig.scheduleTimeSpan.TotalSeconds
-            $sleeptime = ($weeklyminutes / $atcount) #in minutes
-            if ($sleeptime -gt 90 * 60) {
-                $sleeptime = 90 * 60
-            }
+            $scheduleTimeSpanSeconds = $artConfig.scheduleTimeSpan.TotalSeconds
+            $secondsForAllTestsToComplete =  = $scheduleTimeSpanSeconds
+            $sleeptime = ($secondsForAllTestsToComplete / $atcount) - 120 # 1 minute for restart and 1 minute delay for scheduled task
+            if ($sleeptime -lt 120) { $sleeptime = 120 }
             return $sleeptime
         }
 
