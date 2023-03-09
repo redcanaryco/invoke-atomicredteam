@@ -14,12 +14,12 @@ function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testNa
         "Hostname"               = $targetHostname
         "Username"               = $targetUser
         "GUID"                   = $testGuid
-        "Tag" = "atomicrunner"
-        "CustomTag" = $artConfig.CustomTag
+        "Tag"                    = "atomicrunner"
+        "CustomTag"              = $artConfig.CustomTag
     } 
     
     # send syslog message if a syslog server is defined in Public/config.ps1
-    if([bool]$artConfig.syslogServer -and [bool]$artConfig.syslogPort){
+    if ([bool]$artConfig.syslogServer -and [bool]$artConfig.syslogPort) {
         $jsonMsg = $msg | ConvertTo-Json
         Send-SyslogMessage -Server $artConfig.syslogServer -Port $artConfig.syslogPort -Message $jsonMsg -Severity "Informational" -Facility "daemon"
     }
