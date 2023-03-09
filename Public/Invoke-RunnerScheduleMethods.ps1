@@ -17,8 +17,7 @@ function Loop($fileList, $atomicType) {
                     $test | Add-Member -MemberType NoteProperty -Name TimeoutSeconds -Value 120
                     $test | Add-Member -MemberType NoteProperty -Name InputArgs -Value ""
                     $test | Add-Member -MemberType NoteProperty -Name AtomicsFolder -Value $atomicType
-                    $test | Add-Member -MemberType NoteProperty -Name hostname -Value ""
-                    $test | Add-Member -MemberType NoteProperty -Name active -Value $false
+                    $test | Add-Member -MemberType NoteProperty -Name enabled -Value $false
                     $test | Add-Member -MemberType NoteProperty -Name notes -Value ""
 
                     # Added dummy variable to grab the index values returned by appending to an arraylist so they don't get written to the screen
@@ -111,7 +110,7 @@ function Get-Schedule($filtered = $true, $testGuids = $null) {
         }
         elseif ($filtered) {
             $schedule = $schedule | Where-Object {
-                ($_.active -eq $true -and ($_.supported_platforms -like "*" + $artConfig.OS + "*" ))
+                ($_.enabled -eq $true -and ($_.supported_platforms -like "*" + $artConfig.OS + "*" ))
             }
         }
 
@@ -120,7 +119,7 @@ function Get-Schedule($filtered = $true, $testGuids = $null) {
         Write-Host -ForegroundColor Yellow "Couldn't find schedule file ($($artConfig.scheduleFile)) Update the path to the schedule file in the config or generate a new one with 'Invoke-GenerateNewSchedule'"
     }
                 
-    if ($schedule.length -eq 0) { Write-Host -ForegroundColor Yellow "No active tests were found. Edit the 'active' column of your schedule file ($($artConfig.scheduleFile)) and set some to active (True)"; return $null }
+    if ($schedule.length -eq 0) { Write-Host -ForegroundColor Yellow "No active tests were found. Edit the 'enabled' column of your schedule file ($($artConfig.scheduleFile)) and set some to enabled (True)"; return $null }
     return $schedule
 }
 

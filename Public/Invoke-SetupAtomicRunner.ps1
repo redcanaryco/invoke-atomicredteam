@@ -107,7 +107,7 @@ function Invoke-SetupAtomicRunner {
 
     $schedule = Get-Schedule
     if ($null -eq $schedule) {
-        Write-Host -ForegroundColor Yellow "There are no tests enabled on the schedule, set the 'Active' column to 'True' for the atomic test that you want to run. The schedule file is found here: $($artConfig.scheduleFile)"
+        Write-Host -ForegroundColor Yellow "There are no tests enabled on the schedule, set the 'Enabled' column to 'True' for the atomic test that you want to run. The schedule file is found here: $($artConfig.scheduleFile)"
         Write-Host -ForegroundColor Yellow "Rerun this setup script after updating the schedule"
     }
     else {

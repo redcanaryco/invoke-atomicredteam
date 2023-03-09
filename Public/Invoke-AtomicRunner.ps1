@@ -128,7 +128,7 @@ function Invoke-AtomicRunner {
         $schedule = Get-Schedule
         # If the schedule is empty, end process
         if (-not $schedule) {
-            LogRunnerMsg "No test guid's or active tests."
+            LogRunnerMsg "No test guid's or enabled tests."
             return
         }
 
