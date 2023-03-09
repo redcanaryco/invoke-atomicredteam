@@ -109,7 +109,7 @@ function Invoke-SetupAtomicRunner {
     }
     
     # Install the Posh-SYLOG module if we are configured to use it and it is not already installed
-    if ((-not (Get-InstalledModule "Posh-SYSLOG")) -and [bool]$artConfig.syslogServer -and [bool]$artConfig.syslogPort) {
+    if ((-not (Get-Module -ListAvailable "Posh-SYSLOG")) -and [bool]$artConfig.syslogServer -and [bool]$artConfig.syslogPort) {
         write-verbose "Posh-SYSLOG"
         Install-Module -Name Posh-SYSLOG -Scope CurrentUser -Force
     }

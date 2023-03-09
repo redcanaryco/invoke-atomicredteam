@@ -44,9 +44,6 @@ $pathToPrivateConfig = Join-Path $root "privateConfig.ps1"
 if (Test-Path ($pathToPrivateConfig)) {
   & ($pathToPrivateConfig)
 }
-else {
-  Write-Host -ForegroundColor Yellow "No private config file found at $pathToPrivateConfig"
-}
 
 #####################################################################################
 # All of the configs below are calculated using the script block in the "Value" field.
