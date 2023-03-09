@@ -1,6 +1,8 @@
 #Requires -RunAsAdministrator
 
 function Invoke-SetupAtomicRunner {
+    if($artConfig.basehostname.length -gt 15){ Throw "The hostname for this machine (minus the GUID) must be 15 characters or less. Please rename this computer."}
+
     #create AtomicRunner-Logs directory if it doesn't exist
     New-Item -ItemType Directory $artConfig.atomicLogsPath -ErrorAction Ignore
     New-Item -ItemType Directory $artConfig.runnerFolder -ErrorAction Ignore
