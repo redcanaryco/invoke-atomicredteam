@@ -1,5 +1,3 @@
-#Requires -RunAsAdministrator
-
 function Invoke-SetupAtomicRunner {
     if($artConfig.basehostname.length -gt 15){ Throw "The hostname for this machine (minus the GUID) must be 15 characters or less. Please rename this computer."}
 

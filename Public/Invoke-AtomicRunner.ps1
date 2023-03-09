@@ -118,7 +118,7 @@ function Invoke-AtomicRunner {
             $atcount = $sched.Count
             if ($null -eq $atcount) { $atcount = 1 }
             $scheduleTimeSpanSeconds = $artConfig.scheduleTimeSpan.TotalSeconds
-            $secondsForAllTestsToComplete =  = $scheduleTimeSpanSeconds
+            $secondsForAllTestsToComplete = $scheduleTimeSpanSeconds
             $sleeptime = ($secondsForAllTestsToComplete / $atcount) - 120 # 1 minute for restart and 1 minute delay for scheduled task
             if ($sleeptime -lt 120) { $sleeptime = 120 }
             return $sleeptime
