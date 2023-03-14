@@ -91,10 +91,11 @@ function Invoke-AtomicRunner {
                 if ($debug) { LogRunnerMsg "Debug: pretending to rename the computer to $newHostName"; exit }
                 if ($artConfig.gmsaAccount) {
                     $retry = $true; $count = 0
-                    while ($retry) { # add retry loop to avoid this occassional error "The verification of the MSA failed with error 1355"
+                    while ($retry) {
+                        # add retry loop to avoid this occassional error "The verification of the MSA failed with error 1355"
                         Invoke-Command -ComputerName '127.0.0.1' -ConfigurationName 'RenameRunnerEndpoint' -ScriptBlock { Rename-Computer -NewName $Using:newHostName -Force -Restart }
                         Start-Sleep 120; $count = $count + 1
-                        if($count -gt 15) { $retry = $false}
+                        if ($count -gt 15) { $retry = $false }
                     }
                 }
                 else {
@@ -134,12 +135,6 @@ function Invoke-AtomicRunner {
 
         # timing variables
         $SleepTillCleanup = Get-TimingVariable $schedule
-		    
-        # exit if file stop.txt is found
-        If (Test-Path $artConfig.stopFile) {
-            LogRunnerMsg "exiting script because $($artConfig.stopFile) does exist"
-            exit
-        }
 
         # Perform cleanup, Showdetails or Prereq stuff for all scheduled items and then exit
         if ($Cleanup -or $ShowDetails -or $CheckPrereqs -or $ShowDetailsBrief -or $GetPrereqs) {
@@ -148,6 +143,12 @@ function Invoke-AtomicRunner {
                 Invoke-AtomicTestFromScheduleRow $_ $PSBoundParameters
             }
             return
+        }
+
+        # exit if file stop.txt is found
+        If (Test-Path $artConfig.stopFile) {
+            LogRunnerMsg "exiting script because $($artConfig.stopFile) does exist"
+            exit
         }
         
         # Find current test to run
