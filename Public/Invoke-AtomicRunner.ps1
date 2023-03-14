@@ -87,6 +87,12 @@ function Invoke-AtomicRunner {
                 Invoke-Expression $("hostnamectl set-hostname $newHostName")
                 Invoke-Expression $("shutdown -r now")
             }
+	    if ($IsMacOS) {
+                Invoke-Expression $("scutil --set HostName $newHostName")
+                Invoke-Expression $("scutil --set ComputerName $newHostName")
+                Invoke-Expression $("scutil --set LocalHostName $newHostName")
+                Invoke-Expression $("shutdown -r now")
+            }
             else {
                 if ($debug) { LogRunnerMsg "Debug: pretending to rename the computer to $newHostName"; exit }
                 if ($artConfig.gmsaAccount) {
