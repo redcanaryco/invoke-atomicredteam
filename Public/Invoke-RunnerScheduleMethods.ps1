@@ -43,7 +43,7 @@ function Get-NewSchedule() {
         $privateAtomics = Loop $privateAtomicFiles "Private"
     }
     else {
-        Write-Host -ForegroundColor Yellow "Private Atomics Folder not Found $($artConfig.PathToPrivateAtomicsFolder)"
+        Write-Verbose "Private Atomics Folder not Found $($artConfig.PathToPrivateAtomicsFolder)"
     }
     $AllAtomicTests = New-Object System.Collections.ArrayList
     try { $AllAtomicTests.AddRange($publicAtomics) }catch {}
