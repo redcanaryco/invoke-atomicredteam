@@ -79,15 +79,9 @@ function Get-ScheduleRefresh() {
                             `nCannot Continue Execution. System Exit"; Start-Sleep 10
                 exit
             }
-            $old.Order = $fresh.Order
             $old.Technique = $fresh.Technique
             $old.TestName = $fresh.TestName
             $old.supported_platforms = $fresh.supported_platforms
-            $old.TimeoutSeconds = $fresh.TimeoutSeconds
-            $old.InputArgs = $fresh.InputArgs
-            $old.AtomicsFolder = $fresh.AtomicsFolder
-            $old.enabled = $fresh.enabled
-            $old.notes = $fresh.notes
                     
             $update = $true
             $newSchedule += $old
