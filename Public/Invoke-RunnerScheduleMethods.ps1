@@ -129,8 +129,8 @@ function Get-Schedule($scheduleCSV, $filtered = $true, $testGuids = $null) {
 
 function Invoke-GenerateNewSchedule() {
     #create AtomicRunner-Logs directories if they don't exist
-    New-Item -ItemType Directory $artConfig.atomicLogsPath -ErrorAction Ignore
-    New-Item -ItemType Directory $artConfig.runnerFolder -ErrorAction Ignore
+    New-Item -ItemType Directory $artConfig.atomicLogsPath -ErrorAction Ignore | Out-Null
+    New-Item -ItemType Directory $artConfig.runnerFolder -ErrorAction Ignore | Out-Null
 
     LogRunnerMsg "Generating new schedule: $($artConfig.scheduleFile)"
     $schedule = Get-NewSchedule
