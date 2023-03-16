@@ -96,10 +96,10 @@ function Get-ScheduleRefresh() {
 
 }
 
-function Get-Schedule($scheduleCSV, $filtered = $true, $testGuids = $null) {
-    if ($scheduleCSV -or (Test-Path($artConfig.scheduleFile))) {
-        if ($scheduleCSV) {
-            $schedule = Import-Csv $scheduleCSV
+function Get-Schedule($listOfAtomics, $filtered = $true, $testGuids = $null) {
+    if ($listOfAtomics -or (Test-Path($artConfig.scheduleFile))) {
+        if ($listOfAtomics) {
+            $schedule = Import-Csv $listOfAtomics
         }
         else {
             $schedule = Import-Csv $artConfig.scheduleFile

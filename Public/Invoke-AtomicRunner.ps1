@@ -29,7 +29,7 @@ function Invoke-AtomicRunner {
         $TestGuids,
 
         [Parameter(Mandatory = $false)]
-        $scheduleCSV
+        $listOfAtomics
     )
     Begin { }
     Process {       
@@ -135,7 +135,7 @@ function Invoke-AtomicRunner {
         }
 
 
-        $schedule = Get-Schedule $scheduleCSV
+        $schedule = Get-Schedule $listOfAtomics
         # If the schedule is empty, end process
         if (-not $schedule) {
             LogRunnerMsg "No test guid's or enabled tests."
@@ -146,8 +146,8 @@ function Invoke-AtomicRunner {
         $SleepTillCleanup = Get-TimingVariable $schedule
 
         # Perform cleanup, Showdetails or Prereq stuff for all scheduled items and then exit
-        if ($Cleanup -or $ShowDetails -or $CheckPrereqs -or $ShowDetailsBrief -or $GetPrereqs -or $scheduleCSV) {
-            $PSBoundParameters.Remove('scheduleCSV') | Out-Null
+        if ($Cleanup -or $ShowDetails -or $CheckPrereqs -or $ShowDetailsBrief -or $GetPrereqs -or $listOfAtomics) {
+            $PSBoundParameters.Remove('listOfAtomics') | Out-Null
             $schedule | ForEach-Object {
                 Invoke-AtomicTestFromScheduleRow $_ $PSBoundParameters
             }
