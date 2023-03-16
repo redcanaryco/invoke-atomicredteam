@@ -53,7 +53,7 @@ function Get-NewSchedule() {
 
 function Get-ScheduleRefresh() {
     $AllAtomicTests = Get-NewSchedule
-    $schedule = Get-Schedule $false # get schedule, including inactive (ie not filtered)
+    $schedule = Get-Schedule $null $false # get schedule, including inactive (ie not filtered)
             
     # Creating new schedule object for updating changes in atomics
     $newSchedule = New-Object System.Collections.ArrayList
@@ -101,7 +101,8 @@ function Get-Schedule($scheduleCSV, $filtered = $true, $testGuids = $null) {
     if ($scheduleCSV -or (Test-Path($artConfig.scheduleFile))) {
         if ($scheduleCSV) {
             $schedule = Import-Csv $scheduleCSV
-        }else {
+        }
+        else {
             $schedule = Import-Csv $artConfig.scheduleFile
         }
     
@@ -127,6 +128,10 @@ function Get-Schedule($scheduleCSV, $filtered = $true, $testGuids = $null) {
 }
 
 function Invoke-GenerateNewSchedule() {
+    #create AtomicRunner-Logs directories if they don't exist
+    New-Item -ItemType Directory $artConfig.atomicLogsPath -ErrorAction Ignore
+    New-Item -ItemType Directory $artConfig.runnerFolder -ErrorAction Ignore
+
     LogRunnerMsg "Generating new schedule: $($artConfig.scheduleFile)"
     $schedule = Get-NewSchedule
     $schedule | Export-Csv $artConfig.scheduleFile -NoTypeInformation
