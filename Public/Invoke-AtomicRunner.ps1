@@ -191,7 +191,9 @@ function Invoke-AtomicRunner {
             $tr = $schedule[0] 
         }
 
-        #Rename Computer and Restart
-        Rename-ThisComputer $tr $artConfig.basehostname 
+        if (-not $artConfig.skipRenameAndRestart) {
+            #Rename Computer and Restart
+            Rename-ThisComputer $tr $artConfig.basehostname
+        }
     }
 }

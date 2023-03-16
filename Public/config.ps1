@@ -2,36 +2,39 @@
 $artConfig = [PSCustomObject]@{
 
   # [optional] These three configs are calculated programatically, you probably don't need to change them
-  basehostname               = $((hostname).split("-")[0]);
-  OS                         = $( if ($IsLinux) { "linux" } elseif ($IsMacOS) { "macos" } else { "windows" });
+  basehostname               = $((hostname).split("-")[0])
+  OS                         = $( if ($IsLinux) { "linux" } elseif ($IsMacOS) { "macos" } else { "windows" })
 
   # [optional(if using default install paths)] Paths to your Atomic Red Team "atomics" folder and your "invoke-atomicredteam" folder
-  PathToInvokeFolder         = Join-Path $( if ($IsLinux -or $IsMacOS) { "~" } else { "C:" })  "/AtomicRedTeam/invoke-atomicredteam"; # this is the default install path so you probably don't need to change this
-  PathToPublicAtomicsFolder  = Join-Path $( if ($IsLinux -or $IsMacOS) { "~" } else { "C:" })  "AtomicRedTeam/atomics"; # this is the default install path so you probably don't need to change this
-  PathToPrivateAtomicsFolder = Join-Path $( if ($IsLinux -or $IsMacOS) { "~" } else { "C:" })   "PrivateAtomics/atomics"; # if you aren't providing your own private atomics that are custom written by you, just leave this as is
+  PathToInvokeFolder         = Join-Path $( if ($IsLinux -or $IsMacOS) { "~" } else { "C:" })  "/AtomicRedTeam/invoke-atomicredteam" # this is the default install path so you probably don't need to change this
+  PathToPublicAtomicsFolder  = Join-Path $( if ($IsLinux -or $IsMacOS) { "~" } else { "C:" })  "AtomicRedTeam/atomics" # this is the default install path so you probably don't need to change this
+  PathToPrivateAtomicsFolder = Join-Path $( if ($IsLinux -or $IsMacOS) { "~" } else { "C:" })   "PrivateAtomics/atomics" # if you aren't providing your own private atomics that are custom written by you, just leave this as is
 
   # [ Optional ] The user that will be running each atomic test
-  user                       = $( if ($IsLinux -or $IsMacOS) { $env:USER } else { "$env:USERDOMAIN\$env:USERNAME" }); # example "corp\atomicrunner"
+  user                       = $( if ($IsLinux -or $IsMacOS) { $env:USER } else { "$env:USERDOMAIN\$env:USERNAME" }) # example "corp\atomicrunner"
 
   # [optional] the path where you want the folder created that houses the logs and the runner schedule. Defaults to users home directory
-  basePath                   = $( if (!$IsLinux -and !$IsMacOS) { $env:USERPROFILE } else { $env:HOME }); # example "C:\Users\atomicrunner"
+  basePath                   = $( if (!$IsLinux -and !$IsMacOS) { $env:USERPROFILE } else { $env:HOME }) # example "C:\Users\atomicrunner"
 
   # [optional]
-  scheduleTimeSpan           = New-TimeSpan -Days 7; # the time in which all tests on the schedule should complete
+  scheduleTimeSpan           = New-TimeSpan -Days 7 # the time in which all tests on the schedule should complete
 
 
   # [optional] If you need to use a group managed service account in order to rename the computer, enter it here
-  gmsaAccount                = $null;
+  gmsaAccount                = $null
 
   # [optional] Syslog configuration, default execution logs will be sent to this server:port
-  syslogServer               = ''; # set to empty string '' if you don't want to log atomic execution details to a syslog server (don't includle http(s):\\)
-  syslogPort                 = 514;
+  syslogServer               = '' # set to empty string '' if you don't want to log atomic execution details to a syslog server (don't includle http(s):\\)
+  syslogPort                 = 514
  
   verbose                    = $true; # set to true for more log output
 
   # [optional] logfile filename configs
   logFolder                  = "AtomicRunner-Logs"
   timeLocal                  = (Get-Date(get-date) -uformat "%Y-%m-%d").ToString()
+
+  # [optional] don't rename and restart the computer when executing the atomic runner schedule
+  skipRenameAndRestart       = $false
 
   # amsi bypass script block (applies to Windows only)
   absb                       = $null
