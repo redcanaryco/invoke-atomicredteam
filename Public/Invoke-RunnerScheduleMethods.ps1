@@ -75,6 +75,8 @@ function Get-ScheduleRefresh() {
                 $fresh = $fresh[0]
                 LogRunnerMsg "Duplicated auto_generated_guid found $($fresh.auto_generated_guid) with technique $($fresh.Technique). 
                             `nCannot Continue Execution. System Exit"
+                Write-Host -ForegroundColor Yellow "Duplicated auto_generated_guid found $($fresh.auto_generated_guid) with technique $($fresh.Technique). 
+                            `nCannot Continue Execution. System Exit"; Start-Sleep 10
                 exit
             }
             $old.Order = $fresh.Order
