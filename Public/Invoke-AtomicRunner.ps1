@@ -26,7 +26,10 @@ function Invoke-AtomicRunner {
 
         [Parameter(Mandatory = $false)]
         [String[]]
-        $TestGuids
+        $TestGuids,
+
+        [Parameter(Mandatory = $false)]
+        $scheduleCSV
     )
     Begin { }
     Process {       
@@ -87,7 +90,7 @@ function Invoke-AtomicRunner {
                 Invoke-Expression $("hostnamectl set-hostname $newHostName")
                 Invoke-Expression $("shutdown -r now")
             }
-	    if ($IsMacOS) {
+            if ($IsMacOS) {
                 Invoke-Expression $("scutil --set HostName $newHostName")
                 Invoke-Expression $("scutil --set ComputerName $newHostName")
                 Invoke-Expression $("scutil --set LocalHostName $newHostName")
@@ -132,7 +135,7 @@ function Invoke-AtomicRunner {
         }
 
 
-        $schedule = Get-Schedule
+        $schedule = Get-Schedule $scheduleCSV
         # If the schedule is empty, end process
         if (-not $schedule) {
             LogRunnerMsg "No test guid's or enabled tests."
@@ -143,8 +146,8 @@ function Invoke-AtomicRunner {
         $SleepTillCleanup = Get-TimingVariable $schedule
 
         # Perform cleanup, Showdetails or Prereq stuff for all scheduled items and then exit
-        if ($Cleanup -or $ShowDetails -or $CheckPrereqs -or $ShowDetailsBrief -or $GetPrereqs) {
-    
+        if ($Cleanup -or $ShowDetails -or $CheckPrereqs -or $ShowDetailsBrief -or $GetPrereqs -or $scheduleCSV) {
+            $PSBoundParameters.Remove('scheduleCSV') | Out-Null
             $schedule | ForEach-Object {
                 Invoke-AtomicTestFromScheduleRow $_ $PSBoundParameters
             }
@@ -197,9 +200,8 @@ function Invoke-AtomicRunner {
             $tr = $schedule[0] 
         }
 
-        if (-not $artConfig.skipRenameAndRestart) {
-            #Rename Computer and Restart
-            Rename-ThisComputer $tr $artConfig.basehostname
-        }
+        #Rename Computer and Restart
+        Rename-ThisComputer $tr $artConfig.basehostname
+    
     }
 }

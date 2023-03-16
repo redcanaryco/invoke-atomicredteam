@@ -97,10 +97,13 @@ function Get-ScheduleRefresh() {
 
 }
 
-function Get-Schedule($filtered = $true, $testGuids = $null) {
-    # Read schedule file, if it doesn't exist pull from Atomics
-    if (Test-Path($artConfig.scheduleFile)) {
-        $schedule = Import-Csv $artConfig.scheduleFile
+function Get-Schedule($scheduleCSV, $filtered = $true, $testGuids = $null) {
+    if ($scheduleCSV -or (Test-Path($artConfig.scheduleFile))) {
+        if ($scheduleCSV) {
+            $schedule = Import-Csv $scheduleCSV
+        }else {
+            $schedule = Import-Csv $artConfig.scheduleFile
+        }
     
         # Filter schedule to either Active/Supported Platform or TestGuids List
         if ($TestGuids) {
@@ -119,7 +122,7 @@ function Get-Schedule($filtered = $true, $testGuids = $null) {
         Write-Host -ForegroundColor Yellow "Couldn't find schedule file ($($artConfig.scheduleFile)) Update the path to the schedule file in the config or generate a new one with 'Invoke-GenerateNewSchedule'"
     }
                 
-    if ($schedule.length -eq 0) { Write-Host -ForegroundColor Yellow "No active tests were found. Edit the 'enabled' column of your schedule file ($($artConfig.scheduleFile)) and set some to enabled (True)"; return $null }
+    if (($null -eq $schedule) -or ($schedule.length -eq 0)) { Write-Host -ForegroundColor Yellow "No active tests were found. Edit the 'enabled' column of your schedule file and set some to enabled (True)"; return $null }
     return $schedule
 }
 

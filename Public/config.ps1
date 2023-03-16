@@ -33,9 +33,6 @@ $artConfig = [PSCustomObject]@{
   logFolder                  = "AtomicRunner-Logs"
   timeLocal                  = (Get-Date(get-date) -uformat "%Y-%m-%d").ToString()
 
-  # [optional] don't rename and restart the computer when executing the atomic runner schedule
-  skipRenameAndRestart       = $false
-
   # amsi bypass script block (applies to Windows only)
   absb                       = $null
 
