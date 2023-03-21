@@ -69,7 +69,7 @@ function Invoke-AtomicRunner {
             if ($artConfig.verbose) { LogRunnerMsg "Setting hostname to $newHostName" }
 
             If (Test-Path $artConfig.stopFile) {
-                LogRunnerMsg "exiting script because because $($artConfig.stopFile) exists"
+                LogRunnerMsg "exiting script because $($artConfig.stopFile) exists"
                 exit
             }
 
@@ -144,6 +144,7 @@ function Invoke-AtomicRunner {
         # exit if file stop.txt is found
         If (Test-Path $artConfig.stopFile) {
             LogRunnerMsg "exiting script because $($artConfig.stopFile) does exist"
+            Write-Host -ForegroundColor Yellow "Exiting script because $($artConfig.stopFile) does exist."; Start-Sleep 10;
             exit
         }
         

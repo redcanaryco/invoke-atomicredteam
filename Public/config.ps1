@@ -1,7 +1,7 @@
 
 $artConfig = [PSCustomObject]@{
 
-  # [optional] These three configs are calculated programatically, you probably don't need to change them
+  # [optional] These two configs are calculated programatically, you probably don't need to change them
   basehostname               = $((hostname).split("-")[0])
   OS                         = $( if ($IsLinux) { "linux" } elseif ($IsMacOS) { "macos" } else { "windows" })
 
