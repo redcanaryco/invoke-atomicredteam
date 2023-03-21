@@ -192,5 +192,3 @@ function Invoke-AtomicRunner {
     
     }
 }
-
-Invoke-AtomicRunner -listOfAtomics .\IcedID.csv -ShowDetails
