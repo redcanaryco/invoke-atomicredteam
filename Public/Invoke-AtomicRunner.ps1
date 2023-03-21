@@ -48,22 +48,9 @@ function Invoke-AtomicRunner {
             if ($guid -match $guidRegex) { return $guid } else { return "" }
         }
 
-        function Convert-StringtoHT ($htstring) {
-            $pattern = '@\{[ ]*\"(?<Key>.*?)\"[ ]*=[ ]*\"(?<Value>.*?)\"[ ]*}'
-            $hashTable = @{ }
-            foreach ($match in [regex]::Matches($htstring, $pattern)) {
-                $hashTable[$match.Groups['Key'].Value] = $match.Groups['Value'].Value
-            }
-            $hashTable
-        }
-
         function Invoke-AtomicTestFromScheduleRow ($tr, $psb) {
-            if ($tr.InputArgs -eq '') {
-                $tr.InputArgs = @{ }
-            }
-            else {
-                $tr.InputArgs = Convert-StringtoHT($tr.InputArgs)
-            }
+            $theArgs = $tr.InputArgs
+            $tr.InputArgs = ConvertFrom-StringData -StringData $theArgs
             $sc = $tr.AtomicsFolder
             #Run the Test based on if scheduleContext is 'private' or 'public'
             if (($sc -eq 'public') -or ($null -eq $sc)) {
@@ -205,3 +192,5 @@ function Invoke-AtomicRunner {
     
     }
 }
+
+Invoke-AtomicRunner -listOfAtomics .\IcedID.csv -ShowDetails
