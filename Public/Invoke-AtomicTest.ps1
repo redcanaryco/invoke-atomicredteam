@@ -1,26 +1,3 @@
-<#
-.SYNOPSIS
-    Invokes specified Atomic test(s)
-.DESCRIPTION
-    Invokes specified Atomic tests(s).  Optionally, you can specify if you want to list the details of the Atomic test(s) only.
-.EXAMPLE Check if Prerequisites for Atomic Test are met
-    PS/> Invoke-AtomicTest T1117 -CheckPrereqs
-.EXAMPLE Invokes Atomic Test
-    PS/> Invoke-AtomicTest T1117
-.EXAMPLE Run the Cleanup Commmand for the given Atomic Test
-    PS/> Invoke-AtomicTest T1117 -Cleanup
-.EXAMPLE Generate Atomic Test (Output Test Definition Details)
-    PS/> Invoke-AtomicTest T1117 -ShowDetails
-.EXAMPLE Invoke a test and flow the standard/error output to the console
-    PS/> Invoke-AtomicTest T1117 -Interactive
-.EXAMPLE Invoke a test and keep standard/error output files for later processing. This edge case has specific requirements. See https://github.com/redcanaryco/invoke-atomicredteam/issues/60
-    PS/> Invoke-AtomicTest T1117 -KeepStdOutStdErrFiles
-.NOTES
-    Create Atomic Tests from yaml files described in Atomic Red Team. https://github.com/redcanaryco/atomic-red-team/tree/master/atomics
-.LINK
-    Installation and Usage Wiki: https://github.com/redcanaryco/invoke-atomicredteam/wiki
-    Github repo: https://github.com/redcanaryco/invoke-atomicredteam
-#>
 function Invoke-AtomicTest {
     [CmdletBinding(DefaultParameterSetName = 'technique',
         SupportsShouldProcess = $true,
