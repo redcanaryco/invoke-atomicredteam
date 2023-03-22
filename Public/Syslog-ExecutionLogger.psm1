@@ -2,7 +2,7 @@ function Start-ExecutionLog($startTime, $logPath, $targetHostname, $targetUser, 
 
 }
 
-function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testName, $testGuid, $testExecutor, $testDescription, $command, $logPath, $targetHostname, $targetUser, $stdOut, $stdErr, $isWindows) {
+function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testName, $testGuid, $testExecutor, $testDescription, $command, $logPath, $targetHostname, $targetUser, $res, $isWindows) {
     $timeUTC = (Get-Date($startTime).toUniversalTime() -uformat "%Y-%m-%dT%H:%M:%SZ").ToString()
     $timeLocal = (Get-Date($startTime) -uformat "%Y-%m-%dT%H:%M:%SZ").ToString()
     $msg = [PSCustomObject][ordered]@{ 
@@ -16,6 +16,8 @@ function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testNa
         "GUID"                   = $testGuid
         "Tag"                    = "atomicrunner"
         "CustomTag"              = $artConfig.CustomTag
+        "ProcessId"              = $res.ProcessId
+        "ExitCode"               = $res.ExitCode
     } 
     
     # send syslog message if a syslog server is defined in Public/config.ps1

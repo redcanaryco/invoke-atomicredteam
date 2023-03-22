@@ -503,7 +503,7 @@ function Invoke-AtomicTest {
                         $res = Invoke-ExecuteCommand $final_command $test.executor.name $executionPlatform $TimeoutSeconds $session -Interactive:$Interactive
                         $stopTime = Get-Date
                         if ($isLoggingModuleSet) {
-                            Write-ExecutionLog $startTime $stopTime $AT $order $test.name $test.auto_generated_guid $test.executor.name $test.description $final_command $ExecutionLogPath $executionHostname $executionUser $res.StandardOutput $res.ErrorOutput (-Not($IsLinux -or $IsMacOS))
+                            Write-ExecutionLog $startTime $stopTime $AT $order $test.name $test.auto_generated_guid $test.executor.name $test.description $final_command $ExecutionLogPath $executionHostname $executionUser $res (-Not($IsLinux -or $IsMacOS))
                             $order++
                         }
                         Write-KeyValue "Done executing test: " $testId
