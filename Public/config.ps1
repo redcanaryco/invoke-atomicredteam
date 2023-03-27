@@ -18,7 +18,7 @@ $artConfig = [PSCustomObject]@{
 
   # [optional]
   scheduleTimeSpan           = New-TimeSpan -Days 7 # the time in which all tests on the schedule should complete
-
+  kickOffDelay               = New-TimeSpan -Minutes 0 # an additional delay before Invoke-KickoffAtomicRunner calls Invoke-AtomicRunner
 
   # [optional] If you need to use a group managed service account in order to rename the computer, enter it here
   gmsaAccount                = $null

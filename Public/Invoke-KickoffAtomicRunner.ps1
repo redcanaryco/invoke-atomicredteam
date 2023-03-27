@@ -40,6 +40,9 @@ function Invoke-KickoffAtomicRunner {
     $log = get-item $artConfig.logFile
     Rotate-Log $log $max_filesize $max_file_age #no need to repeat this. Can reduce further.
 
+    # Optional additional delay before starting
+    Start-Sleep $artConfig.kickOffDelay.TotalSeconds
+
     # Invoke the Runner Script
     if ($artConfig.debug) {
         Invoke-AtomicRunner *>> $all_log_file

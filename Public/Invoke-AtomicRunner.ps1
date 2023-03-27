@@ -50,7 +50,9 @@ function Invoke-AtomicRunner {
 
         function Invoke-AtomicTestFromScheduleRow ($tr, $psb) {
             $theArgs = $tr.InputArgs
-            $tr.InputArgs = ConvertFrom-StringData -StringData $theArgs
+            if ($theArgs.GetType().Name -ne "Hashtable") {
+                $tr.InputArgs = ConvertFrom-StringData -StringData $theArgs
+            }
             $sc = $tr.AtomicsFolder
             #Run the Test based on if scheduleContext is 'private' or 'public'
             if (($sc -eq 'public') -or ($null -eq $sc)) {
@@ -116,8 +118,8 @@ function Invoke-AtomicRunner {
             if ($null -eq $atcount) { $atcount = 1 }
             $scheduleTimeSpanSeconds = $artConfig.scheduleTimeSpan.TotalSeconds
             $secondsForAllTestsToComplete = $scheduleTimeSpanSeconds
-            $sleeptime = ($secondsForAllTestsToComplete / $atcount) - 120 # 1 minute for restart and 1 minute delay for scheduled task
-            if ($sleeptime -lt 120) { $sleeptime = 120 }
+            $sleeptime = ($secondsForAllTestsToComplete / $atcount) - 120 - $artConfig.kickOffDelay.TotalSeconds # 1 minute for restart and 1 minute delay for scheduled task and an optional kickoff delay
+            if ($sleeptime -lt 120) { $sleeptime = 120 } # minimum 2 minute sleep time
             return $sleeptime
         }
 
