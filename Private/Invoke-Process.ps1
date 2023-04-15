@@ -114,6 +114,7 @@ function Invoke-Process {
                     StandardOutput = ""
                     ErrorOutput = ""
                     ExitCode = $process.ExitCode
+                    ProcessId = $Process.Id
                     IsTimeOut = $IsTimeout
                 }
 
@@ -186,6 +187,7 @@ function Invoke-Process {
                 StandardOutput = $StandardStringBuilder.ToString().Trim()
                 ErrorOutput = $ErrorStringBuilder.ToString().Trim()
                 ExitCode = $Process.ExitCode
+                ProcessId = $Process.Id
                 IsTimeOut = $IsTimeout
             }
         }

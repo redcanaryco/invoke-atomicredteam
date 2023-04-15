@@ -1,5 +1,10 @@
 #requires -Version 5.0
 
+# execute amsi bypass if configured to use one
+if([bool]$artConfig.absb -and ($artConfig.OS -eq "windows")){
+    $artConfig.absb.Invoke()
+}
+
 #Get public and private function definition files.
 $Public = @( Get-ChildItem -Path $PSScriptRoot\Public\*.ps1 -Recurse -ErrorAction SilentlyContinue )
 $Private = @( Get-ChildItem -Path $PSScriptRoot\Private\*.ps1 -Recurse -Exclude "AtomicClassSchema.ps1" -ErrorAction SilentlyContinue )

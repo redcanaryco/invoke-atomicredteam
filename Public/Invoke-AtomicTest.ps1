@@ -126,11 +126,9 @@ function Invoke-AtomicTest {
 
         Function Get-Logger {
             Param([string]$name)
-            if(-not(Get-Module -name $name))
-            {
-                if(Get-Module -ListAvailable |
-                    Where-Object { $_.name -eq $name })
-                {
+            if (-not(Get-Module -name $name)) {
+                if (Get-Module -ListAvailable |
+                    Where-Object { $_.name -eq $name }) {
                     Import-Module -Name $name -Force
                     $true
                 } #end if module available then import
@@ -144,130 +142,149 @@ function Invoke-AtomicTest {
         } #end function Get-Logger
 
         $isLoggingModuleSet = $false
-        if(-not $NoExecutionLog) {
+        if (-not $NoExecutionLog) {
             $isLoggingModuleSet = $true
-            if(-not $PSBoundParameters.ContainsKey('LoggingModule')) {
-                Import-Module "$PSScriptRoot\Default-ExecutionLogger.psm1" -Force
-                $LoggingModule = "Default-ExecutionLogger"
-            } else {
+            if (-not $PSBoundParameters.ContainsKey('LoggingModule')) {
+                # use the syslog logger as default if the server and port are configured in the config file
+                if ([bool]$artConfig.syslogServer -and [bool]$artConfig.syslogPort) {
+                    Import-Module "$PSScriptRoot\Syslog-ExecutionLogger.psm1" -Force
+                    $LoggingModule = "Syslog-ExecutionLogger"
+                }
+                else {
+                    Import-Module "$PSScriptRoot\Default-ExecutionLogger.psm1" -Force
+                    $LoggingModule = "Default-ExecutionLogger"
+                }
+            } 
+            else {
                 Remove-Module -Name "Default-ExecutionLogger" -erroraction silentlycontinue
+                if (($PSBoundParameters['LoggingModule'] -eq "Syslog-ExecutionLogger") -and [bool]$artConfig.syslogServer -and [bool]$artConfig.syslogPort) {
+                    Import-Module "$PSScriptRoot\Syslog-ExecutionLogger.psm1" -Force
+                    $LoggingModule = "Syslog-ExecutionLogger"
+                }
+                else {
+                    Remove-Module -Name "Syslog-ExecutionLogger" -erroraction silentlycontinue
+                }
             }
         }
 
-        if($isLoggingModuleSet) {
-            if(Get-Logger -name $LoggingModule) {
+        if ($isLoggingModuleSet) {
+            if (Get-Logger -name $LoggingModule) {
                 Write-Verbose "Using Logger: $LoggingModule"
-            } else {
+            }
+            else {
                 Write-Host "Logger not found: ", $LoggingModule
             }
 
-            if((Get-Command Start-ExecutionLog -erroraction silentlycontinue).Source -eq $LoggingModule) {
-                if((Get-Command Write-ExecutionLog -erroraction silentlycontinue).Source -eq $LoggingModule) {
-                    if((Get-Command Stop-ExecutionLog -erroraction silentlycontinue).Source -eq $LoggingModule) {
+            if ((Get-Command Start-ExecutionLog -erroraction silentlycontinue).Source -eq $LoggingModule) {
+                if ((Get-Command Write-ExecutionLog -erroraction silentlycontinue).Source -eq $LoggingModule) {
+                    if ((Get-Command Stop-ExecutionLog -erroraction silentlycontinue).Source -eq $LoggingModule) {
                         Write-Verbose "All logging commands found"
-                    } else {
+                    }
+                    else {
                         Write-Host "Stop-ExecutionLog not found or loaded from the wrong module"
                         return
                     }
-                } else {
+                }
+                else {
                     Write-Host "Write-ExecutionLog not found or loaded from the wrong module"
                     return
                 }
-            } else {
+            }
+            else {
                 Write-Host "Start-ExecutionLog not found or loaded from the wrong module"
                 return
             }
         }
 
-        if($isLoggingModuleSet) {
+        if ($isLoggingModuleSet) {
             # Since there might a comma(T1559-1,2,3) Powershell takes it as array.
             # So converting it back to string.
-            if($AtomicTechnique -is [array]) {
+            if ($AtomicTechnique -is [array]) {
                 $AtomicTechnique = $AtomicTechnique -join ","
             }
             
             # Splitting Atomic Technique short form into technique and test numbers.
-            $AtomicTechniqueParams =  ($AtomicTechnique -split '-')
+            $AtomicTechniqueParams = ($AtomicTechnique -split '-')
             $AtomicTechnique = $AtomicTechniqueParams[0]
 
-            if($AtomicTechniqueParams.Length -gt 1){
+            if ($AtomicTechniqueParams.Length -gt 1) {
                 $ShortTestNumbers = $AtomicTechniqueParams[-1]
             }
 
-            if($TestNumbers -eq $null -and $ShortTestNumbers -ne $null) {
+            if ($TestNumbers -eq $null -and $ShortTestNumbers -ne $null) {
                 $TestNumbers = $ShortTestNumbers -split ','
             }
             
             # Here we're rebuilding an equivalent command line to put in the logs
             $commandLine = "Invoke-AtomicTest $AtomicTechnique"
 
-            if($ShowDetails -ne $false) {
+            if ($ShowDetails -ne $false) {
                 $commandLine = "$commandLine -ShowDetails $ShowDetails"
             }
 
-            if($ShowDetailsBrief -ne $false) {
+            if ($ShowDetailsBrief -ne $false) {
                 $commandLine = "$commandLine -ShowDetailsBrief $ShowDetailsBrief"
             }
 
-            if($TestNumbers -ne $null) {
+            if ($TestNumbers -ne $null) {
                 $commandLine = "$commandLine -TestNumbers $TestNumbers"
             }
 
-            if($TestNames -ne $null) {
+            if ($TestNames -ne $null) {
                 $commandLine = "$commandLine -TestNames $TestNames"
             }
 
-            if($TestGuids -ne $null) {
+            if ($TestGuids -ne $null) {
                 $commandLine = "$commandLine -TestGuids $TestGuids"
             }
 
             $commandLine = "$commandLine -PathToAtomicsFolder $PathToAtomicsFolder"
 
-            if($CheckPrereqs -ne $false) {
+            if ($CheckPrereqs -ne $false) {
                 $commandLine = "$commandLine -CheckPrereqs $CheckPrereqs"
             }
 
-            if($PromptForInputArgs -ne $false) {
+            if ($PromptForInputArgs -ne $false) {
                 $commandLine = "$commandLine -PromptForInputArgs $PromptForInputArgs"
             }
 
-            if($GetPrereqs -ne $false) {
+            if ($GetPrereqs -ne $false) {
                 $commandLine = "$commandLine -GetPrereqs $GetPrereqs"
             }
 
-            if($Cleanup -ne $false) {
+            if ($Cleanup -ne $false) {
                 $commandLine = "$commandLine -Cleanup $Cleanup"
             }
 
-            if($NoExecutionLog -ne $false) {
+            if ($NoExecutionLog -ne $false) {
                 $commandLine = "$commandLine -NoExecutionLog $NoExecutionLog"
             }
 
             $commandLine = "$commandLine -ExecutionLogPath $ExecutionLogPath"
 
-            if($Force -ne $false) {
+            if ($Force -ne $false) {
                 $commandLine = "$commandLine -Force $Force"
             }
 
-            if($InputArgs -ne $null) {
+            if ($InputArgs -ne $null) {
                 $commandLine = "$commandLine -InputArgs $InputArgs"
             }
 
             $commandLine = "$commandLine -TimeoutSeconds $TimeoutSeconds"
 
-            if($Session -ne $null) {
+            if ($Session -ne $null) {
                 $commandLine = "$commandLine -Session $Session"
             }
 
-            if($Interactive -ne $false) {
+            if ($Interactive -ne $false) {
                 $commandLine = "$commandLine -Interactive $Interactive"
             }
 
-            if($KeepStdOutStdErrFiles -ne $false) {
+            if ($KeepStdOutStdErrFiles -ne $false) {
                 $commandLine = "$commandLine -KeepStdOutStdErrFiles $KeepStdOutStdErrFiles"
             }
 
-            if($LoggingModule -ne $null) {
+            if ($LoggingModule -ne $null) {
                 $commandLine = "$commandLine -LoggingModule $LoggingModule"
             }
 
@@ -462,8 +479,8 @@ function Invoke-AtomicTest {
                         $final_command = Merge-InputArgs $test.executor.command $test $InputArgs $PathToPayloads
                         $res = Invoke-ExecuteCommand $final_command $test.executor.name $executionPlatform $TimeoutSeconds $session -Interactive:$Interactive
                         $stopTime = Get-Date
-                        if($isLoggingModuleSet) {
-                            Write-ExecutionLog $startTime $stopTime $AT $order $test.name $test.auto_generated_guid $test.executor.name $test.description $final_command $ExecutionLogPath $executionHostname $executionUser $res.StandardOutput $res.ErrorOutput (-Not($IsLinux -or $IsMacOS))
+                        if ($isLoggingModuleSet) {
+                            Write-ExecutionLog $startTime $stopTime $AT $order $test.name $test.auto_generated_guid $test.executor.name $test.description $final_command $ExecutionLogPath $executionHostname $executionUser $res (-Not($IsLinux -or $IsMacOS))
                             $order++
                         }
                         Write-KeyValue "Done executing test: " $testId
@@ -491,7 +508,7 @@ function Invoke-AtomicTest {
             Invoke-AtomicTestSingle $AtomicTechnique
         }
 
-        if($isLoggingModuleSet) {
+        if ($isLoggingModuleSet) {
             Stop-ExecutionLog $startTime $ExecutionLogPath $executionHostname $executionUser (-Not($IsLinux -or $IsMacOS))
         }
 
