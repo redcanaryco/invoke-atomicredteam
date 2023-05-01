@@ -56,9 +56,7 @@ function Invoke-Process {
                     $isTimeout = $true
                     Invoke-KillProcessTree $process.id
                     Write-Host -ForegroundColor Red "Process Timed out after $TimeoutSeconds seconds, use '-TimeoutSeconds' to specify a different timeout"
-                } else {
-                    $process.WaitForExit()
-                }
+                } 
                 $process.CancelOutputRead()
                 $process.CancelErrorRead()
 

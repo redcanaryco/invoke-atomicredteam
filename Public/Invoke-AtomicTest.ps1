@@ -271,9 +271,13 @@ function Invoke-AtomicTest {
             }
 
             $commandLine = "$commandLine -TimeoutSeconds $TimeoutSeconds"
-
-            if ($Session -ne $null) {
-                $commandLine = "$commandLine -Session $Session"
+            if ($PSBoundParameters.ContainsKey('Session')) {
+                if ( $null -eq $Session ) {
+                    Write-Error "The provided session is null and cannot be used."
+                    continue
+                } else {
+                    $commandLine = "$commandLine -Session $Session"
+                }
             }
 
             if ($Interactive -ne $false) {
@@ -316,21 +320,21 @@ function Invoke-AtomicTest {
 
         function Build-TFVars($AT, $testCount, $InputArgs) {
             $tmpDirPath = Join-Path $PathToAtomicsFolder "\$AT\src\$AT-$testCount"
-            if($InputArgs){
+            if ($InputArgs) {
                 $destinationVarsPath = Join-Path "$tmpDirPath" "terraform.tfvars.json"
                 $InputArgs | ConvertTo-Json | Out-File -FilePath $destinationVarsPath
             }
         }
 
-        function Remove-TerraformFiles($AT, $testCount){
+        function Remove-TerraformFiles($AT, $testCount) {
             $tmpDirPath = Join-Path $PathToAtomicsFolder "\$AT\src\$AT-$testCount"
             Write-Host $tmpDirPath
             $tfStateFile = Join-Path $tmpDirPath "terraform.tfstate"
             $tfvarsFile = Join-Path $tmpDirPath "terraform.tfvars.json"
-            if($(Test-Path $tfvarsFile)){
+            if ($(Test-Path $tfvarsFile)) {
                 Remove-Item -LiteralPath $tfvarsFile -Force
             }
-            if($(Test-Path $tfStateFile)){
+            if ($(Test-Path $tfStateFile)) {
                 (Get-ChildItem -Path $tmpDirPath).Fullname -match "terraform.tfstate*" | Remove-Item -Force
             }
         }
@@ -432,7 +436,7 @@ function Invoke-AtomicTest {
                         Write-PrereqResults $FailureReasons $testId
                     }
                     elseif ($GetPrereqs) {
-                        if($(Test-IncludesTerraform $AT $testCount)){
+                        if ($(Test-IncludesTerraform $AT $testCount)) {
                             Build-TFVars $AT $testCount $InputArgs
                         }
                         Write-KeyValue "GetPrereq's for: " $testId
@@ -469,7 +473,7 @@ function Invoke-AtomicTest {
                         $final_command = Merge-InputArgs $test.executor.cleanup_command $test $InputArgs $PathToPayloads
                         $res = Invoke-ExecuteCommand $final_command $test.executor.name $executionPlatform $TimeoutSeconds $session -Interactive:$Interactive
                         Write-KeyValue "Done executing cleanup for test: " $testId
-                        if($(Test-IncludesTerraform $AT $testCount)){
+                        if ($(Test-IncludesTerraform $AT $testCount)) {
                             Remove-TerraformFiles $AT $testCount
                         }
                     }
@@ -515,3 +519,4 @@ function Invoke-AtomicTest {
     } # End of PROCESS block
     END { } # Intentionally left blank and can be removed
 }
+Invoke-AtomicTest T1016 -Session $null
