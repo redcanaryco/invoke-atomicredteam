@@ -124,76 +124,62 @@ function Invoke-AtomicTest {
         $executionPlatform, $isElevated, $tmpDir, $executionHostname, $executionUser = Get-TargetInfo $Session
         $PathToPayloads = if ($Session) { "$tmpDir`AtomicRedTeam" }  else { $PathToAtomicsFolder }
 
-        Function Get-Logger {
-            Param([string]$name)
-            if (-not(Get-Module -name $name)) {
-                if (Get-Module -ListAvailable |
-                    Where-Object { $_.name -eq $name }) {
-                    Import-Module -Name $name -Force
-                    $true
-                } #end if module available then import
-                else {
-                    $false
-                } #module not available
-            } # end if not module
-            else {
-                $true
-            } #module already loaded
-        } #end function Get-Logger
+        # If the logging module is specified, use that
+        # otherwise, if syslog server and port set, use that
+        # otherwise, use default
 
         $isLoggingModuleSet = $false
         if (-not $NoExecutionLog) {
             $isLoggingModuleSet = $true
             if (-not $PSBoundParameters.ContainsKey('LoggingModule')) {
-                # use the syslog logger as default if the server and port are configured in the config file
-                if ([bool]$artConfig.syslogServer -and [bool]$artConfig.syslogPort) {
-                    Import-Module "$PSScriptRoot\Syslog-ExecutionLogger.psm1" -Force
-                    $LoggingModule = "Syslog-ExecutionLogger"
+                # no logging module explicitly set
+                # syslog logger 
+                if ( $artConfig.LoggingModule -eq "Syslog-ExecutionLogger" ) {
+                    if ([bool]$artConfig.syslogServer -and [bool]$artConfig.syslogPort) {
+                        $LoggingModule = "Syslog-ExecutionLogger"
+                    }
+                    else {
+                        Write-Host -Fore Yellow "Config.ps1 specified: Syslog-ExecutionLogger, but the syslogServer and syslogPort must be specified. Using the default logger instead"
+                        $LoggingModule = "Default-ExecutionLogger"
+                    }
                 }
-                else {
-                    Import-Module "$PSScriptRoot\Default-ExecutionLogger.psm1" -Force
+                elseif (-not [bool]$artConfig.LoggingModule) {
+                    # loggingModule is blank (not set), so use the default logger
                     $LoggingModule = "Default-ExecutionLogger"
                 }
-            } 
-            else {
-                Remove-Module -Name "Default-ExecutionLogger" -erroraction silentlycontinue
-                if (($PSBoundParameters['LoggingModule'] -eq "Syslog-ExecutionLogger") -and [bool]$artConfig.syslogServer -and [bool]$artConfig.syslogPort) {
-                    Import-Module "$PSScriptRoot\Syslog-ExecutionLogger.psm1" -Force
-                    $LoggingModule = "Syslog-ExecutionLogger"
-                }
                 else {
-                    Remove-Module -Name "Syslog-ExecutionLogger" -erroraction silentlycontinue
+                    $LoggingModule = $artConfig.LoggingModule
                 }
-            }
+            } 
         }
 
         if ($isLoggingModuleSet) {
-            if (Get-Logger -name $LoggingModule) {
+            if (Get-Module -name $LoggingModule) {
                 Write-Verbose "Using Logger: $LoggingModule"
             }
             else {
-                Write-Host "Logger not found: ", $LoggingModule
+                Write-Host -Fore Yellow "Logger not found: ", $LoggingModule
             }
+        }
 
-            if ((Get-Command Start-ExecutionLog -erroraction silentlycontinue).Source -eq $LoggingModule) {
-                if ((Get-Command Write-ExecutionLog -erroraction silentlycontinue).Source -eq $LoggingModule) {
-                    if ((Get-Command Stop-ExecutionLog -erroraction silentlycontinue).Source -eq $LoggingModule) {
-                        Write-Verbose "All logging commands found"
-                    }
-                    else {
-                        Write-Host "Stop-ExecutionLog not found or loaded from the wrong module"
-                        return
-                    }
+        if (Get-Command "$LoggingModule\Start-ExecutionLog" -erroraction silentlycontinue) {
+            if (Get-Command "$LoggingModule\Write-ExecutionLog" -erroraction silentlycontinue) {
+                if (Get-Command "$LoggingModule\Stop-ExecutionLog" -erroraction silentlycontinue) {
+                    Write-Verbose "All logging commands found"
                 }
                 else {
-                    Write-Host "Write-ExecutionLog not found or loaded from the wrong module"
+                    Write-Host "Stop-ExecutionLog not found or loaded from the wrong module"
                     return
                 }
             }
             else {
-                Write-Host "Start-ExecutionLog not found or loaded from the wrong module"
+                Write-Host "Write-ExecutionLog not found or loaded from the wrong module"
                 return
             }
+        }
+        else {
+            Write-Host "Start-ExecutionLog not found or loaded from the wrong module"
+            return
         }
 
         if ($isLoggingModuleSet) {
@@ -275,7 +261,8 @@ function Invoke-AtomicTest {
                 if ( $null -eq $Session ) {
                     Write-Error "The provided session is null and cannot be used."
                     continue
-                } else {
+                }
+                else {
                     $commandLine = "$commandLine -Session $Session"
                 }
             }
@@ -293,7 +280,7 @@ function Invoke-AtomicTest {
             }
 
             $startTime = Get-Date
-            Start-ExecutionLog $startTime $ExecutionLogPath $executionHostname $executionUser $commandLine (-Not($IsLinux -or $IsMacOS))
+            &"$LoggingModule\Start-ExecutionLog" $startTime $ExecutionLogPath $executionHostname $executionUser $commandLine (-Not($IsLinux -or $IsMacOS))
         }
 
         function Platform-IncludesCloud {
@@ -484,7 +471,7 @@ function Invoke-AtomicTest {
                         $res = Invoke-ExecuteCommand $final_command $test.executor.name $executionPlatform $TimeoutSeconds $session -Interactive:$Interactive
                         $stopTime = Get-Date
                         if ($isLoggingModuleSet) {
-                            Write-ExecutionLog $startTime $stopTime $AT $order $test.name $test.auto_generated_guid $test.executor.name $test.description $final_command $ExecutionLogPath $executionHostname $executionUser $res (-Not($IsLinux -or $IsMacOS))
+                            &"$LoggingModule\Write-ExecutionLog" $startTime $stopTime $AT $order $test.name $test.auto_generated_guid $test.executor.name $test.description $final_command $ExecutionLogPath $executionHostname $executionUser $res (-Not($IsLinux -or $IsMacOS))
                             $order++
                         }
                         Write-KeyValue "Done executing test: " $testId
@@ -513,7 +500,7 @@ function Invoke-AtomicTest {
         }
 
         if ($isLoggingModuleSet) {
-            Stop-ExecutionLog $startTime $ExecutionLogPath $executionHostname $executionUser (-Not($IsLinux -or $IsMacOS))
+            &"$LoggingModule\Stop-ExecutionLog" $startTime $ExecutionLogPath $executionHostname $executionUser (-Not($IsLinux -or $IsMacOS))
         }
 
     } # End of PROCESS block

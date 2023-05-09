@@ -25,11 +25,14 @@ function Invoke-AtomicRunner {
         $ShowDetailsBrief,
 
         [Parameter(Mandatory = $false)]
-        [String[]]
-        $TestGuids,
+        [String]
+        $LoggingModule,
 
         [Parameter(Mandatory = $false)]
-        $listOfAtomics
+        $listOfAtomics,
+
+        [Parameter(Mandatory = $false, ValueFromRemainingArguments = $true)]
+        $OtherArgs
     )
     Begin { }
     Process {       
@@ -48,7 +51,7 @@ function Invoke-AtomicRunner {
             if ($guid -match $guidRegex) { return $guid } else { return "" }
         }
 
-        function Invoke-AtomicTestFromScheduleRow ($tr, $psb) {
+        function Invoke-AtomicTestFromScheduleRow ($tr) {
             $theArgs = $tr.InputArgs
             if ($theArgs.GetType().Name -ne "Hashtable") {
                 $tr.InputArgs = ConvertFrom-StringData -StringData $theArgs
@@ -56,10 +59,10 @@ function Invoke-AtomicRunner {
             $sc = $tr.AtomicsFolder
             #Run the Test based on if scheduleContext is 'private' or 'public'
             if (($sc -eq 'public') -or ($null -eq $sc)) {
-                Invoke-AtomicTest $tr.Technique -TestGuids $tr.auto_generated_guid -InputArgs $tr.InputArgs -TimeoutSeconds $tr.TimeoutSeconds -ExecutionLogPath $artConfig.execLogPath -PathToAtomicsFolder $artConfig.PathToPublicAtomicsFolder @psb
+                Invoke-AtomicTest $tr.Technique -TestGuids $tr.auto_generated_guid -InputArgs $tr.InputArgs -TimeoutSeconds $tr.TimeoutSeconds -ExecutionLogPath $artConfig.execLogPath -PathToAtomicsFolder $artConfig.PathToPublicAtomicsFolder @htvars
             }
             elseif ($sc -eq 'private') {
-                Invoke-AtomicTest $tr.Technique -TestGuids $tr.auto_generated_guid -InputArgs $tr.InputArgs -TimeoutSeconds $tr.TimeoutSeconds -ExecutionLogPath $artConfig.execLogPath -PathToAtomicsFolder $artConfig.PathToPrivateAtomicsFolder @psb
+                Invoke-AtomicTest $tr.Technique -TestGuids $tr.auto_generated_guid -InputArgs $tr.InputArgs -TimeoutSeconds $tr.TimeoutSeconds -ExecutionLogPath $artConfig.execLogPath -PathToAtomicsFolder $artConfig.PathToPrivateAtomicsFolder @htvars
             }
         }
 
@@ -123,6 +126,25 @@ function Invoke-AtomicRunner {
             return $sleeptime
         }
 
+        # Convert OtherArgs to hashtable so we can pass it through to the call to Invoke-AtomicTest
+        $htvars = @{}
+        if ($OtherArgs) {
+            $OtherArgs | ForEach-Object {
+                if ($_ -match '^-') {
+                    #New parameter
+                    $lastvar = $_ -replace '^-'
+                    $htvars[$lastvar] = $true
+                }
+                else {
+                    #Value
+                    $htvars[$lastvar] = $_
+                }
+            }
+        }
+
+        $htvars += [Hashtable]$PSBoundParameters
+        $htvars.Remove('listOfAtomics') | Out-Null
+        $htvars.Remove('OtherArgs') | Out-Null
 
         $schedule = Get-Schedule $listOfAtomics
         # If the schedule is empty, end process
@@ -136,9 +158,8 @@ function Invoke-AtomicRunner {
 
         # Perform cleanup, Showdetails or Prereq stuff for all scheduled items and then exit
         if ($Cleanup -or $ShowDetails -or $CheckPrereqs -or $ShowDetailsBrief -or $GetPrereqs -or $listOfAtomics) {
-            $PSBoundParameters.Remove('listOfAtomics') | Out-Null
             $schedule | ForEach-Object {
-                Invoke-AtomicTestFromScheduleRow $_ $PSBoundParameters
+                Invoke-AtomicTestFromScheduleRow $_
             }
             return
         }
@@ -164,12 +185,12 @@ function Invoke-AtomicRunner {
             }
 
             if ($null -ne $tr) {
-                Invoke-AtomicTestFromScheduleRow $tr $PSBoundParameters
+                Invoke-AtomicTestFromScheduleRow $tr
                 Write-Host -Fore cyan "Sleeping for $SleepTillCleanup seconds before cleaning up"; Start-Sleep -Seconds $SleepTillCleanup
                 
                 # Cleanup after running test
                 $PSBoundParameters.Add('Cleanup', $true)
-                Invoke-AtomicTestFromScheduleRow $tr $PSBoundParameters
+                Invoke-AtomicTestFromScheduleRow $tr
             }
             else {
                 LogRunnerMsg "Could not find Test: $guid in schedule. Please update schedule to run this test."
