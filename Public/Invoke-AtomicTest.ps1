@@ -124,10 +124,6 @@ function Invoke-AtomicTest {
         $executionPlatform, $isElevated, $tmpDir, $executionHostname, $executionUser = Get-TargetInfo $Session
         $PathToPayloads = if ($Session) { "$tmpDir`AtomicRedTeam" }  else { $PathToAtomicsFolder }
 
-        # If the logging module is specified, use that
-        # otherwise, if syslog server and port set, use that
-        # otherwise, use default
-
         $isLoggingModuleSet = $false
         if (-not $NoExecutionLog) {
             $isLoggingModuleSet = $true
