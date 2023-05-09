@@ -129,9 +129,10 @@ function Invoke-AtomicTest {
             $isLoggingModuleSet = $true
             if (-not $PSBoundParameters.ContainsKey('LoggingModule')) {
                 # no logging module explicitly set
-                # syslog logger 
-                if ( $artConfig.LoggingModule -eq "Syslog-ExecutionLogger" ) {
-                    if ([bool]$artConfig.syslogServer -and [bool]$artConfig.syslogPort) {
+                # syslog logger
+                $syslogOptionsSet = [bool]$artConfig.syslogServer -and [bool]$artConfig.syslogPort
+                if ( $artConfig.LoggingModule -eq "Syslog-ExecutionLogger" -or (($artConfig.LoggingModule -eq '') -and $syslogOptionsSet) ) {
+                    if ($syslogOptionsSet) {
                         $LoggingModule = "Syslog-ExecutionLogger"
                     }
                     else {
