@@ -1,4 +1,4 @@
-<p><img src="https://redcanary.com/wp-content/uploads/2023/05/Primary_Invoke-Atomic_Logo.png" width="150px" /></p>
+<p><img src="https://redcanary.com/wp-content/uploads/2023/05/Primary_Invoke-Atomic_Logo.png" width="500px" /></p>
 
 Invoke-AtomicRedTeam is a PowerShell module to execute tests as defined in the [atomics folder](https://github.com/redcanaryco/atomic-red-team/tree/master/atomics) of Red Canary's Atomic Red Team project. The "atomics folder" contains a folder for each Technique defined by the [MITRE ATT&CK™ Framework](https://attack.mitre.org/matrices/enterprise/). Inside of each of these "T#" folders you'll find a **yaml** file that defines the attack procedures for each atomic test as well as an easier to read markdown (**md**) version of the same data.
 
