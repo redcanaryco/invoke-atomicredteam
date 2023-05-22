@@ -157,29 +157,28 @@ function Invoke-AtomicTest {
             else {
                 Write-Host -Fore Yellow "Logger not found: ", $LoggingModule
             }
-        }
+       
 
-        if (Get-Command "$LoggingModule\Start-ExecutionLog" -erroraction silentlycontinue) {
-            if (Get-Command "$LoggingModule\Write-ExecutionLog" -erroraction silentlycontinue) {
-                if (Get-Command "$LoggingModule\Stop-ExecutionLog" -erroraction silentlycontinue) {
-                    Write-Verbose "All logging commands found"
+            if (Get-Command "$LoggingModule\Start-ExecutionLog" -erroraction silentlycontinue) {
+                if (Get-Command "$LoggingModule\Write-ExecutionLog" -erroraction silentlycontinue) {
+                    if (Get-Command "$LoggingModule\Stop-ExecutionLog" -erroraction silentlycontinue) {
+                        Write-Verbose "All logging commands found"
+                    }
+                    else {
+                        Write-Host "Stop-ExecutionLog not found or loaded from the wrong module"
+                        return
+                    }
                 }
                 else {
-                    Write-Host "Stop-ExecutionLog not found or loaded from the wrong module"
+                    Write-Host "Write-ExecutionLog not found or loaded from the wrong module"
                     return
                 }
             }
             else {
-                Write-Host "Write-ExecutionLog not found or loaded from the wrong module"
+                Write-Host "Start-ExecutionLog not found or loaded from the wrong module"
                 return
             }
-        }
-        else {
-            Write-Host "Start-ExecutionLog not found or loaded from the wrong module"
-            return
-        }
 
-        if ($isLoggingModuleSet) {
             # Since there might a comma(T1559-1,2,3) Powershell takes it as array.
             # So converting it back to string.
             if ($AtomicTechnique -is [array]) {
@@ -333,9 +332,10 @@ function Invoke-AtomicTest {
                 return
             }
             $techniqueCount = 0
-
+            $numAtomicsApplicableToPlatform = 0
+            $techniqueString = ""
             foreach ($technique in $AtomicTechniqueHash) {
-
+                $techniqueString = $technique.attack_technique[0]
                 $techniqueCount++
 
                 $props = @{
@@ -395,6 +395,7 @@ function Invoke-AtomicTest {
                         Write-Verbose -Message 'Unable to run manual tests'
                         continue
                     }
+                    $numAtomicsApplicableToPlatform++
 
                     $testId = "$AT-$testCount $($test.name)"
                     if ($ShowDetailsBrief) {
@@ -473,8 +474,12 @@ function Invoke-AtomicTest {
                         }
                         Write-KeyValue "Done executing test: " $testId
                     }
+
                 } # End of foreach Test in single Atomic Technique
             } # End of foreach Technique in Atomic Tests
+            if ($numAtomicsApplicableToPlatform -eq 0) {
+                Write-Host -ForegroundColor Yellow "Found $numAtomicsApplicableToPlatform atomic tests applicable to $executionPlatform platform for Technique $techniqueString"
+            }
         } # End of Invoke-AtomicTestSingle function
 
         if ($AtomicTechnique -eq "All") {
