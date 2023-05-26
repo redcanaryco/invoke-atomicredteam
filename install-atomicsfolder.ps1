@@ -75,15 +75,19 @@ function Install-AtomicsFolder {
             $ProgressPreference_backup = $global:ProgressPreference
             $global:ProgressPreference = "SilentlyContinue"
 			
-            if ($NoPayloads) { # download zip to memory and only extract atomic yaml files
+            if ($NoPayloads) {
+                # download zip to memory and only extract atomic yaml files
                 # load ZIP methods
+                Write-Host -ForegroundColor Yellow "Reading the Atomic Red Team repo into a memory stream. This could take up to 3 minutes."
                 Add-Type -AssemblyName System.IO.Compression.FileSystem
                 [System.Reflection.Assembly]::LoadWithPartialName('System.IO.Compression') | Out-Null
 
                 # read github zip archive into memory
                 $ms = New-Object IO.MemoryStream
                 [Net.ServicePointManager]::SecurityProtocol = ([Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls11 -bor [Net.SecurityProtocolType]::Tls12)
-                (New-Object System.Net.WebClient).OpenRead($url).copyto($ms)
+
+                $webClient = New-Object ExtendedWebClient; 
+                $webClient.OpenRead($url).copyto($ms)
                 $Zip = New-Object System.IO.Compression.ZipArchive($ms)
 
                 $Filter = '*.yaml'
@@ -135,4 +139,29 @@ function Install-AtomicsFolder {
         Write-Host -ForegroundColor Red "Installation of the AtomicsFolder Failed."
         Write-Host $_.Exception.Message`n
     }
+}
+
+# ExtendedWebClient from https://koz.tv/setup-webclient-timeout-in-powershell/
+$Source = @" 
+using System.Net;
+
+public class ExtendedWebClient : WebClient { 
+    public int Timeout;
+
+    protected override WebRequest GetWebRequest(System.Uri address) { 
+        WebRequest request = base.GetWebRequest(address); 
+        if (request != null) {
+            request.Timeout = Timeout;
+        }
+        return request;
+    }
+
+    public ExtendedWebClient() {
+        Timeout = 180000; // 3 minutes
+    } 
+} 
+"@;
+
+if (-not ([System.Management.Automation.PSTypeName]'ExtendedWebClient').Type) {
+    Add-Type -TypeDefinition $Source -Language CSharp
 }
