@@ -45,6 +45,9 @@ $artConfig = [PSCustomObject]@{
 $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $pathToPrivateConfig = Join-Path $root "privateConfig.ps1"
 if (Test-Path ($pathToPrivateConfig)) {
+  if ($IsLinux -or $IsMacOS) {
+    chmod +x $pathToPrivateConfig
+  }
   & ($pathToPrivateConfig)
 }
 
