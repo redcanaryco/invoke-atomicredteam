@@ -97,7 +97,7 @@ function Invoke-AtomicRunner {
                     while ($retry) {
                         # add retry loop to avoid this occassional error "The verification of the MSA failed with error 1355"
                         Invoke-Command -ComputerName '127.0.0.1' -ConfigurationName 'RenameRunnerEndpoint' -ScriptBlock { Rename-Computer -NewName $Using:newHostName -Force -Restart }
-                        Start-Sleep 0; $count = $count + 1
+                        Start-Sleep 120; $count = $count + 1
                         if ($count -gt 15) { $retry = $false }
                     }
                 }
