@@ -147,6 +147,7 @@ function Invoke-AtomicRunner {
         $htvars += [Hashtable]$PSBoundParameters
         $htvars.Remove('listOfAtomics') | Out-Null
         $htvars.Remove('OtherArgs') | Out-Null
+        $htvars.Remove('Cleanup') | Out-Null
 
         $schedule = Get-Schedule $listOfAtomics
         # If the schedule is empty, end process
