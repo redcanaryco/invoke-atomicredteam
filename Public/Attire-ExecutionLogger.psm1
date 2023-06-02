@@ -124,7 +124,7 @@ function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testNa
     }
 
     $stdOutContents = $res.StandardOutput
-    if($stdOutContents -isnot [string]) {
+    if(($stdOutContents -isnot [string]) -and ($stdOutContents -ne $null)) {
         $stdOutContents = $stdOutContents.ToString()
     }
 
@@ -135,7 +135,7 @@ function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testNa
     }
 
     $stdErrContents = $res.ErrorOutput
-    if($stdErrContents -isnot [string]) {
+    if(($stdErrContents -isnot [string]) -and ($stdErrContents -ne $null)) {
         $stdErrContents = $stdErrContents.ToString()
     }
 
