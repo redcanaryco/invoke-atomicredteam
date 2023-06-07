@@ -86,7 +86,8 @@ function Install-AtomicsFolder {
                 $ms = New-Object IO.MemoryStream
                 [Net.ServicePointManager]::SecurityProtocol = ([Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls11 -bor [Net.SecurityProtocolType]::Tls12)
 
-                $webClient = New-Object ExtendedWebClient; 
+                $webClient = New-Object HttpClient;
+		$webClient.Timeout = TimeSpan.FromMinutes(3);
                 $webClient.OpenRead($url).copyto($ms)
                 $Zip = New-Object System.IO.Compression.ZipArchive($ms)
 
@@ -139,29 +140,4 @@ function Install-AtomicsFolder {
         Write-Host -ForegroundColor Red "Installation of the AtomicsFolder Failed."
         Write-Host $_.Exception.Message`n
     }
-}
-
-# ExtendedWebClient from https://koz.tv/setup-webclient-timeout-in-powershell/
-$Source = @" 
-using System.Net;
-
-public class ExtendedWebClient : WebClient { 
-    public int Timeout;
-
-    protected override WebRequest GetWebRequest(System.Uri address) { 
-        WebRequest request = base.GetWebRequest(address); 
-        if (request != null) {
-            request.Timeout = Timeout;
-        }
-        return request;
-    }
-
-    public ExtendedWebClient() {
-        Timeout = 180000; // 3 minutes
-    } 
-} 
-"@;
-
-if (-not ([System.Management.Automation.PSTypeName]'ExtendedWebClient').Type) {
-    Add-Type -TypeDefinition $Source -Language CSharp
 }
