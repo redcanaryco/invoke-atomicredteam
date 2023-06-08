@@ -112,7 +112,7 @@ function Install-AtomicRedTeam {
         }
     }
     Catch {
-        Write-Host -ForegroundColor Red "Installation of AtomicRedTeam Failed."
+        Write-Error "Installation of AtomicRedTeam Failed."
         Write-Host $_.Exception.Message`n
     }
 }

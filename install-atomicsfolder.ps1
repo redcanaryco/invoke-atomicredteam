@@ -138,7 +138,7 @@ function Install-AtomicsFolder {
         }
     }
     Catch {
-        Write-Host -ForegroundColor Red "Installation of the AtomicsFolder Failed."
+        Write-Error "Installation of the AtomicsFolder Failed."
         Write-Host $_.Exception.Message`n
     }
 }

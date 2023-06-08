@@ -1,7 +1,7 @@
 name: publish-powershell-gallery
 on:
   push:
-    branches: [ main]
+    branches: [ master ]
     tags: [ 'v*.*.*' ]
 jobs:
   publish-powershell-gallery:
