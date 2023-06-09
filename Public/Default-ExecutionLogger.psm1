@@ -7,7 +7,7 @@ function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testNa
         New-Item $logPath -Force -ItemType File | Out-Null
     } 
     if ($isWindows){
-        $ipAddress = (Get-NetIPAddress | Where-Object { $_.SuffixOrigin -ne "WellKnown"}).IPAddress
+        $ipAddress = (Get-NetIPAddress | Where-Object { $_.PrefixOrigin -ne "WellKnown"}).IPAddress
     }
     elseif ($IsMacOS) {
         $ipAddress = ifconfig -l | xargs -n1 ipconfig getifaddr

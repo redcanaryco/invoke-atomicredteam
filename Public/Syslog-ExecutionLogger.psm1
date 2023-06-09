@@ -6,7 +6,7 @@ function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testNa
     $timeUTC = (Get-Date($startTime).toUniversalTime() -uformat "%Y-%m-%dT%H:%M:%SZ").ToString()
     $timeLocal = (Get-Date($startTime) -uformat "%Y-%m-%dT%H:%M:%SZ").ToString()
     if ($isWindows){
-        $ipAddress = (Get-NetIPAddress | Where-Object { $_.SuffixOrigin -ne "WellKnown"}).IPAddress
+        $ipAddress = (Get-NetIPAddress | Where-Object { $_.PrefixOrigin -ne "WellKnown"}).IPAddress
     }
     elseif ($IsMacOS) {
         $ipAddress = ifconfig -l | xargs -n1 ipconfig getifaddr
