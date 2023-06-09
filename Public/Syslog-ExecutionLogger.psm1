@@ -18,7 +18,6 @@ function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testNa
         $ipAddress = ''
     }
     
-    }
     $msg = [PSCustomObject][ordered]@{ 
         "Execution Time (UTC)"   = $timeUTC
         "Execution Time (Local)" = $timeLocal 
