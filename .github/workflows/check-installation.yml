@@ -2,8 +2,8 @@ name: Check installation
 on: pull_request
 
 jobs:
-  build-publish-containers:
-    name: Run atomics
+  install-invoke:
+    name: Install Invoke-Atomic
     runs-on: ${{ matrix.os }}
     strategy:
       max-parallel: 3
