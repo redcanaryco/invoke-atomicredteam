@@ -13,7 +13,6 @@ jobs:
       - name: Install Invoke-AtomicRedTeam
         shell: pwsh
         run: |
-          echo  ${{ github.event.pull_request }}
           IEX (IWR 'https://raw.githubusercontent.com/${{ github.event.pull_request.head.repo.full_name }}/${{ github.event.pull_request.head.ref }}/install-atomicredteam.ps1' -UseBasicParsing);
           Install-AtomicRedTeam -RepoOwner "${{ github.event.pull_request.head.repo.owner.login }}" -Branch "${{ github.event.pull_request.head.ref }}" -getAtomics -Force -noPayloads
           if($error.contains("Installation of AtomicRedTeam Failed")){
