@@ -78,7 +78,7 @@ $scriptParam = @{
   MemberType  = "ScriptProperty"
   InputObject = $artConfig
   Name        = "scheduleFile"
-  Value       = { Join-Path $artConfig.runnerFolder  $scheduleFileName }
+  Value       = { Join-Path $artConfig.runnerFolder  $artConfig.scheduleFileName }
 }
 Add-Member @scriptParam
 
