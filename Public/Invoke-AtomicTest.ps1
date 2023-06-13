@@ -158,7 +158,7 @@ function Invoke-AtomicTest {
                 Write-Host -Fore Yellow "Logger not found: ", $LoggingModule
             }
 
-            # Change the defult logFile extension from csv to json if using the Attire-ExecutionLogger
+            # Change the defult logFile extension from csv to json and add a timestamp if using the Attire-ExecutionLogger
             if ($LoggingModule -eq "Attire-ExecutionLogger") { $ExecutionLogPath = $ExecutionLogPath.Replace("Invoke-AtomicTest-ExecutionLog.csv", "Invoke-AtomicTest-ExecutionLog-timestamp.json") }
             $ExecutionLogPath = $ExecutionLogPath.Replace("timestamp", $(Get-Date -UFormat %s))
 
