@@ -71,8 +71,9 @@ function Invoke-AtomicRunner {
         function Rename-ThisComputer ($tr, $basehostname) {
             $hash = $tr.auto_generated_guid
 
-            #Todo: do we need this cred thing if using a gMSA?
             $newHostName = "$basehostname-$hash"
+            $shouldRename = $true
+            if ( $newHostName -eq [System.Net.Dns]::GetHostName()) { $shouldRename = $false }
             if ($artConfig.verbose) { LogRunnerMsg "Setting hostname to $newHostName" }
 
             If (Test-Path $artConfig.stopFile) {
@@ -81,17 +82,20 @@ function Invoke-AtomicRunner {
             }
 
             if ($IsLinux) {
-                Invoke-Expression $("hostnamectl set-hostname $newHostName")
+                if ($shouldRename) { Invoke-Expression $("hostnamectl set-hostname $newHostName") }
                 Invoke-Expression $("shutdown -r now")
             }
             if ($IsMacOS) {
-                Invoke-Expression $("/usr/sbin/scutil --set HostName $newHostName")
-                Invoke-Expression $("/usr/sbin/scutil --set ComputerName $newHostName")
-                Invoke-Expression $("/usr/sbin/scutil --set LocalHostName $newHostName")
+                if ($shouldRename) {
+                    Invoke-Expression $("/usr/sbin/scutil --set HostName $newHostName")
+                    Invoke-Expression $("/usr/sbin/scutil --set ComputerName $newHostName")
+                    Invoke-Expression $("/usr/sbin/scutil --set LocalHostName $newHostName")
+                }
                 Invoke-Expression $("/sbin/shutdown -r now")
             }
             else {
                 if ($debug) { LogRunnerMsg "Debug: pretending to rename the computer to $newHostName"; exit }
+                if (-not $shouldRename) { Restart-Computer -Force -Wait }
                 if ($artConfig.gmsaAccount) {
                     $retry = $true; $count = 0
                     while ($retry) {
