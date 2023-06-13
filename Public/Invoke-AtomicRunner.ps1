@@ -95,7 +95,7 @@ function Invoke-AtomicRunner {
             }
             else {
                 if ($debug) { LogRunnerMsg "Debug: pretending to rename the computer to $newHostName"; exit }
-                if (-not $shouldRename) { Restart-Computer -Force -Wait }
+                if (-not $shouldRename) { Restart-Computer -Force }
                 if ($artConfig.gmsaAccount) {
                     $retry = $true; $count = 0
                     while ($retry) {
