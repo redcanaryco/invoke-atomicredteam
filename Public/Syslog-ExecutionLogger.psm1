@@ -5,19 +5,8 @@ function Start-ExecutionLog($startTime, $logPath, $targetHostname, $targetUser, 
 function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testName, $testGuid, $testExecutor, $testDescription, $command, $logPath, $targetHostname, $targetUser, $res, $isWindows) {
     $timeUTC = (Get-Date($startTime).toUniversalTime() -uformat "%Y-%m-%dT%H:%M:%SZ").ToString()
     $timeLocal = (Get-Date($startTime) -uformat "%Y-%m-%dT%H:%M:%SZ").ToString()
-    if ($isWindows){
-        $ipAddress = (Get-NetIPAddress | Where-Object { $_.PrefixOrigin -ne "WellKnown"}).IPAddress
-    }
-    elseif ($IsMacOS) {
-        $ipAddress = ifconfig -l | xargs -n1 ipconfig getifaddr
-    } 
-    elseif ($IsLinux) {
-        $ipAddress = ip -4 -br addr show |sed -n -e 's/^.*UP\s* //p'
-    }
-    else {
-        $ipAddress = ''
-    }
-    
+    $ipAddress = Get-PreferredIPAddress $isWindows
+
     $msg = [PSCustomObject][ordered]@{ 
         "Execution Time (UTC)"   = $timeUTC
         "Execution Time (Local)" = $timeLocal 
