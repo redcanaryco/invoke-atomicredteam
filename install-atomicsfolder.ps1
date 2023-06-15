@@ -57,7 +57,7 @@ function Install-AtomicsFolder {
             write-verbose "Directory Creation"
             if ($Force) {
                 Try { 
-                    if (Test-Path $InstallPathwAtomics) { Remove-Item -Path $InstallPathwAtomics -Recurse -Force -ErrorAction Stop | Out-Null }
+                    if ((Test-Path $InstallPathwAtomics) -and (-not $NoPayloads)) { Remove-Item -Path $InstallPathwAtomics -Recurse -Force -ErrorAction Stop | Out-Null }
                 }
                 Catch {
                     Write-Host -ForegroundColor Red $_.Exception.Message
@@ -138,7 +138,7 @@ function Install-AtomicsFolder {
         }
     }
     Catch {
-        Write-Host -ForegroundColor Red "Installation of the AtomicsFolder Failed."
+        Write-Error "Installation of the AtomicsFolder Failed."
         Write-Host $_.Exception.Message`n
     }
 }
