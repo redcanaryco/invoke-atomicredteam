@@ -57,14 +57,7 @@ function Install-AtomicsFolder {
             write-verbose "Directory Creation"
             if ($Force) {
                 Try { 
-                    if (Test-Path $InstallPathwAtomics) {
-                        if($NoPayloads){
-                            # only erase the yaml files
-
-                        } else {
-                            Remove-Item -Path $InstallPathwAtomics -Recurse -Force -ErrorAction Stop | Out-Null 
-                        }
-                    }
+                    if ((Test-Path $InstallPathwAtomics) -and (-not $NoPayloads)) { Remove-Item -Path $InstallPathwAtomics -Recurse -Force -ErrorAction Stop | Out-Null }
                 }
                 Catch {
                     Write-Host -ForegroundColor Red $_.Exception.Message
