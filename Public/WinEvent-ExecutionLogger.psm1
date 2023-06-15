@@ -1,5 +1,7 @@
 function Start-ExecutionLog($startTime, $logPath, $targetHostname, $targetUser, $commandLine, $isWindows) {
-
+    if($isWindows -and -not [System.Diagnostics.EventLog]::Exists('Atomic Red Team')){
+        New-EventLog -Source "Applications and Services Logs" -LogName "Atomic Red Team"
+    }
 }
 
 function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testName, $testGuid, $testExecutor, $testDescription, $command, $logPath, $targetHostname, $targetUser, $res, $isWindows) {
@@ -21,13 +23,9 @@ function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testNa
         "CustomTag"              = $artConfig.CustomTag
         "ProcessId"              = $res.ProcessId
         "ExitCode"               = $res.ExitCode
-    } 
-    
-    # send syslog message if a syslog server is defined in Public/config.ps1
-    if ([bool]$artConfig.syslogServer -and [bool]$artConfig.syslogPort) {
-        $jsonMsg = $msg | ConvertTo-Json
-        Send-SyslogMessage -Server $artConfig.syslogServer -Port $artConfig.syslogPort -Message $jsonMsg -Severity "Informational" -Facility "daemon"
     }
+    
+    Write-EventLog  -Source "Applications and Services Logs" -LogName "Atomic Red Team" -EventID 3001 -EntryType Information -Message $msg -Category 1 -RawData 10,20
 }
 
 function Stop-ExecutionLog($startTime, $logPath, $targetHostname, $targetUser, $isWindows) {

@@ -17,49 +17,9 @@ $script:attireLog = [PSCustomObject]@{
     'procedures'    = @()
 }
 
-function Get-PreferredIPAddress {
-    $ipAddresses = (Get-NetIPAddress).IPAddress
-    $ipv4Address = $null
-    $ipv6Address = $null
-    $firstAddress = $null
-
-    foreach ($ip in $ipAddresses) {
-        if (-not $firstAddress) {
-            $firstAddress = $ip
-        }
-
-        if ($ip -match '\d+\.\d+\.\d+\.\d+' -and $ip -ne '127.0.0.1') {
-            $ipv4Address = $ip
-            break
-        } elseif ($ip -match '\S+::\S+' -and -not $ipv6Address) {
-            $ipv6Address = $ip
-        }
-    }
-
-    if ($ipv4Address) {
-        return $ipv4Address
-    } elseif ($ipv6Address) {
-        return $ipv6Address
-    } elseif ($firstAddress) {
-        return $firstAddress
-    } else {
-        return "UNKNOWN"
-    }
-}
-
 function Start-ExecutionLog($startTime, $logPath, $targetHostname, $targetUser, $commandLine, $isWindows) {
 
-    $ipAddress = ""
-    if($isWindows) {
-        $ipAddress = Get-PreferredIPAddress
-    } else {
-        if(Get-Command "ip" -ErrorAction SilentlyContinue) {
-            $ipAddress = $(ip a | grep 'inet ' | grep -Fv 127.0.0.1 | awk '{print $2;exit}')
-        } elseif(Get-Command "ifconfig" -ErrorAction SilentlyContinue) {
-            $ipAddress = $(ifconfig | grep 'inet ' | grep -Fv 127.0.0.1 | awk '{print $2;exit}')
-        }
-    }
-
+    $ipAddress = Get-PreferredIPAddress $isWindows
 
     if($targetUser -isnot [string]) {
         if([bool]($targetUser.PSobject.Properties.name -match "^value$")) {
