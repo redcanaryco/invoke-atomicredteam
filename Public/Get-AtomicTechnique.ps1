@@ -498,3 +498,22 @@ filter Get-AtomicTechnique {
         $AtomicInstance
     }
 }
+
+
+# Tab completion for Atomic Tests
+function Get-TechniqueNumbers {
+    $PathToAtomicsFolder = if ($IsLinux -or $IsMacOS) { $Env:HOME + "/AtomicRedTeam/atomics" } else { $env:HOMEDRIVE + "\AtomicRedTeam\atomics" }
+    $techniqueNumbers = Get-ChildItem $PathToAtomicsFolder -Directory |
+                       ForEach-Object { $_.BaseName }
+
+    return $techniqueNumbers
+}
+
+Register-ArgumentCompleter -CommandName 'Invoke-AtomicTest' -ParameterName 'AtomicTechnique' -ScriptBlock {
+    param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
+
+    Get-TechniqueNumbers | Where-Object { $_ -like "$wordToComplete*" } |
+    ForEach-Object {
+        New-Object System.Management.Automation.CompletionResult $_, $_, 'ParameterValue', "Technique number $_"
+    }
+}
