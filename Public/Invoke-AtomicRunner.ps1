@@ -31,7 +31,7 @@ function Invoke-AtomicRunner {
         $LoggingModule,
 
         [Parameter(Mandatory = $false)]
-        $listOfAtomics,
+        $ListOfAtomics,
 
         [Parameter(Mandatory = $false, ValueFromRemainingArguments = $true)]
         $OtherArgs
@@ -61,10 +61,10 @@ function Invoke-AtomicRunner {
             $sc = $tr.AtomicsFolder
             #Run the Test based on if scheduleContext is 'private' or 'public'
             if (($sc -eq 'public') -or ($null -eq $sc)) {
-                Invoke-AtomicTest $tr.Technique -TestGuids $tr.auto_generated_guid -InputArgs $tr.InputArgs -TimeoutSeconds $tr.TimeoutSeconds -ExecutionLogPath $artConfig.execLogPath -PathToAtomicsFolder $artConfig.PathToPublicAtomicsFolder @htvars -Cleanup:$Cleanup
+                Invoke-AtomicTest $tr.Technique -TestGuids $tr.auto_generated_guid -InputArgs $tr.InputArgs -TimeoutSeconds $tr.TimeoutSeconds -ExecutionLogPath $artConfig.execLogPath -PathToAtomicsFolder $artConfig.PathToPublicAtomicsFolder @htvars -Cleanup:$Cleanup -supressPathToAtomicsFolder
             }
             elseif ($sc -eq 'private') {
-                Invoke-AtomicTest $tr.Technique -TestGuids $tr.auto_generated_guid -InputArgs $tr.InputArgs -TimeoutSeconds $tr.TimeoutSeconds -ExecutionLogPath $artConfig.execLogPath -PathToAtomicsFolder $artConfig.PathToPrivateAtomicsFolder @htvars -Cleanup:$Cleanup
+                Invoke-AtomicTest $tr.Technique -TestGuids $tr.auto_generated_guid -InputArgs $tr.InputArgs -TimeoutSeconds $tr.TimeoutSeconds -ExecutionLogPath $artConfig.execLogPath -PathToAtomicsFolder $artConfig.PathToPrivateAtomicsFolder @htvars -Cleanup:$Cleanup -supressPathToAtomicsFolder
             }
         }
 
