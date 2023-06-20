@@ -111,7 +111,12 @@ function Invoke-AtomicTest {
         [Parameter(Mandatory = $false,
             ParameterSetName = 'technique')]
         [String]
-        $LoggingModule
+        $LoggingModule,
+
+        [Parameter(Mandatory = $false,
+            ParameterSetName = 'technique')]
+        [switch]
+        $SupressPathToAtomicsFolder = $false
 
     )
     BEGIN { } # Intentionally left blank and can be removed
@@ -119,7 +124,7 @@ function Invoke-AtomicTest {
         $PathToAtomicsFolder = (Resolve-Path $PathToAtomicsFolder).Path
         
         Write-Verbose -Message 'Attempting to run Atomic Techniques'
-        Write-Host -ForegroundColor Cyan "PathToAtomicsFolder = $PathToAtomicsFolder`n"
+        if(-not $supressPathToAtomicsFolder) { Write-Host -ForegroundColor Cyan "PathToAtomicsFolder = $PathToAtomicsFolder`n" }
         
         $executionPlatform, $isElevated, $tmpDir, $executionHostname, $executionUser = Get-TargetInfo $Session
         $PathToPayloads = if ($Session) { "$tmpDir`AtomicRedTeam" }  else { $PathToAtomicsFolder }
