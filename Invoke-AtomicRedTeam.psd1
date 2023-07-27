@@ -10,7 +10,7 @@
     GUID              = '8f492621-18f8-432e-9532-b1d54d3e90bd'
 
     # Author of this module
-    Author            = 'Casey Smith @subTee, Josh Rickard @MS_dministrator, Carrie Roberts @OrOneEqualsOne, Matt Graeber @mattifestation'
+    Author            = 'Casey Smith @subTee, Josh Rickard @MSAdministrator, Carrie Roberts @OrOneEqualsOne, Matt Graeber @mattifestation'
 
     # Company or vendor of this module
     CompanyName       = 'Red Canary, Inc.'
