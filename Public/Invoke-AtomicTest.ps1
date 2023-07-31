@@ -25,6 +25,12 @@ function Invoke-AtomicTest {
         $ShowDetailsBrief,
 
         [Parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'technique')]
+        [switch]
+        $anyOS,
+
+        [Parameter(Mandatory = $false,
             ParameterSetName = 'technique')]
         [String[]]
         $TestNumbers,
@@ -124,7 +130,7 @@ function Invoke-AtomicTest {
         $PathToAtomicsFolder = (Resolve-Path $PathToAtomicsFolder).Path
         
         Write-Verbose -Message 'Attempting to run Atomic Techniques'
-        if(-not $supressPathToAtomicsFolder) { Write-Host -ForegroundColor Cyan "PathToAtomicsFolder = $PathToAtomicsFolder`n" }
+        if (-not $supressPathToAtomicsFolder) { Write-Host -ForegroundColor Cyan "PathToAtomicsFolder = $PathToAtomicsFolder`n" }
         
         $executionPlatform, $isElevated, $tmpDir, $executionHostname, $executionUser = Get-TargetInfo $Session
         $PathToPayloads = if ($Session) { "$tmpDir`AtomicRedTeam" }  else { $PathToAtomicsFolder }
@@ -363,18 +369,20 @@ function Invoke-AtomicTest {
 
                     $testCount++
                     
-                    if ( -not $(Platform-IncludesCloud) -and -Not $test.supported_platforms.Contains($executionPlatform) ) {
-                        Write-Verbose -Message "Unable to run non-$executionPlatform tests"
-                        continue
-                    }
+                    if (($ShowDetails -or $ShowDetailsBrief) -and -not $anyOS) {
+                        if ( -not $(Platform-IncludesCloud) -and -Not $test.supported_platforms.Contains($executionPlatform) ) {
+                            Write-Verbose -Message "Unable to run non-$executionPlatform tests"
+                            continue
+                        }
 
-                    if ( $executionPlatform -eq "windows" -and ($test.executor.name -eq "sh" -or $test.executor.name -eq "bash")) {
-                        Write-Verbose -Message "Unable to run sh or bash on $executionPlatform"
-                        continue    
-                    }
-                    if ( ("linux", "macos") -contains $executionPlatform -and $test.executor.name -eq "command_prompt") {
-                        Write-Verbose -Message "Unable to run cmd.exe on $executionPlatform"
-                        continue    
+                        if ( $executionPlatform -eq "windows" -and ($test.executor.name -eq "sh" -or $test.executor.name -eq "bash")) {
+                            Write-Verbose -Message "Unable to run sh or bash on $executionPlatform"
+                            continue    
+                        }
+                        if ( ("linux", "macos") -contains $executionPlatform -and $test.executor.name -eq "command_prompt") {
+                            Write-Verbose -Message "Unable to run cmd.exe on $executionPlatform"
+                            continue    
+                        }
                     }
                     
 
