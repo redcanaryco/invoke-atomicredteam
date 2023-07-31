@@ -121,7 +121,7 @@ function Install-AtomicsFolder {
 
                 write-verbose "Extracting ART to $InstallPath"
                 $zipDest = Join-Path "$DownloadPath" "tmp"
-                expand-archive -LiteralPath $path -DestinationPath "$zipDest" -Force:$Force
+                Microsoft.PowerShell.Archive\Expand-Archive -LiteralPath $path -DestinationPath "$zipDest" -Force:$Force
                 $atomicsFolderUnzipped = Join-Path (Join-Path $zipDest "atomic-red-team-$Branch") "atomics"
                 Move-Item $atomicsFolderUnzipped $InstallPath
                 Remove-Item $zipDest -Recurse -Force

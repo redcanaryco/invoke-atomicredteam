@@ -83,7 +83,7 @@ function Install-AtomicRedTeam {
 
             write-verbose "Extracting ART to $InstallPath"
             $zipDest = Join-Path "$DownloadPath" "tmp"
-            expand-archive -LiteralPath $path -DestinationPath "$zipDest" -Force:$Force
+            Microsoft.PowerShell.Archive\Expand-Archive -LiteralPath $path -DestinationPath "$zipDest" -Force:$Force
             $iartFolderUnzipped = Join-Path $zipDest "invoke-atomicredteam-$Branch"
             Move-Item $iartFolderUnzipped $InstallPathwIart
             Remove-Item $zipDest -Recurse -Force
