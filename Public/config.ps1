@@ -30,6 +30,7 @@ $artConfig = [PSCustomObject]@{
   # [optional] Syslog configuration, default execution logs will be sent to this server:port
   syslogServer               = '' # set to empty string '' if you don't want to log atomic execution details to a syslog server (don't includle http(s):\\)
   syslogPort                 = 514
+  syslogProtocol             = 'UDP' # options are UDP, TCP, TCPwithTLS
  
   verbose                    = $true; # set to true for more log output
 
