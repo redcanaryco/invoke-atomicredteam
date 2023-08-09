@@ -362,12 +362,13 @@ function Invoke-AtomicTest {
                 Write-Debug -Message "Gathering tests for Technique $technique"
 
                 $testCount = 0
-                $order = 1
+                $order = 0
                 foreach ($test in $technique.atomic_tests) {
 
                     Write-Verbose -Message 'Determining tests for target platform'
 
                     $testCount++
+                    $order++
                     
                     if (($ShowDetails -or $ShowDetailsBrief) -and -not $anyOS) {
                         if ( -not $(Platform-IncludesCloud) -and -Not $test.supported_platforms.Contains($executionPlatform) ) {
@@ -486,7 +487,6 @@ function Invoke-AtomicTest {
                         $stopTime = Get-Date
                         if ($isLoggingModuleSet) {
                             &"$LoggingModule\Write-ExecutionLog" $startTime $stopTime $AT $order $test.name $test.auto_generated_guid $test.executor.name $test.description $final_command $ExecutionLogPath $executionHostname $executionUser $res (-Not($IsLinux -or $IsMacOS))
-                            $order++
                         }
                         Write-KeyValue "Done executing test: " $testId
                     }
