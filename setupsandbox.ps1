@@ -1,5 +1,4 @@
 Set-ExecutionPolicy Bypass -Scope Process -Force;
-# this is needed in windows sandbox
 Write-Host "Installing NuGet"
 Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
 Write-Host "Installing Atomic Red Team"
@@ -15,3 +14,5 @@ Import-Module "$ARTPath/invoke-atomicredteam/Invoke-AtomicRedTeam.psd1" -Force;
 "@ > $PROFILE
 
 . $PROFILE
+
+cd C:\AtomicRedTeam
