@@ -1,0 +1,7 @@
+<Configuration>
+    <Networking>Enable</Networking>
+    <LogonCommand>
+      <Command>C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Unrestricted
+        -Command "start powershell { -NoExit -Command \"&amp; { Set-ExecutionPolicy Bypass -Scope Process -Force; (New-Object System.Net.WebClient).DownloadFile('https://raw.githubusercontent.com/redcanaryco/invoke-atomicredteam/master/sandbox/setupsandbox.ps1', 'C:\Windows\Temp\setupsandbox.ps1'); C:\Windows\Temp\setupsandbox.ps1 }\" }"</Command>
+    </LogonCommand>
+</Configuration>
