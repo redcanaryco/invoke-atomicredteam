@@ -1,0 +1,81 @@
+name: publish-release
+on:
+  push:
+    tags: [ 'v*.*.*' ]
+jobs:
+  publish-powershell-gallery:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+        
+      - name: publishing
+        run: |
+          Install-Module -Name powershell-yaml -Force
+          Publish-Module -Path '.' -NuGetApiKey ${{ secrets.PGALLERY }}
+        shell: pwsh
+
+  build-docker-containers:
+    name: Build and Publish Containers
+    runs-on: ${{ matrix.os }}
+    strategy:
+      max-parallel: 3
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            file: docker/Dockerfile
+            tag: redcanary/invoke-atomicredteam:${{ github.sha }}-linux-amd64
+            latest: redcanary/invoke-atomicredteam:latest-linux-amd64
+          - os: windows-latest
+            file: docker/Dockerfile
+            tag: redcanary/invoke-atomicredteam:${{ github.sha }}-windows-amd64
+            latest: redcanary/invoke-atomicredteam:latest-windows-amd64
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: redcanary
+          password: ${{ secrets.DOCKER_TOKEN }}
+      - name: Docker Build
+        run: |
+          docker build docker -f ${{ matrix.file }} -t ${{ matrix.tag }} 
+          docker build docker -f ${{ matrix.file }} -t ${{ matrix.latest }}
+      - name: Docker Push
+        run: |
+          docker push ${{ matrix.tag }}
+          docker push ${{ matrix.latest }}
+  
+  publish-manfiest:
+    name: Publish Manifest
+    runs-on: ubuntu-latest
+    needs: build-docker-containers
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: redcanary
+          password: ${{ secrets.DOCKER_TOKEN }}
+      - name: Docker Manifest
+        run: |
+          docker manifest create redcanary/invoke-atomicredteam:latest \
+            --amend redcanary/invoke-atomicredteam:${{ github.sha }}-linux-amd64 \
+            --amend redcanary/invoke-atomicredteam:${{ github.sha }}-windows-amd64
+          docker manifest create redcanary/invoke-atomicredteam:${{ github.sha }} \
+            --amend redcanary/invoke-atomicredteam:${{ github.sha }}-linux-amd64 \
+            --amend redcanary/invoke-atomicredteam:${{ github.sha }}-windows-amd64
+      - name: Docker Annotate
+        run: |
+          docker manifest annotate --os windows --arch amd64 \
+            redcanary/invoke-atomicredteam:latest redcanary/invoke-atomicredteam:${{ github.sha }}-windows-amd64
+          docker manifest annotate --os windows --arch amd64 \
+            redcanary/invoke-atomicredteam:${{ github.sha }} redcanary/invoke-atomicredteam:${{ github.sha }}-windows-amd64
+      - name: Docker Push
+        run: |
+          docker manifest push redcanary/invoke-atomicredteam:${{ github.sha }}
+          docker manifest push redcanary/invoke-atomicredteam:latest
+
