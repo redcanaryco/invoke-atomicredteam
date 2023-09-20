@@ -22,6 +22,7 @@ function Invoke-SetupAtomicRunner {
     New-Item -ItemType Directory $artConfig.runnerFolder -ErrorAction Ignore
 
     if ($artConfig.gmsaAccount) {
+        Start-Service WinRM
         $path = Join-Path $env:ProgramFiles "WindowsPowerShell\Modules\RenameRunner\RoleCapabilities"
         New-Item -ItemType Directory $path -ErrorAction Ignore
         New-PSSessionConfigurationFile -SessionType RestrictedRemoteServer -GroupManagedServiceAccount $artConfig.gmsaAccount -RoleDefinitions @{ "$($artConfig.user)" = @{ 'RoleCapabilities' = 'RenameRunner' } } -path "$env:Temp\RenameRunner.pssc"
