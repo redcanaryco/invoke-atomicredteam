@@ -192,11 +192,15 @@ function Invoke-AtomicRunner {
             }
 
             if ($null -ne $tr) {
+                if (Get-Command 'Invoke-AtomicRunnerPreAtomicHook' -errorAction SilentlyContinue) { Invoke-AtomicRunnerPreAtomicHook }
                 Invoke-AtomicTestFromScheduleRow $tr
+                if (Get-Command 'Invoke-AtomicRunnerPostAtomicHook' -errorAction SilentlyContinue) { Invoke-AtomicRunnerPostAtomicHook }
                 Write-Host -Fore cyan "Sleeping for $SleepTillCleanup seconds before cleaning up"; Start-Sleep -Seconds $SleepTillCleanup
                 
                 # Cleanup after running test
+                if (Get-Command 'Invoke-AtomicRunnerPreAtomicCleanupHook' -errorAction SilentlyContinue) { Invoke-AtomicRunnerPreAtomicCleanupHook }
                 Invoke-AtomicTestFromScheduleRow $tr $true
+                if (Get-Command 'Invoke-AtomicRunnerPostAtomicCleanupHook' -errorAction SilentlyContinue) { Invoke-AtomicRunnerPostAtomicCleanupHook }
             }
             else {
                 LogRunnerMsg "Could not find Test: $guid in schedule. Please update schedule to run this test."
