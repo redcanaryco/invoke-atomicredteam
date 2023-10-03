@@ -1,5 +1,4 @@
 . "$PSScriptRoot\Invoke-RunnerScheduleMethods.ps1"
-
 function Invoke-AtomicRunner {
     [CmdletBinding(
         SupportsShouldProcess = $true,
@@ -59,6 +58,8 @@ function Invoke-AtomicRunner {
                 $tr.InputArgs = ConvertFrom-StringData -StringData $theArgs
             }
             $sc = $tr.AtomicsFolder
+            if ($Cleanup) { if (Get-Command 'Invoke-AtomicRunnerPreAtomicCleanupHook' -errorAction SilentlyContinue) { Invoke-AtomicRunnerPreAtomicCleanupHook } } 
+            elseif (-not($ShowDetails -or $CheckPrereqs -or $ShowDetailsBrief -or $GetPrereqs)) { if (Get-Command 'Invoke-AtomicRunnerPreAtomicHook' -errorAction SilentlyContinue) { Invoke-AtomicRunnerPreAtomicHook } }
             #Run the Test based on if scheduleContext is 'private' or 'public'
             if (($sc -eq 'public') -or ($null -eq $sc)) {
                 Invoke-AtomicTest $tr.Technique -TestGuids $tr.auto_generated_guid -InputArgs $tr.InputArgs -TimeoutSeconds $tr.TimeoutSeconds -ExecutionLogPath $artConfig.execLogPath -PathToAtomicsFolder $artConfig.PathToPublicAtomicsFolder @htvars -Cleanup:$Cleanup -supressPathToAtomicsFolder
@@ -66,6 +67,8 @@ function Invoke-AtomicRunner {
             elseif ($sc -eq 'private') {
                 Invoke-AtomicTest $tr.Technique -TestGuids $tr.auto_generated_guid -InputArgs $tr.InputArgs -TimeoutSeconds $tr.TimeoutSeconds -ExecutionLogPath $artConfig.execLogPath -PathToAtomicsFolder $artConfig.PathToPrivateAtomicsFolder @htvars -Cleanup:$Cleanup -supressPathToAtomicsFolder
             }
+            if ($Cleanup) { if (Get-Command 'Invoke-AtomicRunnerPostAtomicCleanupHook' -errorAction SilentlyContinue) { Invoke-AtomicRunnerPostAtomicCleanupHook } } 
+            elseif (-not($ShowDetails -or $CheckPrereqs -or $ShowDetailsBrief -or $GetPrereqs)) { if (Get-Command 'Invoke-AtomicRunnerPostAtomicHook' -errorAction SilentlyContinue) { Invoke-AtomicRunnerPostAtomicHook } }
         }
 
         function Rename-ThisComputer ($tr, $basehostname) {
@@ -170,7 +173,6 @@ function Invoke-AtomicRunner {
             }
             return
         }
-
         # exit if file stop.txt is found
         If (Test-Path $artConfig.stopFile) {
             LogRunnerMsg "exiting script because $($artConfig.stopFile) does exist"
@@ -192,15 +194,11 @@ function Invoke-AtomicRunner {
             }
 
             if ($null -ne $tr) {
-                if (Get-Command 'Invoke-AtomicRunnerPreAtomicHook' -errorAction SilentlyContinue) { Invoke-AtomicRunnerPreAtomicHook }
                 Invoke-AtomicTestFromScheduleRow $tr
-                if (Get-Command 'Invoke-AtomicRunnerPostAtomicHook' -errorAction SilentlyContinue) { Invoke-AtomicRunnerPostAtomicHook }
                 Write-Host -Fore cyan "Sleeping for $SleepTillCleanup seconds before cleaning up"; Start-Sleep -Seconds $SleepTillCleanup
                 
                 # Cleanup after running test
-                if (Get-Command 'Invoke-AtomicRunnerPreAtomicCleanupHook' -errorAction SilentlyContinue) { Invoke-AtomicRunnerPreAtomicCleanupHook }
                 Invoke-AtomicTestFromScheduleRow $tr $true
-                if (Get-Command 'Invoke-AtomicRunnerPostAtomicCleanupHook' -errorAction SilentlyContinue) { Invoke-AtomicRunnerPostAtomicCleanupHook }
             }
             else {
                 LogRunnerMsg "Could not find Test: $guid in schedule. Please update schedule to run this test."
