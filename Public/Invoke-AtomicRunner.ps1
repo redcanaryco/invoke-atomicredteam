@@ -1,4 +1,5 @@
 . "$PSScriptRoot\Invoke-RunnerScheduleMethods.ps1"
+
 function Invoke-AtomicRunner {
     [CmdletBinding(
         SupportsShouldProcess = $true,
@@ -173,6 +174,7 @@ function Invoke-AtomicRunner {
             }
             return
         }
+        
         # exit if file stop.txt is found
         If (Test-Path $artConfig.stopFile) {
             LogRunnerMsg "exiting script because $($artConfig.stopFile) does exist"
