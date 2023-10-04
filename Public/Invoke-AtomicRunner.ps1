@@ -117,6 +117,13 @@ function Invoke-AtomicRunner {
                 }
                 Start-Sleep -seconds 30
                 LogRunnerMsg "uh oh, still haven't restarted - should never get to here"
+                $retry = $true; $count = 0
+                while ($retry) {
+                    Restart-Computer -Force
+                    Start-Sleep 300; $count = $count + 1
+                    LogRunnerMsg "Rename retry $count"
+                    if ($count -gt 60) { $retry = $false }
+                }
                 exit
             }
             
