@@ -16,7 +16,7 @@ function Invoke-ExecuteCommand ($finalCommand, $executor, $executionPlatform, $T
                     $finalCommand = $finalCommand -replace "[\\](?!;)", "`\$&"
                     $finalCommand = $finalCommand -replace "[`"]", "`\$&"
                     $execCommand = $finalCommand -replace "(?<!;)\n", "; "
-                    $arguments = "$execPrefix $execCommand"
+                    $arguments = "$execPrefix `"$execCommand`""
 
             }
         }
