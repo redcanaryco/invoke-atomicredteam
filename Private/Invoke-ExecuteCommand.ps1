@@ -16,7 +16,7 @@ function Invoke-ExecuteCommand ($finalCommand, $executor, $executionPlatform, $T
                     $finalCommand = $finalCommand -replace "[`"]", "`\$&"
                     $execCommand = $finalCommand -replace "(?<!;)\n", "; "
             }
-            $arguments = "$execPrefix `"$execCommand`""
+            $arguments = $execPrefix,"$execCommand"
         }
         elseif ($executor -eq "powershell") {
             $execCommand = $finalCommand -replace "`"", "`\`"`""
@@ -46,6 +46,8 @@ function Invoke-ExecuteCommand ($finalCommand, $executor, $executionPlatform, $T
                     IsTimeOut = $false
                 }
         }
+
+        # Write-Host -ForegroundColor Magenta "$execExe $arguments"
         if ($session) {
             $scriptParentPath = Split-Path $import -Parent
             $fp = Join-Path $scriptParentPath "Invoke-Process.ps1"

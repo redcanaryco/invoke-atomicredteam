@@ -33,6 +33,10 @@ function Invoke-AtomicRunner {
         [Parameter(Mandatory = $false)]
         $ListOfAtomics,
 
+        [parameter(Mandatory = $false)]
+        [ValidateRange(0, [int]::MaxValue)]
+        [int] $PauseBetweenAtomics,
+
         [Parameter(Mandatory = $false, ValueFromRemainingArguments = $true)]
         $OtherArgs
     )
@@ -70,6 +74,14 @@ function Invoke-AtomicRunner {
             }
             if ($Cleanup) { if (Get-Command 'Invoke-AtomicRunnerPostAtomicCleanupHook' -errorAction SilentlyContinue) { Invoke-AtomicRunnerPostAtomicCleanupHook } } 
             elseif (-not($ShowDetails -or $CheckPrereqs -or $ShowDetailsBrief -or $GetPrereqs)) { if (Get-Command 'Invoke-AtomicRunnerPostAtomicHook' -errorAction SilentlyContinue) { Invoke-AtomicRunnerPostAtomicHook } }
+            if ($timeToPause -gt 0) {
+                Write-Host "Sleeping for $timeToPause seconds..."
+                Start-Sleep $timeToPause
+            }
+            elseif ($timeToPause -eq 0) {
+                Write-Host 'Press any key to continue...';
+                $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+            }
         }
 
         function Rename-ThisComputer ($tr, $basehostname) {
@@ -158,11 +170,17 @@ function Invoke-AtomicRunner {
                 }
             }
         }
-
+        if ($PSBoundParameters.ContainsKey("PauseBetweenAtomics")) {
+            $timeToPause = $PauseBetweenAtomics
+        }
+        else {
+            $timeToPause = $null
+        }
         $htvars += [Hashtable]$PSBoundParameters
         $htvars.Remove('listOfAtomics') | Out-Null
         $htvars.Remove('OtherArgs') | Out-Null
         $htvars.Remove('Cleanup') | Out-Null
+        $htvars.Remove('PauseBetweenAtomics') | Out-Null
 
         $schedule = Get-Schedule $listOfAtomics
         # If the schedule is empty, end process
