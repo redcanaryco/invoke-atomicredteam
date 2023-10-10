@@ -10,13 +10,15 @@ function Invoke-ExecuteCommand ($finalCommand, $executor, $executionPlatform, $T
                     $execPrefix = "/c"; 
                     $execExe = "cmd.exe"; 
                     $execCommand = $finalCommand -replace "`n", " & " 
-            }
+                    $arguments = $execPrefix,"$execCommand"
+                }
             else {
                     $finalCommand = $finalCommand -replace "[\\](?!;)", "`\$&"
                     $finalCommand = $finalCommand -replace "[`"]", "`\$&"
                     $execCommand = $finalCommand -replace "(?<!;)\n", "; "
+                    $arguments = "$execPrefix $execCommand"
+
             }
-            $arguments = $execPrefix,"$execCommand"
         }
         elseif ($executor -eq "powershell") {
             $execCommand = $finalCommand -replace "`"", "`\`"`""
