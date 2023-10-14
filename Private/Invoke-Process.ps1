@@ -8,7 +8,7 @@ function Invoke-Process {
         [string]$FileName = "PowerShell.exe",
 
         [Parameter(Mandatory = $false, Position = 1)]
-        [string]$Arguments = "",
+        [string[]]$Arguments = "",
         
         [Parameter(Mandatory = $false, Position = 3)]
         [Int]$TimeoutSeconds = 120,
@@ -46,8 +46,6 @@ function Invoke-Process {
                 $process.Start() > $null
                 $process.BeginOutputReadLine()
                 $process.BeginErrorReadLine()
-                $StdIn = $process.StandardInput
-                $StdIn.Close()
                 # wait for complete
                 $Timeout = [System.TimeSpan]::FromSeconds(($TimeoutSeconds))
                 $isTimeout = $false
@@ -138,7 +136,7 @@ function Invoke-Process {
                 [string]$FileName,
                 
                 [parameter(Mandatory = $false)]
-                [string]$Arguments,
+                [string[]]$Arguments,
                 
                 [parameter(Mandatory = $false)]
                 [string]$WorkingDirectory
@@ -150,7 +148,6 @@ function Invoke-Process {
             $psi.UseShellExecute = $false
             $psi.RedirectStandardOutput = $true
             $psi.RedirectStandardError = $true
-            $psi.RedirectStandardInput = $true
             $psi.FileName = $FileName
             $psi.Arguments+= $Arguments
             $psi.WorkingDirectory = $WorkingDirectory

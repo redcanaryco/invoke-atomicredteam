@@ -207,7 +207,7 @@ function Invoke-AtomicTest {
                 $ShortTestNumbers = $AtomicTechniqueParams[-1]
             }
 
-            if ($TestNumbers -eq $null -and $ShortTestNumbers -ne $null) {
+            if ($null -eq $TestNumbers -and $null -ne $ShortTestNumbers) {
                 $TestNumbers = $ShortTestNumbers -split ','
             }
             
@@ -222,15 +222,15 @@ function Invoke-AtomicTest {
                 $commandLine = "$commandLine -ShowDetailsBrief $ShowDetailsBrief"
             }
 
-            if ($TestNumbers -ne $null) {
+            if ($null -ne $TestNumbers) {
                 $commandLine = "$commandLine -TestNumbers $TestNumbers"
             }
 
-            if ($TestNames -ne $null) {
+            if ($null -ne $TestNames) {
                 $commandLine = "$commandLine -TestNames $TestNames"
             }
 
-            if ($TestGuids -ne $null) {
+            if ($null -ne $TestGuids) {
                 $commandLine = "$commandLine -TestGuids $TestGuids"
             }
 
@@ -285,7 +285,7 @@ function Invoke-AtomicTest {
                 $commandLine = "$commandLine -KeepStdOutStdErrFiles $KeepStdOutStdErrFiles"
             }
 
-            if ($LoggingModule -ne $null) {
+            if ($null -ne $LoggingModule) {
                 $commandLine = "$commandLine -LoggingModule $LoggingModule"
             }
 
@@ -368,7 +368,7 @@ function Invoke-AtomicTest {
 
                     $testCount++
                     
-                    if (($ShowDetails -or $ShowDetailsBrief) -and -not $anyOS) {
+                    if (-not $anyOS) {
                         if ( -not $(Platform-IncludesCloud) -and -Not $test.supported_platforms.Contains($executionPlatform) ) {
                             Write-Verbose -Message "Unable to run non-$executionPlatform tests"
                             continue
