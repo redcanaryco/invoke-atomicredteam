@@ -4,7 +4,7 @@
     RootModule        = 'Invoke-AtomicRedTeam.psm1'
 
     # Version number of this module.
-    ModuleVersion     = '2.0.4'
+    ModuleVersion     = '2.0.5'
 
     # ID used to uniquely identify this module
     GUID              = '8f492621-18f8-432e-9532-b1d54d3e90bd'
