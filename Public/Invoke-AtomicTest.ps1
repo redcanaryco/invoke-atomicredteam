@@ -473,8 +473,8 @@ function Invoke-AtomicTest {
                         $final_command = Merge-InputArgs $test.executor.cleanup_command $test $InputArgs $PathToPayloads
                         if (Get-Command 'Invoke-AtomicRunnerPreAtomicHook' -errorAction SilentlyContinue) { Invoke-AtomicRunnerPreAtomicCleanupHook }
                         $res = Invoke-ExecuteCommand $final_command $test.executor.name $executionPlatform $TimeoutSeconds $session -Interactive:$Interactive
-                        if (Get-Command 'Invoke-AtomicRunnerPreAtomicHook' -errorAction SilentlyContinue) { Invoke-AtomicRunnerPostAtomicCleanupHook }
                         Write-KeyValue "Done executing cleanup for test: " $testId
+                        if (Get-Command 'Invoke-AtomicRunnerPreAtomicHook' -errorAction SilentlyContinue) { Invoke-AtomicRunnerPostAtomicCleanupHook }
                         if ($(Test-IncludesTerraform $AT $testCount)) {
                             Remove-TerraformFiles $AT $testCount
                         }
@@ -486,9 +486,9 @@ function Invoke-AtomicTest {
                         if (Get-Command 'Invoke-AtomicRunnerPreAtomicHook' -errorAction SilentlyContinue) { Invoke-AtomicRunnerPreAtomicHook }
                         $res = Invoke-ExecuteCommand $final_command $test.executor.name $executionPlatform $TimeoutSeconds $session -Interactive:$Interactive
                         Write-Host "Exit code: $($res.ExitCode)"
+                        if (Get-Command 'Invoke-AtomicRunnerPreAtomicHook' -errorAction SilentlyContinue) { Invoke-AtomicRunnerPostAtomicHook }
                         $stopTime = Get-Date
                         if ($isLoggingModuleSet) {
-                            if (Get-Command 'Invoke-AtomicRunnerPreAtomicHook' -errorAction SilentlyContinue) { Invoke-AtomicRunnerPostAtomicHook }
                             &"$LoggingModule\Write-ExecutionLog" $startTime $stopTime $AT $testCount $test.name $test.auto_generated_guid $test.executor.name $test.description $final_command $ExecutionLogPath $executionHostname $executionUser $res (-Not($IsLinux -or $IsMacOS))
                         }
                         Write-KeyValue "Done executing test: " $testId
