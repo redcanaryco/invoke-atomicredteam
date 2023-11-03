@@ -70,7 +70,7 @@ filter Get-AtomicTechnique {
     
     Outputs an object representing a parsed and validated atomic technique.
     #>
-    
+
     [CmdletBinding(DefaultParameterSetName = 'FilePath')]
     [OutputType([AtomicTechnique])]
     param (
@@ -103,7 +103,7 @@ filter Get-AtomicTechnique {
 
     $ParsedYaml = $null
 
-    $ValidSupportedPlatforms = @('windows', 'macos', 'linux', 'office-365', 'azure-ad', 'google-workspace', 'saas', 'iaas', 'containers', 'iaas:aws', 'iaas:azure', 'iaas:gcp')
+    $ValidSupportedPlatforms = @('windows', 'macos', 'linux', 'linux:freebsd', 'office-365', 'azure-ad', 'google-workspace', 'saas', 'iaas', 'containers', 'iaas:aws', 'iaas:azure', 'iaas:gcp')
     $ValidInputArgTypes = @('Path', 'Url', 'String', 'Integer', 'Float')
     $ValidExecutorTypes = @('command_prompt', 'sh', 'bash', 'powershell', 'manual', 'aws', 'az', 'gcloud', 'kubectl')
 
@@ -322,7 +322,7 @@ filter Get-AtomicTechnique {
 
                 $j = 0
 
-                foreach ($InputArgName in $AtomicTest['input_arguments'].Keys) {                                        
+                foreach ($InputArgName in $AtomicTest['input_arguments'].Keys) {
 
                     $InputArgument = [AtomicInputArgument]::new()
 
