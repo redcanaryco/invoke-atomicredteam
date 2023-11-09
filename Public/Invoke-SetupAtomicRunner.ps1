@@ -66,8 +66,15 @@ function Invoke-SetupAtomicRunner {
             $triggers += $trigger
         }
         $task = New-ScheduledTask -Action $taskAction -Principal $taskPrincipal -Trigger $triggers -Description "A task that runs 1 minute or later after boot to start the atomic test runner script"
+        # setup scheduled task that will start the runner cleanup task after restart
+        $taskName2 = "KickOff-AtomicRunnerScheduledTask"
+        Unregister-ScheduledTask $taskName -confirm:$false -ErrorAction Ignore
+        $taskAction2 = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-exec bypass -Command Invoke-KickoffAtomicRunner -scheduledTaskCleanup"
+        $taskPrincipal = New-ScheduledTaskPrincipal -UserId $artConfig.user
+        $task2 = New-ScheduledTask -Action $taskAction2 -Principal $taskPrincipal -Trigger $triggers -Description "A task that runs 1 minute or later after boot to start the atomic test runner cleanup script"
         try {
             $null = Register-ScheduledTask -TaskName $taskName -InputObject $task -User $artConfig.user -Password $($cred.GetNetworkCredential().password) -ErrorAction Stop
+            $null = Register-ScheduledTask -TaskName $taskName2 -InputObject $task2 -User $artConfig.user -Password $($cred.GetNetworkCredential().password) -ErrorAction Stop
         }
         catch {
             if ($_.CategoryInfo.Category -eq "AuthenticationError") {
@@ -84,14 +91,23 @@ function Invoke-SetupAtomicRunner {
         # sets cronjob string using basepath from config.ps1
         $pwshPath = which pwsh
         $job = "@reboot root sleep 60;$pwshPath -Command Invoke-KickoffAtomicRunner"
-        $exists = cat /etc/crontab | Select-String -Quiet "KickoffAtomicRunner"
-        #checks if the Kickoff-AtomicRunner job exists. If not appends it to the system crontab.
+        $job2 = "@reboot root sleep 60;$pwshPath -Command Invoke-KickoffAtomicRunner -scheduledTaskCleanup"
+        $exists = cat /etc/crontab | Select-String -Quiet "KickoffAtomicRunner$"
+        $exists2 = cat /etc/crontab | Select-String -Quiet "Invoke-KickoffAtomicRunner -scheduledTaskCleanup"
+        #checks if the Kickoff-AtomicRunner jobs exist. If not appends it to the system crontab.
         if ($null -eq $exists) {
             $(echo "$job" >> /etc/crontab)
             write-host "setting cronjob"
         }
         else {
-            write-host "cronjob already exists"
+            write-host "Invoke-KickoffAtomicRunner cronjob already exists"
+        }
+        if ($null -eq $exists2) {
+            $(echo "$job2" >> /etc/crontab)
+            write-host "setting cronjob for cleanup task"
+        }
+        else {
+            write-host "Invoke-KickoffAtomicRunner -scheduledTaskCleanup cronjob already exists"
         }
     }
 

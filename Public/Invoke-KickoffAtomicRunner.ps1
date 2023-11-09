@@ -1,5 +1,10 @@
 function Invoke-KickoffAtomicRunner {
 
+    Param(
+        [parameter(Mandatory = $false, Position = 0)]
+        [switch] $scheduledTaskCleanup
+    )
+
     #log rotation function
     function Rotate-Log {
         Param ($log, $max_filesize, $max_age)
@@ -45,10 +50,10 @@ function Invoke-KickoffAtomicRunner {
 
     # Invoke the Runner Script
     if ($artConfig.debug) {
-        Invoke-AtomicRunner *>> $all_log_file
+        Invoke-AtomicRunner -scheduledTaskCleanup:$scheduledTaskCleanup *>> $all_log_file
     }
     else {
-        Invoke-AtomicRunner
+        Invoke-AtomicRunner -scheduledTaskCleanup:$scheduledTaskCleanup
     }
 }
 
