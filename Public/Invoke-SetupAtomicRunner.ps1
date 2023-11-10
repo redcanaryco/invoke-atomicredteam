@@ -68,7 +68,7 @@ function Invoke-SetupAtomicRunner {
         $task = New-ScheduledTask -Action $taskAction -Principal $taskPrincipal -Trigger $triggers -Description "A task that runs 1 minute or later after boot to start the atomic test runner script"
         # setup scheduled task that will start the runner cleanup task after restart
         $taskName2 = "KickOff-AtomicRunnerScheduledTask"
-        Unregister-ScheduledTask $taskName -confirm:$false -ErrorAction Ignore
+        Unregister-ScheduledTask $taskName2 -confirm:$false -ErrorAction Ignore
         $taskAction2 = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-exec bypass -Command Invoke-KickoffAtomicRunner -scheduledTaskCleanup"
         $taskPrincipal = New-ScheduledTaskPrincipal -UserId $artConfig.user
         $task2 = New-ScheduledTask -Action $taskAction2 -Principal $taskPrincipal -Trigger $triggers -Description "A task that runs 1 minute or later after boot to start the atomic test runner cleanup script"
