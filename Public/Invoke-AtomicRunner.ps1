@@ -37,6 +37,9 @@ function Invoke-AtomicRunner {
         [ValidateRange(0, [int]::MaxValue)]
         [int] $PauseBetweenAtomics,
 
+        [parameter(Mandatory = $false)]
+        [switch] $scheduledTaskCleanup,
+
         [Parameter(Mandatory = $false, ValueFromRemainingArguments = $true)]
         $OtherArgs
     )
@@ -181,6 +184,7 @@ function Invoke-AtomicRunner {
         $htvars.Remove('OtherArgs') | Out-Null
         $htvars.Remove('Cleanup') | Out-Null
         $htvars.Remove('PauseBetweenAtomics') | Out-Null
+        $htvars.Remove('scheduledTaskCleanup') | Out-Null
 
         $schedule = Get-Schedule $listOfAtomics
         # If the schedule is empty, end process
@@ -221,11 +225,14 @@ function Invoke-AtomicRunner {
             }
 
             if ($null -ne $tr) {
-                Invoke-AtomicTestFromScheduleRow $tr
-                Write-Host -Fore cyan "Sleeping for $SleepTillCleanup seconds before cleaning up"; Start-Sleep -Seconds $SleepTillCleanup
-                
-                # Cleanup after running test
-                Invoke-AtomicTestFromScheduleRow $tr $true
+                if (-not $scheduledTaskCleanup) {
+                    Invoke-AtomicTestFromScheduleRow $tr
+                }
+                else {
+                    # Cleanup after running test
+                    Write-Host -Fore cyan "Sleeping for $SleepTillCleanup seconds before cleaning up for $($tr.Technique) $($tr.auto_generated_guid) "; Start-Sleep -Seconds $SleepTillCleanup
+                    Invoke-AtomicTestFromScheduleRow $tr $true
+                }
             }
             else {
                 LogRunnerMsg "Could not find Test: $guid in schedule. Please update schedule to run this test."

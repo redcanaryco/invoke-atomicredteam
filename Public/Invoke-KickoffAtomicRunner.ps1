@@ -43,13 +43,18 @@ function Invoke-KickoffAtomicRunner {
     # Optional additional delay before starting
     Start-Sleep $artConfig.kickOffDelay.TotalSeconds
 
+    $log_file = $null
     # Invoke the Runner Script
     if ($artConfig.debug) {
-        Invoke-AtomicRunner *>> $all_log_file
+        $log_file = $all_log_file
     }
-    else {
-        Invoke-AtomicRunner
-    }
+    # Invoke-AtomicRunner *>> $log_file
+    $WorkingDirectory = if ($IsLinux -or $IsMacOS) { "/tmp" } else { $env:TEMP }
+    $FileName = if ($IsLinux -or $IsMacOS) { "pwsh" } else { "powershell.exe" }
+    $Arguments = "-Command Invoke-AtomicRunner *>> $log_file"
+    Start-Process -FilePath $FileName -ArgumentList $Arguments -WorkingDirectory $WorkingDirectory
+    $Arguments = "-Command Invoke-AtomicRunner -scheduledTaskCleanup *>> $log_file"
+    Start-Process -FilePath $FileName -ArgumentList $Arguments -WorkingDirectory $WorkingDirectory
 }
 
 function LogRunnerMsg ($message) {
