@@ -226,7 +226,9 @@ function Invoke-AtomicRunner {
 
             if ($null -ne $tr) {
                 if (-not $scheduledTaskCleanup) {
+                    # run the atomic test and exit
                     Invoke-AtomicTestFromScheduleRow $tr
+                    Start-Sleep 10; exit
                 }
                 else {
                     # Cleanup after running test
