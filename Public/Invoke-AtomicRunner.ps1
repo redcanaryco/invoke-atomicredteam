@@ -157,7 +157,7 @@ function Invoke-AtomicRunner {
             if ($sleeptime -lt 120) { $sleeptime = 120 } # minimum 2 minute sleep time
             return $sleeptime
         }
-
+        
         # Convert OtherArgs to hashtable so we can pass it through to the call to Invoke-AtomicTest
         $htvars = @{}
         if ($OtherArgs) {
@@ -225,15 +225,15 @@ function Invoke-AtomicRunner {
             }
 
             if ($null -ne $tr) {
-                if (-not $scheduledTaskCleanup) {
-                    # run the atomic test and exit
-                    Invoke-AtomicTestFromScheduleRow $tr
-                    Start-Sleep 10; exit
-                }
-                else {
+                if ($scheduledTaskCleanup) {
                     # Cleanup after running test
                     Write-Host -Fore cyan "Sleeping for $SleepTillCleanup seconds before cleaning up for $($tr.Technique) $($tr.auto_generated_guid) "; Start-Sleep -Seconds $SleepTillCleanup
                     Invoke-AtomicTestFromScheduleRow $tr $true
+                }
+                else {
+                    # run the atomic test and exit
+                    Invoke-AtomicTestFromScheduleRow $tr
+                    Start-Sleep 3; exit
                 }
             }
             else {
