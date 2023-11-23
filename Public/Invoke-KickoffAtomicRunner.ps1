@@ -1,6 +1,5 @@
 function Invoke-KickoffAtomicRunner {
 
-    LogRunnerMsg "1111111111111111111111"
     #log rotation function
     function Rotate-Log {
         Param ($logPath, $max_filesize, $max_age)
