@@ -1,5 +1,6 @@
 function Invoke-KickoffAtomicRunner {
 
+    LogRunnerMsg "1111111111111111111111"
     #log rotation function
     function Rotate-Log {
         Param ($logPath, $max_filesize, $max_age)
@@ -43,7 +44,7 @@ function Invoke-KickoffAtomicRunner {
     $WorkingDirectory = if ($IsLinux -or $IsMacOS) { "/tmp" } else { $env:TEMP }
     $FileName = if ($IsLinux -or $IsMacOS) { "pwsh" } else { "powershell.exe" }
     if ($artConfig.debug) { $Arguments = "-Command Invoke-AtomicRunner *>> $all_log_file" } else { $Arguments = "-Command Invoke-AtomicRunner" }
-    # Invoke the atomic as its own process because we don't want to skipe the cleanup and rename process in the event that AV kills the process running the atomic
+    # Invoke the atomic as its own process because we don't want to skip the cleanup and rename process in the event that AV kills the process running the atomic
     Start-Process -FilePath $FileName -ArgumentList $Arguments -WorkingDirectory $WorkingDirectory
     # Run the cleanup commmands
     if ($artConfig.debug) { Invoke-AtomicRunner -scheduledTaskCleanup *>> $all_log_file_cleanup } else { Invoke-AtomicRunner -scheduledTaskCleanup }
