@@ -412,7 +412,7 @@ function Invoke-AtomicTest {
                     }
                     $numAtomicsApplicableToPlatform++
 
-                    $testId = "$AT-$testCount $($test.name)"
+                    $testId = "$AT-$testCount $($test.name)".trim()
                     if ($ShowDetailsBrief) {
                         Write-KeyValue $testId
                         continue
