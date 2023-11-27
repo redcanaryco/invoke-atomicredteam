@@ -37,8 +37,6 @@ function Invoke-KickoffAtomicRunner {
     # Optional additional delay before starting
     Start-Sleep $artConfig.kickOffDelay.TotalSeconds
 
-    $WorkingDirectory = if ($IsLinux -or $IsMacOS) { "/tmp" } else { $env:TEMP }
-    $FileName = if ($IsLinux -or $IsMacOS) { "pwsh" } else { "powershell.exe" }
     # Invoke the atomic as its own process because we don't want to skip the cleanup and rename process in the event that AV kills the process running the atomic
     if ($artConfig.debug) { Invoke-AtomicRunner  *>> $all_log_file } else { Invoke-AtomicRunner  }
 }
