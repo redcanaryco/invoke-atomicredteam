@@ -25,16 +25,13 @@ function Invoke-KickoffAtomicRunner {
 
     #Create log files as needed
     $all_log_file = Join-Path $artConfig.atomicLogsPath "all-out-$($artConfig.basehostname).txt"
-    $all_log_file_cleanup = Join-Path $artConfig.atomicLogsPath "all-out-$($artConfig.basehostname)-cleanup.txt"
     New-Item $all_log_file -ItemType file -ErrorAction Ignore 
-    New-Item $all_log_file_cleanup -ItemType file -ErrorAction Ignore 
     New-Item $artConfig.logFile -ItemType File -ErrorAction Ignore 
 
     #Rotate logs based on FileSize and Date max_filesize
     $max_filesize = 200 #in MB
     $max_file_age = 30 #in days
     Rotate-Log $all_log_file $max_filesize $max_file_age
-    Rotate-Log $all_log_file_cleanup $max_filesize $max_file_age
     Rotate-Log $artConfig.logFile $max_filesize $max_file_age #no need to repeat this. Can reduce further.
 
     # Optional additional delay before starting
@@ -42,11 +39,8 @@ function Invoke-KickoffAtomicRunner {
 
     $WorkingDirectory = if ($IsLinux -or $IsMacOS) { "/tmp" } else { $env:TEMP }
     $FileName = if ($IsLinux -or $IsMacOS) { "pwsh" } else { "powershell.exe" }
-    if ($artConfig.debug) { $Arguments = "-Command Invoke-AtomicRunner *>> $all_log_file" } else { $Arguments = "-Command Invoke-AtomicRunner" }
     # Invoke the atomic as its own process because we don't want to skip the cleanup and rename process in the event that AV kills the process running the atomic
-    Start-Process -FilePath $FileName -ArgumentList $Arguments -WorkingDirectory $WorkingDirectory
-    # Run the cleanup commmands
-    if ($artConfig.debug) { Invoke-AtomicRunner -scheduledTaskCleanup *>> $all_log_file_cleanup } else { Invoke-AtomicRunner -scheduledTaskCleanup }
+    if ($artConfig.debug) { Invoke-AtomicRunner  *>> $all_log_file } else { Invoke-AtomicRunner  }
 }
 
 function LogRunnerMsg ($message) {
