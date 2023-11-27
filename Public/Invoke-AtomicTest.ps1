@@ -471,8 +471,10 @@ function Invoke-AtomicTest {
                     elseif ($Cleanup) {
                         Write-KeyValue "Executing cleanup for test: " $testId
                         $final_command = Merge-InputArgs $test.executor.cleanup_command $test $InputArgs $PathToPayloads
+                        if (Get-Command 'Invoke-ARTPreAtomicCleanupHook' -errorAction SilentlyContinue) { Invoke-ARTPreAtomicCleanupHook $test $InputArgs}
                         $res = Invoke-ExecuteCommand $final_command $test.executor.name $executionPlatform $TimeoutSeconds $session -Interactive:$Interactive
                         Write-KeyValue "Done executing cleanup for test: " $testId
+                        if (Get-Command 'Invoke-ARTPostAtomicCleanupHook' -errorAction SilentlyContinue) { Invoke-ARTPostAtomicCleanupHook $test $InputArgs}
                         if ($(Test-IncludesTerraform $AT $testCount)) {
                             Remove-TerraformFiles $AT $testCount
                         }
@@ -481,8 +483,10 @@ function Invoke-AtomicTest {
                         Write-KeyValue "Executing test: " $testId
                         $startTime = Get-Date
                         $final_command = Merge-InputArgs $test.executor.command $test $InputArgs $PathToPayloads
+                        if (Get-Command 'Invoke-ARTPreAtomicHook' -errorAction SilentlyContinue) { Invoke-ARTPreAtomicHook $test $InputArgs }
                         $res = Invoke-ExecuteCommand $final_command $test.executor.name $executionPlatform $TimeoutSeconds $session -Interactive:$Interactive
                         Write-Host "Exit code: $($res.ExitCode)"
+                        if (Get-Command 'Invoke-ARTPostAtomicHook' -errorAction SilentlyContinue) { Invoke-ARTPostAtomicHook $test $InputArgs}
                         $stopTime = Get-Date
                         if ($isLoggingModuleSet) {
                             &"$LoggingModule\Write-ExecutionLog" $startTime $stopTime $AT $testCount $test.name $test.auto_generated_guid $test.executor.name $test.description $final_command $ExecutionLogPath $executionHostname $executionUser $res (-Not($IsLinux -or $IsMacOS))
