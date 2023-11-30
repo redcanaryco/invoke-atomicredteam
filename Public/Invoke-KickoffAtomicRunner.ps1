@@ -37,7 +37,6 @@ function Invoke-KickoffAtomicRunner {
     # Optional additional delay before starting
     Start-Sleep $artConfig.kickOffDelay.TotalSeconds
 
-    # Invoke the atomic as its own process because we don't want to skip the cleanup and rename process in the event that AV kills the process running the atomic
     if ($artConfig.debug) { Invoke-AtomicRunner  *>> $all_log_file } else { Invoke-AtomicRunner  }
 }
 
