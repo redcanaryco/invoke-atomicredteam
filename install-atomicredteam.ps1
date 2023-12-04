@@ -1,6 +1,6 @@
-#Requires -Version 5.0
+﻿#Requires -Version 5.0
 function Install-AtomicRedTeam {
-  
+
     <#
     .SYNOPSIS
 
@@ -65,7 +65,7 @@ function Install-AtomicRedTeam {
         if ($Force -or -Not (Test-Path -Path $InstallPathwIart )) {
             write-verbose "Directory Creation"
             if ($Force) {
-                Try { 
+                Try {
                     if (Test-Path $InstallPathwIart) { Remove-Item -Path $InstallPathwIart -Recurse -Force -ErrorAction Stop | Out-Null }
                 }
                 Catch {
@@ -89,7 +89,7 @@ function Install-AtomicRedTeam {
             Remove-Item $zipDest -Recurse -Force
             Remove-Item $path
 
-            if (-not (Get-InstalledModule -Name "powershell-yaml" -ErrorAction:SilentlyContinue)) { 
+            if (-not (Get-InstalledModule -Name "powershell-yaml" -ErrorAction:SilentlyContinue)) {
                 write-verbose "Installing powershell-yaml"
                 Install-Module -Name powershell-yaml -Scope CurrentUser -Force
             }
