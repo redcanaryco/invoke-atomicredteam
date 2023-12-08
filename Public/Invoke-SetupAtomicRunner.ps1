@@ -56,7 +56,9 @@ function Invoke-SetupAtomicRunner {
         # local security policy --> Local Policies --> Security Options --> Network access: Do not allow storage of passwords and credentials for network authentication must be disabled
         $taskName = "KickOff-AtomicRunner"
         Unregister-ScheduledTask $taskName -confirm:$false -ErrorAction Ignore
-        $taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-exec bypass -Command Invoke-KickoffAtomicRunner"
+        # Windows scheduled task includes a 20 minutes sleep then restart if the call to Invoke-KickoffAtomicRunner fails
+        # this occurs occassional when Windows has issues logging into the runner user's account and logs in as a TEMP user
+        $taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-exec bypass -Command Invoke-KickoffAtomicRunner; Start-Sleep 1200; Restart-Computer -Force"
         $taskPrincipal = New-ScheduledTaskPrincipal -UserId $artConfig.user
         $delays = @(1, 2, 4, 8, 16, 32, 64) # using multiple triggers as a retry mechanism because the built-in retry mechanism doesn't work when the computer renaming causes AD replication delays
         $triggers = @()

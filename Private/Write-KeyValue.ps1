@@ -1,5 +1,5 @@
 function Write-KeyValue ($key, $value) {
-    Write-Host -ForegroundColor  Cyan -NoNewline $key
+    Write-Host -ForegroundColor Cyan -NoNewline $key
     $split = $value -split "(#{[a-z-_A-Z]*})"
     foreach ($s in $split){
         if($s -match "(#{[a-z-_A-Z]*})"){

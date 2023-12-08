@@ -114,6 +114,7 @@ function Invoke-AtomicRunner {
                         # add retry loop to avoid this occassional error "The verification of the MSA failed with error 1355"
                         Invoke-Command -ComputerName '127.0.0.1' -ConfigurationName 'RenameRunnerEndpoint' -ScriptBlock { Rename-Computer -NewName $Using:newHostName -Force -Restart }
                         Start-Sleep 120; $count = $count + 1
+                        LogRunnerMsg "Retrying computer rename $count"
                         if ($count -gt 15) { $retry = $false }
                     }
                 }
@@ -150,7 +151,7 @@ function Invoke-AtomicRunner {
             if ($sleeptime -lt 120) { $sleeptime = 120 } # minimum 2 minute sleep time
             return $sleeptime
         }
-
+        
         # Convert OtherArgs to hashtable so we can pass it through to the call to Invoke-AtomicTest
         $htvars = @{}
         if ($OtherArgs) {
@@ -217,10 +218,10 @@ function Invoke-AtomicRunner {
             }
 
             if ($null -ne $tr) {
+                # run the atomic test and exit
                 Invoke-AtomicTestFromScheduleRow $tr
-                Write-Host -Fore cyan "Sleeping for $SleepTillCleanup seconds before cleaning up"; Start-Sleep -Seconds $SleepTillCleanup
-                
                 # Cleanup after running test
+                Write-Host -Fore cyan "Sleeping for $SleepTillCleanup seconds before cleaning up for $($tr.Technique) $($tr.auto_generated_guid) "; Start-Sleep -Seconds $SleepTillCleanup
                 Invoke-AtomicTestFromScheduleRow $tr $true
             }
             else {
