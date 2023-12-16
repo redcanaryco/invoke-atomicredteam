@@ -35,6 +35,7 @@ function Invoke-KickoffAtomicRunner {
     $max_file_age = 30 #in days
     Rotate-Log $all_log_file $max_filesize $max_file_age
     Rotate-Log $all_log_file_cleanup $max_filesize $max_file_age
+
     Rotate-Log $artConfig.logFile $max_filesize $max_file_age #no need to repeat this. Can reduce further.
 
     # Optional additional delay before starting

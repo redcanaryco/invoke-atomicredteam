@@ -66,8 +66,6 @@ function Invoke-AtomicRunner {
                 $tr.InputArgs = ConvertFrom-StringData -StringData $theArgs
             }
             $sc = $tr.AtomicsFolder
-            if ($Cleanup) { if (Get-Command 'Invoke-AtomicRunnerPreAtomicCleanupHook' -errorAction SilentlyContinue) { Invoke-AtomicRunnerPreAtomicCleanupHook } } 
-            elseif (-not($ShowDetails -or $CheckPrereqs -or $ShowDetailsBrief -or $GetPrereqs)) { if (Get-Command 'Invoke-AtomicRunnerPreAtomicHook' -errorAction SilentlyContinue) { Invoke-AtomicRunnerPreAtomicHook } }
             #Run the Test based on if scheduleContext is 'private' or 'public'
             if (($sc -eq 'public') -or ($null -eq $sc)) {
                 Invoke-AtomicTest $tr.Technique -TestGuids $tr.auto_generated_guid -InputArgs $tr.InputArgs -TimeoutSeconds $tr.TimeoutSeconds -ExecutionLogPath $artConfig.execLogPath -PathToAtomicsFolder $artConfig.PathToPublicAtomicsFolder @htvars -Cleanup:$Cleanup -supressPathToAtomicsFolder
@@ -75,8 +73,6 @@ function Invoke-AtomicRunner {
             elseif ($sc -eq 'private') {
                 Invoke-AtomicTest $tr.Technique -TestGuids $tr.auto_generated_guid -InputArgs $tr.InputArgs -TimeoutSeconds $tr.TimeoutSeconds -ExecutionLogPath $artConfig.execLogPath -PathToAtomicsFolder $artConfig.PathToPrivateAtomicsFolder @htvars -Cleanup:$Cleanup -supressPathToAtomicsFolder
             }
-            if ($Cleanup) { if (Get-Command 'Invoke-AtomicRunnerPostAtomicCleanupHook' -errorAction SilentlyContinue) { Invoke-AtomicRunnerPostAtomicCleanupHook } } 
-            elseif (-not($ShowDetails -or $CheckPrereqs -or $ShowDetailsBrief -or $GetPrereqs)) { if (Get-Command 'Invoke-AtomicRunnerPostAtomicHook' -errorAction SilentlyContinue) { Invoke-AtomicRunnerPostAtomicHook } }
             if ($timeToPause -gt 0) {
                 Write-Host "Sleeping for $timeToPause seconds..."
                 Start-Sleep $timeToPause
