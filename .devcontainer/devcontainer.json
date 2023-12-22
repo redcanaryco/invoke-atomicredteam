@@ -6,8 +6,12 @@
       "resources": "powershell-yaml,PSScriptAnalyzer"
     }
   },
+  "postStartCommand": "pwsh .devcontainer/setup.ps1",
   "customizations": {
     "vscode": {
+      "extensions": [
+        "ms-vscode.powershell"
+      ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "pwsh",
         "terminal.integrated.profiles.linux": {
