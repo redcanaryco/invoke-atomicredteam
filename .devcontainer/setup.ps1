@@ -4,5 +4,5 @@ Install-AtomicRedTeam -getAtomics
 Write-Output @"
 Import-Module /workspaces/invoke-atomicredteam/Invoke-AtomicRedTeam.psd1
 `$PSDefaultParameterValues`["Invoke-AtomicTest:PathToAtomicsFolder"] = "$HOME/AtomicRedTeam/atomics";
-`$PSDefaultParameterValues`["Invoke-AtomicTest:ExecutionLogPath"]="/workspaces/execution.csv";
+`$PSDefaultParameterValues`["Invoke-AtomicTest:ExecutionLogPath"]="$HOME/AtomicRedTeam/execution.csv";
 "@ > $PROFILE
