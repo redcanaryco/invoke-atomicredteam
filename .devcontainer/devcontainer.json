@@ -6,7 +6,7 @@
       "resources": "powershell-yaml,PSScriptAnalyzer"
     }
   },
-  "postStartCommand": "pwsh .devcontainer/setup.ps1",
+  "postCreateCommand": "pwsh /workspaces/invoke-atomicredteam/.devcontainer/setup.ps1",
   "customizations": {
     "vscode": {
       "extensions": [
