@@ -12,5 +12,5 @@ else {
 Write-Output @"
 Import-Module "$ARTPath/invoke-atomicredteam/Invoke-AtomicRedTeam.psd1" -Force;
 `$PSDefaultParameterValues`["Invoke-AtomicTest:PathToAtomicsFolder"] = "$ARTPath/atomics";
-`$PSDefaultParameterValues`["Invoke-AtomicTest:ExecutionLogPath"]="$HOME/AtomicRedTeam/execution.csv";
+`$PSDefaultParameterValues`["Invoke-AtomicTest:ExecutionLogPath"]="$ARTPath/execution.csv";
 "@ > $PROFILE
