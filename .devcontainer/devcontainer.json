@@ -5,5 +5,17 @@
     "ghcr.io/natescherer/devcontainers-custom-features/powershell-resources:1": {
       "resources": "powershell-yaml,PSScriptAnalyzer"
     }
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "pwsh",
+        "terminal.integrated.profiles.linux": {
+          "pwsh": {
+            "path": "pwsh"
+          }
+        }
+      }
+    }
   }
 }
