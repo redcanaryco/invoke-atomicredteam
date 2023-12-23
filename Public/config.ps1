@@ -2,7 +2,7 @@
 $artConfig = [PSCustomObject]@{
 
   # [optional] These two configs are calculated programatically, you probably don't need to change them
-  basehostname               = $((hostname).split("-")[0])
+  basehostname               = $((hostname | Select-String -Pattern "(.*?)(-[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12})?$").Matches.Groups[1].value)
   OS                         = $( if ($IsLinux) { "linux" } elseif ($IsMacOS) { "macos" } else { "windows" })
 
   # [optional(if using default install paths)] Paths to your Atomic Red Team "atomics" folder and your "invoke-atomicredteam" folder

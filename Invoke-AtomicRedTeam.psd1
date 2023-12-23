@@ -1,4 +1,4 @@
-@{
+﻿@{
 
     # Script module or binary module file associated with this manifest.
     RootModule        = 'Invoke-AtomicRedTeam.psm1'
@@ -26,7 +26,7 @@
 
     # Modules that must be imported into the global environment prior to importing this module
     RequiredModules = @('powershell-yaml')
-    
+
     # Script files (.ps1) that are run in the caller's environment prior to importing this module.
     # AtomicClassSchema.ps1 needs to be present in the caller's scope in order for the built-in classes to surface properly.
     ScriptsToProcess  = @('Private\AtomicClassSchema.ps1','Public\config.ps1')
@@ -86,7 +86,7 @@
 1.0.1
 -----
 * Adding 'powershell-yaml' to RequiredModules in the module manifest
-            
+
 1.0.0
 -----
 * Initial release for submission to the PowerShell Gallery
