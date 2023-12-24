@@ -39,3 +39,4 @@
 
     }
     $targetPlatform, $isElevated, $tmpDir, $targetHostname, $targetUser
+}
