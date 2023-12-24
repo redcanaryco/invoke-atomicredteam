@@ -1,4 +1,4 @@
-function Get-TargetInfo($Session) {
+﻿function Get-TargetInfo($Session) {
     $tmpDir = "$env:TEMP\"
     $isElevated = $false
     $targetHostname = hostname
@@ -17,7 +17,7 @@ function Get-TargetInfo($Session) {
             }
             if ($IsLinux -or $IsMacOS) {
                 $isElevated = $false
-                $privid = id -u                
+                $privid = id -u
                 if ($privid -eq 0) { $isElevated = $true }
             }
             $targetPlatform, $isElevated, $tmpDir, $targetHostname, $targetUser
@@ -28,7 +28,7 @@ function Get-TargetInfo($Session) {
         if ($IsLinux -or $IsMacOS) {
             $tmpDir = "/tmp/"
             $isElevated = $false
-            $privid = id -u                
+            $privid = id -u
             if ($privid -eq 0) { $isElevated = $true }
             if ($IsMacOS) { $targetPlatform = "macos" }
         }
@@ -36,7 +36,6 @@ function Get-TargetInfo($Session) {
             $targetPlatform = "windows"
             $isElevated = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
         }
-      
+
     }
     $targetPlatform, $isElevated, $tmpDir, $targetHostname, $targetUser
-} 

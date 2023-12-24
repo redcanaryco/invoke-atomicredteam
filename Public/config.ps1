@@ -1,4 +1,4 @@
-
+﻿
 $artConfig = [PSCustomObject]@{
 
   # [optional] These two configs are calculated programatically, you probably don't need to change them
@@ -31,7 +31,7 @@ $artConfig = [PSCustomObject]@{
   syslogServer               = '' # set to empty string '' if you don't want to log atomic execution details to a syslog server (don't includle http(s):\\)
   syslogPort                 = 514
   syslogProtocol             = 'UDP' # options are UDP, TCP, TCPwithTLS
- 
+
   verbose                    = $true; # set to true for more log output
 
   # [optional] logfile filename configs

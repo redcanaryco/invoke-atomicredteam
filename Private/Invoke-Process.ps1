@@ -1,4 +1,4 @@
-# The Invoke-Process function is loosely based on code from https://github.com/guitarrapc/PowerShellUtil/blob/master/Invoke-Process/Invoke-Process.ps1
+﻿# The Invoke-Process function is loosely based on code from https://github.com/guitarrapc/PowerShellUtil/blob/master/Invoke-Process/Invoke-Process.ps1
 function Invoke-Process {
     [OutputType([PSCustomObject])]
     [CmdletBinding()]
@@ -9,7 +9,7 @@ function Invoke-Process {
 
         [Parameter(Mandatory = $false, Position = 1)]
         [string[]]$Arguments = "",
-        
+
         [Parameter(Mandatory = $false, Position = 3)]
         [Int]$TimeoutSeconds = 120,
 
@@ -27,11 +27,11 @@ function Invoke-Process {
             if ($stdoutFile) {
                 # new Process
                 $process = NewProcess -FileName $FileName -Arguments $Arguments -WorkingDirectory $WorkingDirectory
-                
+
                 # Event Handler for Output
                 $stdSb = New-Object -TypeName System.Text.StringBuilder
                 $errorSb = New-Object -TypeName System.Text.StringBuilder
-                $scripBlock = 
+                $scripBlock =
                 {
                     $x = $Event.SourceEventArgs.Data
                     if (-not [String]::IsNullOrEmpty($x))
@@ -54,7 +54,7 @@ function Invoke-Process {
                     $isTimeout = $true
                     Invoke-KillProcessTree $process.id
                     Write-Host -ForegroundColor Red "Process Timed out after $TimeoutSeconds seconds, use '-TimeoutSeconds' to specify a different timeout"
-                } 
+                }
                 $process.CancelOutputRead()
                 $process.CancelErrorRead()
 
@@ -91,7 +91,7 @@ function Invoke-Process {
                         # Add a warning in stdoutFile in case of timeout
                         # problem: $stdoutFile was locked in writing by the process we just killed, sometimes it's too fast and the lock isn't released immediately
                         # solution: retry at most 10 times with 100ms between each attempt
-                        For($i=0;$i -lt 10;$i++) { 
+                        For($i=0;$i -lt 10;$i++) {
                             try {
                                 "<timeout>" | Out-File (Join-Path $WorkingDirectory $stdoutFile) -Append -Encoding ASCII
                                 break # if we're here it means the file wasn't locked and Out-File worked, so we can leave the retry loop
@@ -104,7 +104,7 @@ function Invoke-Process {
                 if ($IsLinux -or $IsMacOS) {
                     Start-Sleep -Seconds 5 # On nix, the last 4 lines of stdout get overwritten upon return so pause for a bit to ensure user can view results
                 }
-                
+
                 # Get Process result
                 return [PSCustomObject]@{
                     StandardOutput = ""
@@ -115,7 +115,7 @@ function Invoke-Process {
                 }
 
             }
-            
+
         }
         finally {
             if ($null -ne $process) { $process.Dispose() }
@@ -134,16 +134,16 @@ function Invoke-Process {
             (
                 [parameter(Mandatory = $true)]
                 [string]$FileName,
-                
+
                 [parameter(Mandatory = $false)]
                 [string[]]$Arguments,
-                
+
                 [parameter(Mandatory = $false)]
                 [string]$WorkingDirectory
             )
 
             # ProcessStartInfo
-            $psi = New-object System.Diagnostics.ProcessStartInfo 
+            $psi = New-object System.Diagnostics.ProcessStartInfo
             $psi.CreateNoWindow = $true
             $psi.UseShellExecute = $false
             $psi.RedirectStandardOutput = $true
@@ -153,7 +153,7 @@ function Invoke-Process {
             $psi.WorkingDirectory = $WorkingDirectory
 
             # Set Process
-            $process = New-Object System.Diagnostics.Process 
+            $process = New-Object System.Diagnostics.Process
             $process.StartInfo = $psi
             $process.EnableRaisingEvents = $true
             return $process
@@ -177,7 +177,7 @@ function Invoke-Process {
                 [parameter(Mandatory = $true)]
                 [Bool]$IsTimeout
             )
-            
+
             return [PSCustomObject]@{
                 StandardOutput = $StandardStringBuilder.ToString().Trim()
                 ErrorOutput = $ErrorStringBuilder.ToString().Trim()

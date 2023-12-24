@@ -1,4 +1,4 @@
-function Invoke-ExecuteCommand ($finalCommand, $executor, $executionPlatform, $TimeoutSeconds, $session = $null, $interactive) {
+﻿function Invoke-ExecuteCommand ($finalCommand, $executor, $executionPlatform, $TimeoutSeconds, $session = $null, $interactive) {
     $null = @(
         if ($null -eq $finalCommand) { return 0 }
         $finalCommand = $finalCommand.trim()
@@ -6,10 +6,10 @@ function Invoke-ExecuteCommand ($finalCommand, $executor, $executionPlatform, $T
         if ($executor -eq "command_prompt" -or $executor -eq "sh" -or $executor -eq "bash") {
             $execPrefix = "-c"
             $execExe = $executor
-            if ($executor -eq "command_prompt") { 
-                    $execPrefix = "/c"; 
-                    $execExe = "cmd.exe"; 
-                    $execCommand = $finalCommand -replace "`n", " & " 
+            if ($executor -eq "command_prompt") {
+                    $execPrefix = "/c";
+                    $execExe = "cmd.exe";
+                    $execCommand = $finalCommand -replace "`n", " & "
                     $arguments = $execPrefix,"$execCommand"
                 }
             else {
@@ -67,7 +67,7 @@ function Invoke-ExecuteCommand ($finalCommand, $executor, $executionPlatform, $T
             else {
                 # Local execution that DO NOT contain interactive prompts
                 #   In this situation, capture the stdout/stderr for Invoke-AtomicTest to send to the caller
-                $res = Invoke-Process -filename $execExe -Arguments $arguments -TimeoutSeconds $TimeoutSeconds -stdoutFile "art-out.txt" -stderrFile "art-err.txt" 
+                $res = Invoke-Process -filename $execExe -Arguments $arguments -TimeoutSeconds $TimeoutSeconds -stdoutFile "art-out.txt" -stderrFile "art-err.txt"
             }
         }
     )
