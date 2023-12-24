@@ -11,7 +11,6 @@ jobs:
       - name: Run lint checks
         shell: pwsh
         run: |
-          ls
           Install-Module -Name PSScriptAnalyzer -Force
           Invoke-ScriptAnalyzer -Recurse ./ -Settings ./PSScriptAnalyzerSettings.psd1 -Fix
       - name: Check whether there are any file changes
