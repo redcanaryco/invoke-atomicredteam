@@ -1,14 +1,17 @@
-name: Check installation
+name: Lint
 on: pull_request
 
 jobs:
   install-invoke:
     name: Install Invoke-Atomic
-    runs-on: "ubuntu-latest"
+    runs-on: ubuntu-latest
     steps:
+      - name: checkout
+        uses: actions/checkout@v2
       - name: Install Invoke-AtomicRedTeam
         shell: pwsh
         run: |
+          ls
           Install-Module -Name PSScriptAnalyzer -Force
           Invoke-ScriptAnalyzer -Recurse ./ -Settings ./PSScriptAnalyzerSettings.psd1 -Fix
       - name: Check whether there are any file changes
