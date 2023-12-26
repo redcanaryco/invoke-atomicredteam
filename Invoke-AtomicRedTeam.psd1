@@ -25,11 +25,11 @@
     PowerShellVersion = '5.0'
 
     # Modules that must be imported into the global environment prior to importing this module
-    RequiredModules = @('powershell-yaml')
+    RequiredModules   = @('powershell-yaml')
 
     # Script files (.ps1) that are run in the caller's environment prior to importing this module.
     # AtomicClassSchema.ps1 needs to be present in the caller's scope in order for the built-in classes to surface properly.
-    ScriptsToProcess  = @('Private\AtomicClassSchema.ps1','Public\config.ps1')
+    ScriptsToProcess  = @('Private\AtomicClassSchema.ps1', 'Public\config.ps1')
 
     # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
     FunctionsToExport = @(
@@ -53,12 +53,12 @@
     # Variables to export from this module
     VariablesToExport = '*'
 
-    NestedModules = @(
+    NestedModules     = @(
         "Public\Default-ExecutionLogger.psm1",
         "Public\Attire-ExecutionLogger.psm1",
         "Public\Syslog-ExecutionLogger.psm1",
         "Public\WinEvent-ExecutionLogger.psm1"
-        )
+    )
 
     # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
     PrivateData       = @{
@@ -66,13 +66,13 @@
         PSData = @{
 
             # Tags applied to this module. These help with module discovery in online galleries.
-            Tags = @('Security', 'Defense')
+            Tags         = @('Security', 'Defense')
 
             # A URL to the license for this module.
-            LicenseUri = 'https://github.com/redcanaryco/invoke-atomicredteam/blob/master/LICENSE.txt'
+            LicenseUri   = 'https://github.com/redcanaryco/invoke-atomicredteam/blob/master/LICENSE.txt'
 
             # A URL to the main website for this project.
-            ProjectUri = 'https://github.com/redcanaryco/invoke-atomicredteam'
+            ProjectUri   = 'https://github.com/redcanaryco/invoke-atomicredteam'
 
             # A URL to an icon representing this module.
             # IconUri = ''

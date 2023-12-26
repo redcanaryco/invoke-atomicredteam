@@ -112,7 +112,8 @@
     # how to handle the error.
     try {
         [Hashtable] $ParsedYaml = ConvertFrom-Yaml -Yaml $YamlContent
-    } catch {
+    }
+    catch {
         Write-Error $_
     }
 
@@ -142,7 +143,8 @@
 
                 [String[]] $AttackTechnique = $ParsedYaml['attack_technique']
             }
-        } else {
+        }
+        else {
             if ((-not "$($ParsedYaml['attack_technique'])".StartsWith('T'))) {
                 # If the attack technique is a single entry, validate that it starts with the letter T.
                 Write-Warning "$ErrorStringPrefix Attack technique: $($ParsedYaml['attack_technique']). Attack techniques should start with the letter T."
@@ -408,7 +410,8 @@
                 $ExecutorInstance = [AtomicExecutorManual]::new()
                 $ExecutorInstance.steps = $AtomicTest['executor']['steps']
                 $StringsWithPotentialInputArgs.Add($AtomicTest['executor']['steps'])
-            } else {
+            }
+            else {
                 if (-not $AtomicTest['executor'].ContainsKey('command')) {
                     Write-Error "$ErrorStringPrefix[Atomic test name: $($AtomicTestInstance.name)] 'atomic_tests[$i].executor.command' element is required when the '$($ValidExecutorTypes -join ', ')' executors are used."
                     return
@@ -438,7 +441,8 @@
                 }
 
                 $ExecutorInstance.elevation_required = $AtomicTest['executor']['elevation_required']
-            } else {
+            }
+            else {
                 # if elevation_required is not present, default to false
                 $ExecutorInstance.elevation_required = $False
             }
@@ -459,11 +463,11 @@
 
             $Regex = [Regex] '#\{(?<ArgName>[^}]+)\}'
             [String[]] $InputArgumentNamesFromExecutor = $StringsWithPotentialInputArgs |
-                ForEach-Object { $Regex.Matches($_) } |
-                Select-Object -ExpandProperty Groups |
-                Where-Object { $_.Name -eq 'ArgName' } |
-                Select-Object -ExpandProperty Value |
-                Sort-Object -Unique
+            ForEach-Object { $Regex.Matches($_) } |
+            Select-Object -ExpandProperty Groups |
+            Where-Object { $_.Name -eq 'ArgName' } |
+            Select-Object -ExpandProperty Value |
+            Sort-Object -Unique
 
 
             # Validate that all executor input arg names are defined input arg names.
@@ -504,7 +508,7 @@
 function Get-TechniqueNumbers {
     $PathToAtomicsFolder = if ($IsLinux -or $IsMacOS) { $Env:HOME + "/AtomicRedTeam/atomics" } else { $env:HOMEDRIVE + "\AtomicRedTeam\atomics" }
     $techniqueNumbers = Get-ChildItem $PathToAtomicsFolder -Directory |
-                       ForEach-Object { $_.BaseName }
+    ForEach-Object { $_.BaseName }
 
     return $techniqueNumbers
 }

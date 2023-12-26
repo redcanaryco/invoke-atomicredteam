@@ -1,15 +1,18 @@
 ﻿function Invoke-SetupAtomicRunner {
 
     # ensure running with admin privs
-    if ($artConfig.OS -eq "windows") { # auto-elevate on Windows
+    if ($artConfig.OS -eq "windows") {
+        # auto-elevate on Windows
         $currentUser = New-Object Security.Principal.WindowsPrincipal $([Security.Principal.WindowsIdentity]::GetCurrent())
         $testadmin = $currentUser.IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)
         if ($testadmin -eq $false) {
             Start-Process powershell.exe -Verb RunAs -ArgumentList ('-noprofile -noexit -file "{0}" -elevated' -f ($myinvocation.MyCommand.Definition))
             exit $LASTEXITCODE
         }
-    } else { # linux and macos check - doesn't auto-elevate
-        if((id -u) -ne 0 ){
+    }
+    else {
+        # linux and macos check - doesn't auto-elevate
+        if ((id -u) -ne 0 ) {
             Throw "You must run the Invoke-SetupAtomicRunner script as root"
             exit
         }

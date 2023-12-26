@@ -10,8 +10,9 @@
             $targetHostname = hostname
             $targetUser = whoami
             if ($IsLinux) { $targetPlatform = "linux" }
-            elseif ($IsMacOS) { $targetPlatform =  "macos" }
-            else {  # windows
+            elseif ($IsMacOS) { $targetPlatform = "macos" }
+            else {
+                # windows
                 $tmpDir = "$env:TEMP\"
                 $isElevated = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
             }

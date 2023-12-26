@@ -25,7 +25,7 @@ $artConfig = [PSCustomObject]@{
   gmsaAccount                = $null
 
   # [optional] Logging Module, uses Syslog-ExecutionLogger if left blank and the syslogServer and syslogPort are set, otherwise it uses the Default-ExecutionLogger
-  LoggingModule = ''
+  LoggingModule              = ''
 
   # [optional] Syslog configuration, default execution logs will be sent to this server:port
   syslogServer               = '' # set to empty string '' if you don't want to log atomic execution details to a syslog server (don't includle http(s):\\)

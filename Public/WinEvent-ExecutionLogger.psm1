@@ -1,5 +1,5 @@
 ﻿function Start-ExecutionLog($startTime, $logPath, $targetHostname, $targetUser, $commandLine, $isWindows) {
-    if($isWindows -and -not [System.Diagnostics.EventLog]::Exists('Atomic Red Team')){
+    if ($isWindows -and -not [System.Diagnostics.EventLog]::Exists('Atomic Red Team')) {
         New-EventLog -Source "Applications and Services Logs" -LogName "Atomic Red Team"
     }
 }
@@ -25,7 +25,7 @@ function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testNa
         "ExitCode"               = $res.ExitCode
     }
 
-    Write-EventLog  -Source "Applications and Services Logs" -LogName "Atomic Red Team" -EventID 3001 -EntryType Information -Message $msg -Category 1 -RawData 10,20
+    Write-EventLog  -Source "Applications and Services Logs" -LogName "Atomic Red Team" -EventID 3001 -EntryType Information -Message $msg -Category 1 -RawData 10, 20
 }
 
 function Stop-ExecutionLog($startTime, $logPath, $targetHostname, $targetUser, $isWindows) {

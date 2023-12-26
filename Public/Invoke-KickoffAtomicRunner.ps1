@@ -37,7 +37,7 @@
     # Optional additional delay before starting
     Start-Sleep $artConfig.kickOffDelay.TotalSeconds
 
-    if ($artConfig.debug) { Invoke-AtomicRunner  *>> $all_log_file } else { Invoke-AtomicRunner  }
+    if ($artConfig.debug) { Invoke-AtomicRunner  *>> $all_log_file } else { Invoke-AtomicRunner }
 }
 
 function LogRunnerMsg ($message) {

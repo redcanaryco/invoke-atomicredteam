@@ -7,16 +7,16 @@
             $execPrefix = "-c"
             $execExe = $executor
             if ($executor -eq "command_prompt") {
-                    $execPrefix = "/c";
-                    $execExe = "cmd.exe";
-                    $execCommand = $finalCommand -replace "`n", " & "
-                    $arguments = $execPrefix,"$execCommand"
-                }
+                $execPrefix = "/c";
+                $execExe = "cmd.exe";
+                $execCommand = $finalCommand -replace "`n", " & "
+                $arguments = $execPrefix, "$execCommand"
+            }
             else {
-                    $finalCommand = $finalCommand -replace "[\\](?!;)", "`\$&"
-                    $finalCommand = $finalCommand -replace "[`"]", "`\$&"
-                    $execCommand = $finalCommand -replace "(?<!;)\n", "; "
-                    $arguments = "$execPrefix `"$execCommand`""
+                $finalCommand = $finalCommand -replace "[\\](?!;)", "`\$&"
+                $finalCommand = $finalCommand -replace "[`"]", "`\$&"
+                $execCommand = $finalCommand -replace "(?<!;)\n", "; "
+                $arguments = "$execPrefix `"$execCommand`""
 
             }
         }
@@ -24,29 +24,30 @@
             $execCommand = $finalCommand -replace "`"", "`\`"`""
             if ($session) {
                 if ($executionPlatform -eq "windows") {
-                        $execExe = "powershell.exe"
+                    $execExe = "powershell.exe"
                 }
                 else {
-                        $execExe = "pwsh"
+                    $execExe = "pwsh"
                 }
             }
             else {
                 $execExe = "powershell.exe"; if ($IsLinux -or $IsMacOS) { $execExe = "pwsh" }
             }
-            if ($execExe -eq "pwsh"){
+            if ($execExe -eq "pwsh") {
                 $arguments = "-Command $execCommand"
-            }else{
+            }
+            else {
                 $arguments = "& {$execCommand}"
             }
         }
         else {
             Write-Warning -Message "Unable to generate or execute the command line properly. Unknown executor"
             return [PSCustomObject]@{
-                    StandardOutput = ""
-                    ErrorOutput = ""
-                    ExitCode = -1
-                    IsTimeOut = $false
-                }
+                StandardOutput = ""
+                ErrorOutput    = ""
+                ExitCode       = -1
+                IsTimeOut      = $false
+            }
         }
 
         # Write-Host -ForegroundColor Magenta "$execExe $arguments"
@@ -56,7 +57,7 @@
             $fp2 = Join-Path $scriptParentPath "Invoke-KillProcessTree.ps1"
             invoke-command -Session $session -FilePath $fp
             invoke-command -Session $session -FilePath $fp2
-            $res = invoke-command -Session $session -ScriptBlock { Invoke-Process -filename $Using:execExe -Arguments $Using:arguments -TimeoutSeconds $Using:TimeoutSeconds -stdoutFile "art-out.txt" -stderrFile "art-err.txt"  }
+            $res = invoke-command -Session $session -ScriptBlock { Invoke-Process -filename $Using:execExe -Arguments $Using:arguments -TimeoutSeconds $Using:TimeoutSeconds -stdoutFile "art-out.txt" -stderrFile "art-err.txt" }
         }
         else {
             if ($interactive) {

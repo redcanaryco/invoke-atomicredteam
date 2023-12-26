@@ -12,26 +12,28 @@
 #  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 $script:attireLog = [PSCustomObject]@{
-    'attire-version'     = '1.1'
+    'attire-version' = '1.1'
     'execution-data' = ''
-    'procedures'    = @()
+    'procedures'     = @()
 }
 
 function Start-ExecutionLog($startTime, $logPath, $targetHostname, $targetUser, $commandLine, $isWindows) {
 
     $ipAddress = Get-PreferredIPAddress $isWindows
 
-    if($targetUser -isnot [string]) {
-        if([bool]($targetUser.PSobject.Properties.name -match "^value$")) {
+    if ($targetUser -isnot [string]) {
+        if ([bool]($targetUser.PSobject.Properties.name -match "^value$")) {
             $targetUser = $targetUser.value
-        }else {
+        }
+        else {
             $targetUser = $targetUser.ToString()
         }
     }
-    if($targetHostname -isnot [string]) {
-        if([bool]($targetHostname.PSobject.Properties.name -match "^value$")) {
+    if ($targetHostname -isnot [string]) {
+        if ([bool]($targetHostname.PSobject.Properties.name -match "^value$")) {
             $targetHostname = $targetHostname.value
-        }else {
+        }
+        else {
             $targetHostname = $targetHostname.ToString()
         }
     }
@@ -39,7 +41,7 @@ function Start-ExecutionLog($startTime, $logPath, $targetHostname, $targetUser, 
     $target = [PSCustomObject]@{
         user = $targetUser
         host = $targetHostname
-        ip = $ipAddress
+        ip   = $ipAddress
         path = $Env:PATH
     }
 
@@ -48,17 +50,17 @@ function Start-ExecutionLog($startTime, $logPath, $targetHostname, $targetUser, 
     $executionId = [Convert]::ToBase64String($bytes)
 
     $executionCategory = [PSCustomObject]@{
-        'name' = "Atomic Red Team"
+        'name'         = "Atomic Red Team"
         'abbreviation' = "ART"
     }
 
     $executionData = [PSCustomObject]@{
-        'execution-source' = "Invoke-Atomicredteam"
-        'execution-id' = $executionId
+        'execution-source'   = "Invoke-Atomicredteam"
+        'execution-id'       = $executionId
         'execution-category' = $executionCategory
-        'execution-command' = $commandLine
-        target = $target
-        'time-generated' = ""
+        'execution-command'  = $commandLine
+        target               = $target
+        'time-generated'     = ""
     }
 
     $script:attireLog.'execution-data' = $executionData
@@ -71,47 +73,47 @@ function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testNa
 
     $procedureId = [PSCustomObject]@{
         type = "guid"
-        id = $testGuid
+        id   = $testGuid
     }
 
     $step = [PSCustomObject]@{
-        'order' = 1
+        'order'      = 1
         'time-start' = $startTime
-        'time-stop' = $stopTime
-        'executor' = $testExecutor
-        'command' = $command
-        'output' = @()
+        'time-stop'  = $stopTime
+        'executor'   = $testExecutor
+        'command'    = $command
+        'output'     = @()
     }
 
     $stdOutContents = $res.StandardOutput
-    if(($stdOutContents -isnot [string]) -and ($null -ne $stdOutContents)) {
+    if (($stdOutContents -isnot [string]) -and ($null -ne $stdOutContents)) {
         $stdOutContents = $stdOutContents.ToString()
     }
 
     $outputStdConsole = [PSCustomObject]@{
         content = $stdOutContents
-        level = "STDOUT"
-        type = "console"
+        level   = "STDOUT"
+        type    = "console"
     }
 
     $stdErrContents = $res.ErrorOutput
-    if(($stdErrContents -isnot [string]) -and ($null -ne $stdErrContents)) {
+    if (($stdErrContents -isnot [string]) -and ($null -ne $stdErrContents)) {
         $stdErrContents = $stdErrContents.ToString()
     }
 
     $outputErrConsole = [PSCustomObject]@{
         content = $stdErrContents
-        level = "STDERR"
-        type = "console"
+        level   = "STDERR"
+        type    = "console"
     }
 
     [bool] $foundOutput = $false
-    if($res.StandardOutput.length -gt 0) {
+    if ($res.StandardOutput.length -gt 0) {
         $foundOutput = $true
         $step.output += $outputStdConsole
     }
 
-    if($res.ErrorOutput.length -gt 0) {
+    if ($res.ErrorOutput.length -gt 0) {
         $foundOutput = $true
         $step.output += $outputErrConsole
     }
@@ -119,19 +121,19 @@ function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testNa
     if (!$foundOutput) {
         $emptyOutput = [PSCustomObject]@{
             content = ""
-            level = "STDOUT"
-            type = "console"
+            level   = "STDOUT"
+            type    = "console"
         }
         $step.output += $emptyOutput
     }
 
     $procedure = [PSCustomObject]@{
-        'mitre-technique-id' = $technique
-        'procedure-name' = $testName
-        'procedure-id' = $procedureId
+        'mitre-technique-id'    = $technique
+        'procedure-name'        = $testName
+        'procedure-id'          = $procedureId
         'procedure-description' = $testDescription
-        order = $testNum
-        steps = @()
+        order                   = $testNum
+        steps                   = @()
     }
 
     $procedure.steps += $step
@@ -147,16 +149,16 @@ function Stop-ExecutionLog($startTime, $logPath, $targetHostname, $targetUser, $
     [System.IO.File]::WriteAllLines((Resolve-NonexistantPath($logPath)), $content)
     #Out-File -FilePath $logPath -InputObject ($script:attireLog | ConvertTo-Json -Depth 12) -Append -Encoding ASCII
     $script:attireLog = [PSCustomObject]@{
-        'attire-version'     = '1.1'
+        'attire-version' = '1.1'
         'execution-data' = ''
-        procedures    = @()
+        procedures       = @()
     }
 }
 
 function Resolve-NonexistantPath($File) {
     $Path = Resolve-Path $File -ErrorAction SilentlyContinue -ErrorVariable error
 
-    if(-not($Path)) {
+    if (-not($Path)) {
         $Path = $error[0].TargetObject
     }
 
