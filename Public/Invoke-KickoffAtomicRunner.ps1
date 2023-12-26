@@ -1,4 +1,4 @@
-function Invoke-KickoffAtomicRunner {
+﻿function Invoke-KickoffAtomicRunner {
 
     #log rotation function
     function Rotate-Log {
@@ -6,16 +6,16 @@ function Invoke-KickoffAtomicRunner {
         $datetime = Get-Date -uformat "%Y-%m-%d-%H%M"
 
         $log = Get-Item $logPath
-        if ($log.Length / 1MB -ge $max_filesize) { 
+        if ($log.Length / 1MB -ge $max_filesize) {
             Write-Host "file named $($log.name) is bigger than $max_filesize MB"
             $newname = "$($log.Name)_${datetime}.arclog"
             Rename-Item $log.PSPath $newname
-            Write-Host "Done rotating file" 
+            Write-Host "Done rotating file"
         }
 
         $logdir_content = Get-ChildItem $artConfig.atomicLogsPath -filter "*.arclog"
         $cutoff_date = (get-date).AddDays($max_age)
-        $logdir_content | ForEach-Object { 
+        $logdir_content | ForEach-Object {
             if ($_.LastWriteTime -gt $cutoff_date) {
                 Remove-Item $_
                 Write-Host "Removed $($_.PSPath)"
@@ -25,8 +25,8 @@ function Invoke-KickoffAtomicRunner {
 
     #Create log files as needed
     $all_log_file = Join-Path $artConfig.atomicLogsPath "all-out-$($artConfig.basehostname).txt"
-    New-Item $all_log_file -ItemType file -ErrorAction Ignore 
-    New-Item $artConfig.logFile -ItemType File -ErrorAction Ignore 
+    New-Item $all_log_file -ItemType file -ErrorAction Ignore
+    New-Item $artConfig.logFile -ItemType File -ErrorAction Ignore
 
     #Rotate logs based on FileSize and Date max_filesize
     $max_filesize = 200 #in MB
@@ -37,7 +37,7 @@ function Invoke-KickoffAtomicRunner {
     # Optional additional delay before starting
     Start-Sleep $artConfig.kickOffDelay.TotalSeconds
 
-    if ($artConfig.debug) { Invoke-AtomicRunner  *>> $all_log_file } else { Invoke-AtomicRunner  }
+    if ($artConfig.debug) { Invoke-AtomicRunner  *>> $all_log_file } else { Invoke-AtomicRunner }
 }
 
 function LogRunnerMsg ($message) {

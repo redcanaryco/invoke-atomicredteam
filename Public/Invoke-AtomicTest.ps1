@@ -1,4 +1,4 @@
-function Invoke-AtomicTest {
+﻿function Invoke-AtomicTest {
     [CmdletBinding(DefaultParameterSetName = 'technique',
         SupportsShouldProcess = $true,
         PositionalBinding = $false,
@@ -93,7 +93,7 @@ function Invoke-AtomicTest {
             ParameterSetName = 'technique')]
         [HashTable]
         $InputArgs,
-    
+
         [Parameter(Mandatory = $false,
             ParameterSetName = 'technique')]
         [Int]
@@ -128,10 +128,10 @@ function Invoke-AtomicTest {
     BEGIN { } # Intentionally left blank and can be removed
     PROCESS {
         $PathToAtomicsFolder = (Resolve-Path $PathToAtomicsFolder).Path
-        
+
         Write-Verbose -Message 'Attempting to run Atomic Techniques'
         if (-not $supressPathToAtomicsFolder) { Write-Host -ForegroundColor Cyan "PathToAtomicsFolder = $PathToAtomicsFolder`n" }
-        
+
         $executionPlatform, $isElevated, $tmpDir, $executionHostname, $executionUser = Get-TargetInfo $Session
         $PathToPayloads = if ($Session) { "$tmpDir`AtomicRedTeam" }  else { $PathToAtomicsFolder }
 
@@ -158,7 +158,7 @@ function Invoke-AtomicTest {
                 else {
                     $LoggingModule = $artConfig.LoggingModule
                 }
-            } 
+            }
         }
 
         if ($isLoggingModuleSet) {
@@ -198,7 +198,7 @@ function Invoke-AtomicTest {
             if ($AtomicTechnique -is [array]) {
                 $AtomicTechnique = $AtomicTechnique -join ","
             }
-            
+
             # Splitting Atomic Technique short form into technique and test numbers.
             $AtomicTechniqueParams = ($AtomicTechnique -split '-')
             $AtomicTechnique = $AtomicTechniqueParams[0]
@@ -210,7 +210,7 @@ function Invoke-AtomicTest {
             if ($null -eq $TestNumbers -and $null -ne $ShortTestNumbers) {
                 $TestNumbers = $ShortTestNumbers -split ','
             }
-            
+
             # Here we're rebuilding an equivalent command line to put in the logs
             $commandLine = "Invoke-AtomicTest $AtomicTechnique"
 
@@ -367,7 +367,7 @@ function Invoke-AtomicTest {
                     Write-Verbose -Message 'Determining tests for target platform'
 
                     $testCount++
-                    
+
                     if (-not $anyOS) {
                         if ( -not $(Platform-IncludesCloud) -and -Not $test.supported_platforms.Contains($executionPlatform) ) {
                             Write-Verbose -Message "Unable to run non-$executionPlatform tests"
@@ -376,14 +376,14 @@ function Invoke-AtomicTest {
 
                         if ( $executionPlatform -eq "windows" -and ($test.executor.name -eq "sh" -or $test.executor.name -eq "bash")) {
                             Write-Verbose -Message "Unable to run sh or bash on $executionPlatform"
-                            continue    
+                            continue
                         }
                         if ( ("linux", "macos") -contains $executionPlatform -and $test.executor.name -eq "command_prompt") {
                             Write-Verbose -Message "Unable to run cmd.exe on $executionPlatform"
-                            continue    
+                            continue
                         }
                     }
-                    
+
 
                     if ($null -ne $TestNumbers) {
                         if (-Not ($TestNumbers -contains $testCount) ) { continue }
@@ -471,10 +471,10 @@ function Invoke-AtomicTest {
                     elseif ($Cleanup) {
                         Write-KeyValue "Executing cleanup for test: " $testId
                         $final_command = Merge-InputArgs $test.executor.cleanup_command $test $InputArgs $PathToPayloads
-                        if (Get-Command 'Invoke-ARTPreAtomicCleanupHook' -errorAction SilentlyContinue) { Invoke-ARTPreAtomicCleanupHook $test $InputArgs}
+                        if (Get-Command 'Invoke-ARTPreAtomicCleanupHook' -errorAction SilentlyContinue) { Invoke-ARTPreAtomicCleanupHook $test $InputArgs }
                         $res = Invoke-ExecuteCommand $final_command $test.executor.name $executionPlatform $TimeoutSeconds $session -Interactive:$Interactive
                         Write-KeyValue "Done executing cleanup for test: " $testId
-                        if (Get-Command 'Invoke-ARTPostAtomicCleanupHook' -errorAction SilentlyContinue) { Invoke-ARTPostAtomicCleanupHook $test $InputArgs}
+                        if (Get-Command 'Invoke-ARTPostAtomicCleanupHook' -errorAction SilentlyContinue) { Invoke-ARTPostAtomicCleanupHook $test $InputArgs }
                         if ($(Test-IncludesTerraform $AT $testCount)) {
                             Remove-TerraformFiles $AT $testCount
                         }
@@ -486,7 +486,7 @@ function Invoke-AtomicTest {
                         if (Get-Command 'Invoke-ARTPreAtomicHook' -errorAction SilentlyContinue) { Invoke-ARTPreAtomicHook $test $InputArgs }
                         $res = Invoke-ExecuteCommand $final_command $test.executor.name $executionPlatform $TimeoutSeconds $session -Interactive:$Interactive
                         Write-Host "Exit code: $($res.ExitCode)"
-                        if (Get-Command 'Invoke-ARTPostAtomicHook' -errorAction SilentlyContinue) { Invoke-ARTPostAtomicHook $test $InputArgs}
+                        if (Get-Command 'Invoke-ARTPostAtomicHook' -errorAction SilentlyContinue) { Invoke-ARTPostAtomicHook $test $InputArgs }
                         $stopTime = Get-Date
                         if ($isLoggingModuleSet) {
                             &"$LoggingModule\Write-ExecutionLog" $startTime $stopTime $AT $testCount $test.name $test.auto_generated_guid $test.executor.name $test.description $final_command $ExecutionLogPath $executionHostname $executionUser $res (-Not($IsLinux -or $IsMacOS))
@@ -510,7 +510,7 @@ function Invoke-AtomicTest {
                 }
                 $AllAtomicTests.GetEnumerator() | Foreach-Object { Invoke-AtomicTestSingle $_ }
             }
-        
+
             if ( ($Force -or $CheckPrereqs -or $ShowDetails -or $ShowDetailsBrief -or $GetPrereqs) -or $psCmdlet.ShouldContinue( 'Do you wish to execute all tests?',
                     "Highway to the danger zone, Executing All Atomic Tests!" ) ) {
                 Invoke-AllTests

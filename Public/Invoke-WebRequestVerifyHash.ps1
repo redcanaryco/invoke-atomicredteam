@@ -1,12 +1,12 @@
-function Invoke-WebRequestVerifyHash ($url, $outfile, $hash) {
+﻿function Invoke-WebRequestVerifyHash ($url, $outfile, $hash) {
     $success = $false
-    $null = @( 
+    $null = @(
         New-Item -ItemType Directory (Split-Path $outfile) -Force | Out-Null
         $ms = New-Object IO.MemoryStream
         [Net.ServicePointManager]::SecurityProtocol = ([Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls11 -bor [Net.SecurityProtocolType]::Tls12)
         (New-Object System.Net.WebClient).OpenRead($url).copyto($ms)
         $ms.seek(0, [System.IO.SeekOrigin]::Begin) | Out-Null
-        $actualHash = (Get-FileHash -InputStream $ms).Hash 
+        $actualHash = (Get-FileHash -InputStream $ms).Hash
         if ( $hash -eq $actualHash) {
             $ms.seek(0, [System.IO.SeekOrigin]::Begin) | Out-Null
             $fileStream = New-Object IO.FileStream $outfile, ([System.IO.FileMode]::Create)
@@ -15,7 +15,7 @@ function Invoke-WebRequestVerifyHash ($url, $outfile, $hash) {
             $success = $true
         }
         else {
-            Write-Host -ForegroundColor red "File hash mismatch, expected: $hash, actual: $actualHash" 
+            Write-Host -ForegroundColor red "File hash mismatch, expected: $hash, actual: $actualHash"
         }
     )
     $success

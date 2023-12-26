@@ -1,4 +1,4 @@
-# The Invoke-Process function is loosely based on code from https://github.com/guitarrapc/PowerShellUtil/blob/master/Invoke-Process/Invoke-Process.ps1
+﻿# The Invoke-Process function is loosely based on code from https://github.com/guitarrapc/PowerShellUtil/blob/master/Invoke-Process/Invoke-Process.ps1
 function Invoke-Process {
     [OutputType([PSCustomObject])]
     [CmdletBinding()]
@@ -9,14 +9,14 @@ function Invoke-Process {
 
         [Parameter(Mandatory = $false, Position = 1)]
         [string[]]$Arguments = "",
-        
+
         [Parameter(Mandatory = $false, Position = 3)]
         [Int]$TimeoutSeconds = 120,
 
-        [Parameter(Mandatory = $false, Position =4)]
+        [Parameter(Mandatory = $false, Position = 4)]
         [String]$stdoutFile = $null,
 
-        [Parameter(Mandatory = $false, Position =5)]
+        [Parameter(Mandatory = $false, Position = 5)]
         [String]$stderrFile = $null
     )
 
@@ -27,15 +27,14 @@ function Invoke-Process {
             if ($stdoutFile) {
                 # new Process
                 $process = NewProcess -FileName $FileName -Arguments $Arguments -WorkingDirectory $WorkingDirectory
-                
+
                 # Event Handler for Output
                 $stdSb = New-Object -TypeName System.Text.StringBuilder
                 $errorSb = New-Object -TypeName System.Text.StringBuilder
-                $scripBlock = 
+                $scripBlock =
                 {
                     $x = $Event.SourceEventArgs.Data
-                    if (-not [String]::IsNullOrEmpty($x))
-                    {
+                    if (-not [String]::IsNullOrEmpty($x)) {
                         $Event.MessageData.AppendLine($x)
                     }
                 }
@@ -49,12 +48,11 @@ function Invoke-Process {
                 # wait for complete
                 $Timeout = [System.TimeSpan]::FromSeconds(($TimeoutSeconds))
                 $isTimeout = $false
-                if (-not $Process.WaitForExit($Timeout.TotalMilliseconds))
-                {
+                if (-not $Process.WaitForExit($Timeout.TotalMilliseconds)) {
                     $isTimeout = $true
                     Invoke-KillProcessTree $process.id
                     Write-Host -ForegroundColor Red "Process Timed out after $TimeoutSeconds seconds, use '-TimeoutSeconds' to specify a different timeout"
-                } 
+                }
                 $process.CancelOutputRead()
                 $process.CancelErrorRead()
 
@@ -63,12 +61,12 @@ function Invoke-Process {
                 Unregister-Event -SourceIdentifier $errorEvent.Name
 
                 $stdOutString = $stdSb.ToString().Trim()
-                if($stdOutString.Length -gt 0) {
+                if ($stdOutString.Length -gt 0) {
                     Write-Host $stdOutString
                 }
 
                 $stdErrString = $errorSb.ToString().Trim()
-                if($stdErrString.Length -gt 0) {
+                if ($stdErrString.Length -gt 0) {
                     Write-Host $stdErrString
                 }
 
@@ -91,11 +89,12 @@ function Invoke-Process {
                         # Add a warning in stdoutFile in case of timeout
                         # problem: $stdoutFile was locked in writing by the process we just killed, sometimes it's too fast and the lock isn't released immediately
                         # solution: retry at most 10 times with 100ms between each attempt
-                        For($i=0;$i -lt 10;$i++) { 
+                        For ($i = 0; $i -lt 10; $i++) {
                             try {
                                 "<timeout>" | Out-File (Join-Path $WorkingDirectory $stdoutFile) -Append -Encoding ASCII
                                 break # if we're here it means the file wasn't locked and Out-File worked, so we can leave the retry loop
-                            } catch {} # file is locked
+                            }
+                            catch {} # file is locked
                             Start-Sleep -m 100
                         }
                     }
@@ -104,63 +103,60 @@ function Invoke-Process {
                 if ($IsLinux -or $IsMacOS) {
                     Start-Sleep -Seconds 5 # On nix, the last 4 lines of stdout get overwritten upon return so pause for a bit to ensure user can view results
                 }
-                
+
                 # Get Process result
                 return [PSCustomObject]@{
                     StandardOutput = ""
-                    ErrorOutput = ""
-                    ExitCode = $process.ExitCode
-                    ProcessId = $Process.Id
-                    IsTimeOut = $IsTimeout
+                    ErrorOutput    = ""
+                    ExitCode       = $process.ExitCode
+                    ProcessId      = $Process.Id
+                    IsTimeOut      = $IsTimeout
                 }
 
             }
-            
+
         }
         finally {
             if ($null -ne $process) { $process.Dispose() }
-            if ($null -ne $stdEvent){ $stdEvent.StopJob(); $stdEvent.Dispose() }
-            if ($null -ne $errorEvent){ $errorEvent.StopJob(); $errorEvent.Dispose() }
+            if ($null -ne $stdEvent) { $stdEvent.StopJob(); $stdEvent.Dispose() }
+            if ($null -ne $errorEvent) { $errorEvent.StopJob(); $errorEvent.Dispose() }
         }
     }
 
-    begin
-    {
-        function NewProcess
-        {
+    begin {
+        function NewProcess {
             [OutputType([System.Diagnostics.Process])]
             [CmdletBinding()]
             param
             (
                 [parameter(Mandatory = $true)]
                 [string]$FileName,
-                
+
                 [parameter(Mandatory = $false)]
                 [string[]]$Arguments,
-                
+
                 [parameter(Mandatory = $false)]
                 [string]$WorkingDirectory
             )
 
             # ProcessStartInfo
-            $psi = New-object System.Diagnostics.ProcessStartInfo 
+            $psi = New-object System.Diagnostics.ProcessStartInfo
             $psi.CreateNoWindow = $true
             $psi.UseShellExecute = $false
             $psi.RedirectStandardOutput = $true
             $psi.RedirectStandardError = $true
             $psi.FileName = $FileName
-            $psi.Arguments+= $Arguments
+            $psi.Arguments += $Arguments
             $psi.WorkingDirectory = $WorkingDirectory
 
             # Set Process
-            $process = New-Object System.Diagnostics.Process 
+            $process = New-Object System.Diagnostics.Process
             $process.StartInfo = $psi
             $process.EnableRaisingEvents = $true
             return $process
         }
 
-        function GetCommandResult
-        {
+        function GetCommandResult {
             [OutputType([PSCustomObject])]
             [CmdletBinding()]
             param
@@ -177,13 +173,13 @@ function Invoke-Process {
                 [parameter(Mandatory = $true)]
                 [Bool]$IsTimeout
             )
-            
+
             return [PSCustomObject]@{
                 StandardOutput = $StandardStringBuilder.ToString().Trim()
-                ErrorOutput = $ErrorStringBuilder.ToString().Trim()
-                ExitCode = $Process.ExitCode
-                ProcessId = $Process.Id
-                IsTimeOut = $IsTimeout
+                ErrorOutput    = $ErrorStringBuilder.ToString().Trim()
+                ExitCode       = $Process.ExitCode
+                ProcessId      = $Process.Id
+                IsTimeOut      = $IsTimeout
             }
         }
     }

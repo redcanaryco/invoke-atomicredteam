@@ -1,4 +1,4 @@
-. "$PSScriptRoot\Invoke-RunnerScheduleMethods.ps1"
+﻿. "$PSScriptRoot\Invoke-RunnerScheduleMethods.ps1"
 
 function Invoke-AtomicRunner {
     [CmdletBinding(
@@ -41,7 +41,7 @@ function Invoke-AtomicRunner {
         $OtherArgs
     )
     Begin { }
-    Process {       
+    Process {
 
         function Get-GuidFromHostName( $basehostname ) {
             $guid = [System.Net.Dns]::GetHostName() -replace $($basehostname + "-"), ""
@@ -50,7 +50,7 @@ function Invoke-AtomicRunner {
                 LogRunnerMsg "Hostname has not been updated or could not parse out the Guid: " + $guid
                 return
             }
-            
+
             # Confirm hostname contains a guid
             [regex]$guidRegex = '(?im)^[{(]?[0-9A-F]{8}[-]?(?:[0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$'
 
@@ -139,9 +139,9 @@ function Invoke-AtomicRunner {
                 }
                 exit
             }
-            
+
         }
-        
+
         function Get-TimingVariable ($sched) {
             $atcount = $sched.Count
             if ($null -eq $atcount) { $atcount = 1 }
@@ -151,7 +151,7 @@ function Invoke-AtomicRunner {
             if ($sleeptime -lt 120) { $sleeptime = 120 } # minimum 2 minute sleep time
             return $sleeptime
         }
-        
+
         # Convert OtherArgs to hashtable so we can pass it through to the call to Invoke-AtomicTest
         $htvars = @{}
         if ($OtherArgs) {
@@ -203,7 +203,7 @@ function Invoke-AtomicRunner {
             Write-Host -ForegroundColor Yellow "Exiting script because $($artConfig.stopFile) does exist."; Start-Sleep 10;
             exit
         }
-        
+
         # Find current test to run
         $guid = Get-GuidFromHostName $artConfig.basehostname
         if ([string]::IsNullOrWhiteSpace($guid)) {
@@ -230,21 +230,21 @@ function Invoke-AtomicRunner {
         }
 
         # Load next scheduled test before renaming computer
-        $nextIndex += $currentIndex + 1     
+        $nextIndex += $currentIndex + 1
         if ($nextIndex -ge ($schedule.count)) {
             $tr = $schedule[0]
         }
         else {
             $tr = $schedule[$nextIndex]
         }
-        
-        if ($null -eq $tr) { 
-            LogRunnerMsg "Could not determine the next row to execute from the schedule, Starting from 1st row"; 
-            $tr = $schedule[0] 
+
+        if ($null -eq $tr) {
+            LogRunnerMsg "Could not determine the next row to execute from the schedule, Starting from 1st row";
+            $tr = $schedule[0]
         }
 
         #Rename Computer and Restart
         Rename-ThisComputer $tr $artConfig.basehostname
-    
+
     }
 }
