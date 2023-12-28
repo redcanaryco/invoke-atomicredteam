@@ -1,4 +1,4 @@
-function Start-ExecutionLog($startTime, $logPath, $targetHostname, $targetUser, $commandLine, $isWindows) {
+﻿function Start-ExecutionLog($startTime, $logPath, $targetHostname, $targetUser, $commandLine, $isWindows) {
     if ($isWindows -and -not [System.Diagnostics.EventLog]::Exists('Atomic Red Team')) {
         New-EventLog -Source "Applications and Services Logs" -LogName "Atomic Red Team"
     }

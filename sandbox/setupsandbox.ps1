@@ -1,4 +1,4 @@
-Set-ExecutionPolicy Bypass -Scope Process -Force;
+﻿Set-ExecutionPolicy Bypass -Scope Process -Force;
 Write-Host "Installing NuGet"
 Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
 Write-Host "Installing Atomic Red Team"

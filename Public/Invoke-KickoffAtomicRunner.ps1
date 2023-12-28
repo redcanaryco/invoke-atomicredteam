@@ -1,4 +1,4 @@
-function Invoke-KickoffAtomicRunner {
+﻿function Invoke-KickoffAtomicRunner {
 
     #log rotation function
     function Rotate-Log {

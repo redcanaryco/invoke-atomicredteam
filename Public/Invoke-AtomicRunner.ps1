@@ -1,4 +1,4 @@
-. "$PSScriptRoot\Invoke-RunnerScheduleMethods.ps1"
+﻿. "$PSScriptRoot\Invoke-RunnerScheduleMethods.ps1"
 
 function Invoke-AtomicRunner {
     [CmdletBinding(

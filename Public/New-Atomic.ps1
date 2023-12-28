@@ -1,4 +1,4 @@
-# The class definitions that these functions rely upon are located in Private\AtomicClassSchema.ps1
+﻿# The class definitions that these functions rely upon are located in Private\AtomicClassSchema.ps1
 
 function New-AtomicTechnique {
     <#

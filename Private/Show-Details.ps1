@@ -1,4 +1,4 @@
-function Invoke-CleanupDescription() {
+﻿function Invoke-CleanupDescription() {
     $ret1 = $test.description.ToString().trim() -replace '(?<!\n)\n(?!\n)', ' ' #replace single linefeeds with a space
     $ret1 -replace '\n\n', "`n" #replace double linefeeds with a single linefeed
 }

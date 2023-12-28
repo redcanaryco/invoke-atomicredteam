@@ -1,4 +1,4 @@
-function Invoke-WebRequestVerifyHash ($url, $outfile, $hash) {
+﻿function Invoke-WebRequestVerifyHash ($url, $outfile, $hash) {
     $success = $false
     $null = @(
         New-Item -ItemType Directory (Split-Path $outfile) -Force | Out-Null
