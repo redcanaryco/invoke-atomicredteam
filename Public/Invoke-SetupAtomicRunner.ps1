@@ -1,4 +1,4 @@
-﻿function Invoke-SetupAtomicRunner {
+function Invoke-SetupAtomicRunner {
 
     # ensure running with admin privs
     if ($artConfig.OS -eq "windows") {

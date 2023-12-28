@@ -1,4 +1,4 @@
-﻿function Get-PreferredIPAddress($isWindows) {
+function Get-PreferredIPAddress($isWindows) {
     if ($isWindows) {
         return (Get-NetIPAddress | Where-Object { $_.PrefixOrigin -ne "WellKnown" }).IPAddress
     }

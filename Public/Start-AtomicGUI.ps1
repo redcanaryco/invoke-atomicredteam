@@ -1,4 +1,4 @@
-﻿function Start-AtomicGUI {
+function Start-AtomicGUI {
     param (
         [Int] $port = 8487
     )

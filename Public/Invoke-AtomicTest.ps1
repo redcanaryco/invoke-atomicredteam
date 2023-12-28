@@ -1,4 +1,4 @@
-﻿function Invoke-AtomicTest {
+function Invoke-AtomicTest {
     [CmdletBinding(DefaultParameterSetName = 'technique',
         SupportsShouldProcess = $true,
         PositionalBinding = $false,

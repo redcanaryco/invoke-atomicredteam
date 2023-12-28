@@ -1,4 +1,4 @@
-﻿function Invoke-FetchFromZip {
+function Invoke-FetchFromZip {
     Param(
         [Parameter(Mandatory = $true, Position = 0)]
         [String]

@@ -1,4 +1,4 @@
-﻿# The Invoke-Process function is loosely based on code from https://github.com/guitarrapc/PowerShellUtil/blob/master/Invoke-Process/Invoke-Process.ps1
+# The Invoke-Process function is loosely based on code from https://github.com/guitarrapc/PowerShellUtil/blob/master/Invoke-Process/Invoke-Process.ps1
 function Invoke-Process {
     [OutputType([PSCustomObject])]
     [CmdletBinding()]
