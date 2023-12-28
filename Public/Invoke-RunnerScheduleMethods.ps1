@@ -1,4 +1,4 @@
-﻿# Loop through all atomic yaml files to load into list of objects
+# Loop through all atomic yaml files to load into list of objects
 function Loop($fileList, $atomicType) {
     $AllAtomicTests = New-Object System.Collections.ArrayList
 

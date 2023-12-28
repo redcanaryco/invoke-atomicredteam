@@ -1,4 +1,4 @@
-﻿filter Get-AtomicTechnique {
+filter Get-AtomicTechnique {
     <#
     .SYNOPSIS
 
