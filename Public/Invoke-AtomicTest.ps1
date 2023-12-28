@@ -1,4 +1,4 @@
-﻿function Invoke-AtomicTest {
+function Invoke-AtomicTest {
     [CmdletBinding(DefaultParameterSetName = 'technique',
         SupportsShouldProcess = $true,
         PositionalBinding = $false,
@@ -135,6 +135,24 @@
         $executionPlatform, $isElevated, $tmpDir, $executionHostname, $executionUser = Get-TargetInfo $Session
         $PathToPayloads = if ($Session) { "$tmpDir`AtomicRedTeam" }  else { $PathToAtomicsFolder }
 
+        # Since there might a comma(T1559-1,2,3) Powershell takes it as array.
+        # So converting it back to string.
+        if ($AtomicTechnique -is [array]) {
+            $AtomicTechnique = $AtomicTechnique -join ","
+        }
+
+        # Splitting Atomic Technique short form into technique and test numbers.
+        $AtomicTechniqueParams = ($AtomicTechnique -split '-')
+        $AtomicTechnique = $AtomicTechniqueParams[0]
+
+        if ($AtomicTechniqueParams.Length -gt 1) {
+            $ShortTestNumbers = $AtomicTechniqueParams[-1]
+        }
+
+        if ($null -eq $TestNumbers -and $null -ne $ShortTestNumbers) {
+            $TestNumbers = $ShortTestNumbers -split ','
+        }
+
         $isLoggingModuleSet = $false
         if (-not $NoExecutionLog) {
             $isLoggingModuleSet = $true
@@ -191,24 +209,6 @@
             else {
                 Write-Host "Start-ExecutionLog not found or loaded from the wrong module"
                 return
-            }
-
-            # Since there might a comma(T1559-1,2,3) Powershell takes it as array.
-            # So converting it back to string.
-            if ($AtomicTechnique -is [array]) {
-                $AtomicTechnique = $AtomicTechnique -join ","
-            }
-
-            # Splitting Atomic Technique short form into technique and test numbers.
-            $AtomicTechniqueParams = ($AtomicTechnique -split '-')
-            $AtomicTechnique = $AtomicTechniqueParams[0]
-
-            if ($AtomicTechniqueParams.Length -gt 1) {
-                $ShortTestNumbers = $AtomicTechniqueParams[-1]
-            }
-
-            if ($null -eq $TestNumbers -and $null -ne $ShortTestNumbers) {
-                $TestNumbers = $ShortTestNumbers -split ','
             }
 
             # Here we're rebuilding an equivalent command line to put in the logs
