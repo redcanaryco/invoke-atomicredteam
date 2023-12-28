@@ -18,3 +18,5 @@ jobs:
           if($error.contains("Installation of AtomicRedTeam Failed")){
             exit 1
           }
+          IEX (IWR 'https://raw.githubusercontent.com/${{ github.event.pull_request.head.repo.full_name }}/${{ github.event.pull_request.head.ref }}/install-atomicsfolder.ps1' -UseBasicParsing);
+          Install-AtomicsFolder -Force

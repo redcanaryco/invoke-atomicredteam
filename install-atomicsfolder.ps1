@@ -1,4 +1,4 @@
-﻿function Install-AtomicsFolder {
+function Install-AtomicsFolder {
 
     <#
     .SYNOPSIS
