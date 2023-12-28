@@ -85,7 +85,7 @@ function Install-AtomicsFolder {
                 # read github zip archive into memory
                 $ms = New-Object IO.MemoryStream
                 [Net.ServicePointManager]::SecurityProtocol = ([Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls11 -bor [Net.SecurityProtocolType]::Tls12)
-                
+
                 Add-Type -AssemblyName System.Net.Http
                 $httpClient = New-Object System.Net.Http.HttpClient
                 $httpClient.Timeout = New-Object System.TimeSpan(0, 3, 0)
