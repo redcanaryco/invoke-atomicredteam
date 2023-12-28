@@ -1,4 +1,4 @@
-﻿
+
 $artConfig = [PSCustomObject]@{
 
   # [optional] These two configs are calculated programatically, you probably don't need to change them

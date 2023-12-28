@@ -1,4 +1,4 @@
-﻿function Get-TargetInfo($Session) {
+function Get-TargetInfo($Session) {
     $tmpDir = "$env:TEMP\"
     $isElevated = $false
     $targetHostname = hostname
