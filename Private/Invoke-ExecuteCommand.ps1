@@ -5,12 +5,14 @@ function Invoke-ExecuteCommand ($finalCommand, $executor, $elevationreq, $can_su
         Write-Verbose -Message 'Invoking Atomic Tests using defined executor'
         if ($executor -eq "command_prompt" -or $executor -eq "sh" -or $executor -eq "bash") {
             if (($executor -eq "sh" -or $executor -eq "bash") -and ($elevationreq -eq $true) -and ($can_sudo -eq $true)) {
-                $execPrefix = "-c sudo"
+                $execExe = "$(which sudo)"
+                $execPrefix = "$(which $executor) -c"
             }
             else {
+                $execExe = $executor
                 $execPrefix = "-c"
             }
-            $execExe = $executor
+            
             if ($executor -eq "command_prompt") {
                 $execPrefix = "/c";
                 $execExe = "cmd.exe";
@@ -18,6 +20,7 @@ function Invoke-ExecuteCommand ($finalCommand, $executor, $elevationreq, $can_su
                 $arguments = $execPrefix, "$execCommand"
             }
             else {
+                $execExe = $executor
                 $finalCommand = $finalCommand -replace "[\\](?!;)", "`\$&"
                 $finalCommand = $finalCommand -replace "[`"]", "`\$&"
                 $execCommand = $finalCommand -replace "(?<!;)\n", "; "

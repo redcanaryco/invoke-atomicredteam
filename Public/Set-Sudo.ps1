@@ -5,8 +5,10 @@ function Set-Sudo ($set_sudo) {
 
     try {
         if ((sudo -A whoami) -and ((sudo grep -r $env:USER /etc/sudoers | grep NOPASSWD:ALL) -or (sudo grep -r $env:USER /etc/sudoers.d | grep NOPASSWD:ALL))){
-            
-            Write-Host "Passwordless logon already configured.`n"
+           
+            if($set_sudo){
+                Write-Host "Passwordless logon already configured.`n"
+            }
             $nopassword_enabled = $true
 
         }
