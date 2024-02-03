@@ -114,7 +114,8 @@ function Invoke-SetupAtomicRunner {
     # Add Import-Module statement to the PowerShell profile
     $root = Split-Path $PSScriptRoot -Parent
     if($IsLinux -or $IsMacOS){
-        touch $root
+        mkdir (Split-Path $PROFILE)
+        touch $PROFILE
     }
     $pathToPSD1 = Join-Path $root "Invoke-AtomicRedTeam.psd1"
     $importStatement = "Import-Module ""$pathToPSD1"" -Force"
