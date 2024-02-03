@@ -429,7 +429,9 @@ function Invoke-AtomicTest {
 
                     Write-Debug -Message 'Gathering final Atomic test command'
 
-
+                    # Check if linux Host can use sudo without a password.
+                    $can_sudo = Set-Sudo($false)
+                    
                     if ($CheckPrereqs) {
                         Write-KeyValue "CheckPrereq's for: " $testId
                         $failureReasons = Invoke-CheckPrereqs $test $isElevated $executionPlatform $InputArgs $PathToPayloads $TimeoutSeconds $session
@@ -441,7 +443,12 @@ function Invoke-AtomicTest {
                         }
                         Write-KeyValue "GetPrereq's for: " $testId
                         if ( $test.executor.elevation_required -and -not $isElevated) {
+                            if ($can_sudo -eq $true) {
+                                Write-Host -ForegroundColor Yellow "Elevation required but not provided, but host supports passwordless sudo"
+                            }
+                            else{
                             Write-Host -ForegroundColor Red "Elevation required but not provided"
+                            }
                         }
                         if ($nul -eq $test.dependencies) { Write-KeyValue "No Preqs Defined"; continue }
                         foreach ($dep in $test.dependencies) {
@@ -484,7 +491,7 @@ function Invoke-AtomicTest {
                         $startTime = Get-Date
                         $final_command = Merge-InputArgs $test.executor.command $test $InputArgs $PathToPayloads
                         if (Get-Command 'Invoke-ARTPreAtomicHook' -errorAction SilentlyContinue) { Invoke-ARTPreAtomicHook $test $InputArgs }
-                        $res = Invoke-ExecuteCommand $final_command $test.executor.name $executionPlatform $TimeoutSeconds $session -Interactive:$Interactive
+                        $res = Invoke-ExecuteCommand $final_command $test.executor.name $test.executor.elevation_required $can_sudo $executionPlatform $TimeoutSeconds $session -Interactive:$Interactive
                         Write-Host "Exit code: $($res.ExitCode)"
                         if (Get-Command 'Invoke-ARTPostAtomicHook' -errorAction SilentlyContinue) { Invoke-ARTPostAtomicHook $test $InputArgs }
                         $stopTime = Get-Date
