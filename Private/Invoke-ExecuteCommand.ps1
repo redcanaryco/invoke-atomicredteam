@@ -20,7 +20,6 @@ function Invoke-ExecuteCommand ($finalCommand, $executor, $elevationreq, $can_su
                 $arguments = $execPrefix, "$execCommand"
             }
             else {
-                $execExe = $executor
                 $finalCommand = $finalCommand -replace "[\\](?!;)", "`\$&"
                 $finalCommand = $finalCommand -replace "[`"]", "`\$&"
                 $execCommand = $finalCommand -replace "(?<!;)\n", "; "
