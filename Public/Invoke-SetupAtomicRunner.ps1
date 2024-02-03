@@ -12,7 +12,13 @@ function Invoke-SetupAtomicRunner {
     }
     else {
         # linux and macos check - doesn't auto-elevate
-        if ((id -u) -ne 0 ) {
+        # Check if current user has passwordless sudo privleges. If not, attempt to configure it for current user.
+        $can_sudo = Set-Sudo($true)
+        if ($can_sudo -eq $true -and (sudo id -u) -ne 0 ) {
+            Throw "You must run the Invoke-SetupAtomicRunner script as root"
+            exit
+        }
+        elseif ($can_sudo -eq $false -and (id -u) -ne 0 ) {
             Throw "You must run the Invoke-SetupAtomicRunner script as root"
             exit
         }
@@ -87,8 +93,6 @@ function Invoke-SetupAtomicRunner {
     }
     else {
 
-        # Check if current user has passwordless sudo privleges. If not, attempt to configure it for current user.
-        $can_sudo = Set-Sudo($true)
         # sets cronjob string using basepath from config.ps1
         $pwshPath = which pwsh
         $job = "@reboot $env:USER sleep 60;$pwshPath -Command Invoke-KickoffAtomicRunner"
