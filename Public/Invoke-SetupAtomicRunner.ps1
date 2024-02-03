@@ -99,7 +99,7 @@ function Invoke-SetupAtomicRunner {
         $exists = cat /etc/crontab | Select-String -Quiet "KickoffAtomicRunner"
         #checks if the Kickoff-AtomicRunner job exists. If not appends it to the system crontab.
         if ($null -eq $exists -and $can_sudo -eq $true) {
-            $(sudo cat "$job" >> /etc/crontab)
+            $(bash -c 'sudo echo "$job" >> /etc/crontab')
             write-host "setting cronjob"
         }
         elseif ($null -eq $exists -and $can_sudo -eq $false) {
@@ -113,6 +113,9 @@ function Invoke-SetupAtomicRunner {
 
     # Add Import-Module statement to the PowerShell profile
     $root = Split-Path $PSScriptRoot -Parent
+    if($IsLinux -or $IsMacOS){
+        touch $root
+    }
     $pathToPSD1 = Join-Path $root "Invoke-AtomicRedTeam.psd1"
     $importStatement = "Import-Module ""$pathToPSD1"" -Force"
     New-Item $PROFILE -ErrorAction Ignore
