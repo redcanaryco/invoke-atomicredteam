@@ -99,7 +99,7 @@ function Invoke-SetupAtomicRunner {
         $exists = cat /etc/crontab | Select-String -Quiet "KickoffAtomicRunner"
         #checks if the Kickoff-AtomicRunner job exists. If not appends it to the system crontab.
         if ($null -eq $exists -and $can_sudo -eq $true) {
-            $(bash -c 'sudo echo "$job" >> /etc/crontab')
+            $(echo "$job" | sudo tee -a /etc/crontab)
             write-host "setting cronjob"
         }
         elseif ($null -eq $exists -and $can_sudo -eq $false) {
