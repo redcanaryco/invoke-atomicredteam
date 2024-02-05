@@ -26,9 +26,9 @@ function Invoke-KickoffAtomicRunner {
     #Create log files as needed
     $all_log_file = Join-Path $artConfig.atomicLogsPath "all-out-$($artConfig.basehostname).txt"
     $all_log_file_cleanup = Join-Path $artConfig.atomicLogsPath "all-out-$($artConfig.basehostname)-cleanup.txt"
-    New-Item $all_log_file -ItemType file -ErrorAction Ignore 
-    New-Item $all_log_file_cleanup -ItemType file -ErrorAction Ignore 
-    New-Item $artConfig.logFile -ItemType File -ErrorAction Ignore 
+    New-Item $all_log_file -ItemType file -ErrorAction Ignore
+    New-Item $all_log_file_cleanup -ItemType file -ErrorAction Ignore
+    New-Item $artConfig.logFile -ItemType File -ErrorAction Ignore
 
     #Rotate logs based on FileSize and Date max_filesize
     $max_filesize = 200 #in MB
