@@ -1,15 +1,18 @@
 function Invoke-SetupAtomicRunner {
 
     # ensure running with admin privs
-    if ($artConfig.OS -eq "windows") { # auto-elevate on Windows
+    if ($artConfig.OS -eq "windows") {
+        # auto-elevate on Windows
         $currentUser = New-Object Security.Principal.WindowsPrincipal $([Security.Principal.WindowsIdentity]::GetCurrent())
         $testadmin = $currentUser.IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)
         if ($testadmin -eq $false) {
             Start-Process powershell.exe -Verb RunAs -ArgumentList ('-noprofile -noexit -file "{0}" -elevated' -f ($myinvocation.MyCommand.Definition))
             exit $LASTEXITCODE
         }
-    } else { # linux and macos check - doesn't auto-elevate
-        if((id -u) -ne 0 ){
+    }
+    else {
+        # linux and macos check - doesn't auto-elevate
+        if ((id -u) -ne 0 ) {
             Throw "You must run the Invoke-SetupAtomicRunner script as root"
             exit
         }
@@ -49,7 +52,7 @@ function Invoke-SetupAtomicRunner {
             # create credential file for the user since we aren't using a group managed service account
             $cred = Get-Credential -UserName $artConfig.user -message "Enter password for $($artConfig.user) in order to create the runner scheduled task"
             $cred.Password | ConvertFrom-SecureString | Out-File $artConfig.credFile
-    
+
         }
 
         # setup scheduled task that will start the runner after each restart
@@ -57,7 +60,7 @@ function Invoke-SetupAtomicRunner {
         $taskName = "KickOff-AtomicRunner"
         Unregister-ScheduledTask $taskName -confirm:$false -ErrorAction Ignore
         # Windows scheduled task includes a 20 minutes sleep then restart if the call to Invoke-KickoffAtomicRunner fails
-        # this occurs occassional when Windows has issues logging into the runner user's account and logs in as a TEMP user
+        # this occurs occassionally when Windows has issues logging into the runner user's account and logs in as a TEMP user
         $taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-exec bypass -Command Invoke-KickoffAtomicRunner; Start-Sleep 1200; Restart-Computer -Force"
         $taskPrincipal = New-ScheduledTaskPrincipal -UserId $artConfig.user
         $delays = @(1, 2, 4, 8, 16, 32, 64) # using multiple triggers as a retry mechanism because the built-in retry mechanism doesn't work when the computer renaming causes AD replication delays
@@ -89,7 +92,7 @@ function Invoke-SetupAtomicRunner {
         $exists = cat /etc/crontab | Select-String -Quiet "KickoffAtomicRunner"
         #checks if the Kickoff-AtomicRunner job exists. If not appends it to the system crontab.
         if ($null -eq $exists) {
-            $(echo "$job" >> /etc/crontab)
+            $(Write-Output "$job" >> /etc/crontab)
             write-host "setting cronjob"
         }
         else {
@@ -110,7 +113,7 @@ function Invoke-SetupAtomicRunner {
     else {
         Add-Content $profile $importStatement
     }
-    
+
     # Install the Posh-SYLOG module if we are configured to use it and it is not already installed
     if ((-not (Get-Module -ListAvailable "Posh-SYSLOG")) -and [bool]$artConfig.syslogServer -and [bool]$artConfig.syslogPort) {
         write-verbose "Posh-SYSLOG"

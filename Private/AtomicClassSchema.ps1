@@ -15,7 +15,7 @@ class AtomicExecutorBase {
     [Bool] $elevation_required
 
     # Implemented to facilitate improved PS object display
-    [String] ToString(){
+    [String] ToString() {
         return $this.Name
     }
 }
@@ -43,7 +43,7 @@ class AtomicTest {
     [AtomicExecutorBase] $executor
 
     # Implemented to facilitate improved PS object display
-    [String] ToString(){
+    [String] ToString() {
         return $this.name
     }
 }

@@ -8,7 +8,8 @@ function Get-InputArgs([hashtable]$ip, $customInputArgs, $PathToAtomicsFolder) {
         if ($defaultArgs.Keys -contains $key) {
             # replace default with user supplied
             $defaultArgs.set_Item($key, $customInputArgs[$key])
-        } else {
+        }
+        else {
             Write-Verbose "The specified input argument *$key* was ignored as not applicable"
         }
     }

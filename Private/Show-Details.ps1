@@ -1,15 +1,15 @@
-function Invoke-CleanupDescription(){
+function Invoke-CleanupDescription() {
     $ret1 = $test.description.ToString().trim() -replace '(?<!\n)\n(?!\n)', ' ' #replace single linefeeds with a space
     $ret1 -replace '\n\n', "`n" #replace double linefeeds with a single linefeed
 }
 function Show-Details ($test, $testCount, $technique, $customInputArgs, $PathToAtomicsFolder) {
     # Header info
-    $tName = $technique.display_name.ToString() + " " + $technique.attack_technique 
+    $tName = $technique.display_name.ToString() + " " + $technique.attack_technique
     Write-Host -ForegroundColor Magenta "[********BEGIN TEST*******]"
     Write-KeyValue "Technique: "  $tName
     Write-KeyValue "Atomic Test Name: " $test.name.ToString()
     Write-KeyValue "Atomic Test Number: " $testCount
-    if($test.auto_generated_guid) { Write-KeyValue "Atomic Test GUID: " $test.auto_generated_guid}
+    if ($test.auto_generated_guid) { Write-KeyValue "Atomic Test GUID: " $test.auto_generated_guid }
     Write-KeyValue "Description: " $(Invoke-CleanupDescription $test)
 
     # Attack Commands

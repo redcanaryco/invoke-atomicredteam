@@ -263,7 +263,7 @@ The output of New-AtomicTest can be piped to ConvertTo-Yaml. The resulting outpu
         }
     }
 
-    if ($DependencyExecutorType) { 
+    if ($DependencyExecutorType) {
         switch ($DependencyExecutorType) {
             'CommandPrompt' { $AtomicTestInstance.dependency_executor_name = 'command_prompt' }
             default { $AtomicTestInstance.dependency_executor_name = $DependencyExecutorType.ToLower() }

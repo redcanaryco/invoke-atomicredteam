@@ -14,7 +14,10 @@ jobs:
         shell: pwsh
         run: |
           IEX (IWR 'https://raw.githubusercontent.com/${{ github.event.pull_request.head.repo.full_name }}/${{ github.event.pull_request.head.ref }}/install-atomicredteam.ps1' -UseBasicParsing);
-          Install-AtomicRedTeam -RepoOwner "${{ github.event.pull_request.head.repo.owner.login }}" -Branch "${{ github.event.pull_request.head.ref }}" -getAtomics -Force -noPayloads
+          Install-AtomicRedTeam -RepoOwner "${{ github.event.pull_request.head.repo.owner.login }}" -Branch "${{ github.event.pull_request.head.ref }}" -Force
           if($error.contains("Installation of AtomicRedTeam Failed")){
             exit 1
           }
+          IEX (IWR 'https://raw.githubusercontent.com/${{ github.event.pull_request.head.repo.full_name }}/${{ github.event.pull_request.head.ref }}/install-atomicsfolder.ps1' -UseBasicParsing);
+          Install-AtomicsFolder -Force
+          Invoke-AtomicTest All -ShowDetailsBrief

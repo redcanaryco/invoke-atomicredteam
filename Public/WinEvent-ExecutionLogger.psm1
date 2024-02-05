@@ -1,5 +1,5 @@
 function Start-ExecutionLog($startTime, $logPath, $targetHostname, $targetUser, $commandLine, $isWindows) {
-    if($isWindows -and -not [System.Diagnostics.EventLog]::Exists('Atomic Red Team')){
+    if ($isWindows -and -not [System.Diagnostics.EventLog]::Exists('Atomic Red Team')) {
         New-EventLog -Source "Applications and Services Logs" -LogName "Atomic Red Team"
     }
 }
@@ -9,9 +9,9 @@ function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testNa
     $timeLocal = (Get-Date($startTime) -uformat "%Y-%m-%dT%H:%M:%SZ").ToString()
     $ipAddress = Get-PreferredIPAddress $isWindows
 
-    $msg = [PSCustomObject][ordered]@{ 
+    $msg = [PSCustomObject][ordered]@{
         "Execution Time (UTC)"   = $timeUTC
-        "Execution Time (Local)" = $timeLocal 
+        "Execution Time (Local)" = $timeLocal
         "Technique"              = $technique
         "Test Number"            = $testNum
         "Test Name"              = $testName
@@ -24,8 +24,8 @@ function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testNa
         "ProcessId"              = $res.ProcessId
         "ExitCode"               = $res.ExitCode
     }
-    
-    Write-EventLog  -Source "Applications and Services Logs" -LogName "Atomic Red Team" -EventID 3001 -EntryType Information -Message $msg -Category 1 -RawData 10,20
+
+    Write-EventLog  -Source "Applications and Services Logs" -LogName "Atomic Red Team" -EventID 3001 -EntryType Information -Message $msg -Category 1 -RawData 10, 20
 }
 
 function Stop-ExecutionLog($startTime, $logPath, $targetHostname, $targetUser, $isWindows) {
