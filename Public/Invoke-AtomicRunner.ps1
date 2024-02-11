@@ -92,8 +92,13 @@ function Invoke-AtomicRunner {
                 LogRunnerMsg "exiting script because $($artConfig.stopFile) exists"
                 exit
             }
-
             if ($IsLinux) {
+                # Check if linux Host can use sudo without a password.
+                $can_sudo = Set-Sudo($false)
+                if($can_sudo){
+                    if ($shouldRename) { Invoke-Expression $("sudo hostnamectl set-hostname $newHostName") }
+                    Invoke-Expression $("sudo shutdown -r now")
+                }
                 if ($shouldRename) { Invoke-Expression $("hostnamectl set-hostname $newHostName") }
                 Invoke-Expression $("shutdown -r now")
             }
