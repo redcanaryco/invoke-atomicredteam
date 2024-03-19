@@ -29,6 +29,9 @@ function Invoke-SetupAtomicRunner {
         . "$PSScriptRoot\AtomicRunnerService.ps1" -Remove
         . "$PSScriptRoot\AtomicRunnerService.ps1" -UserName $artConfig.user -Setup
         AtomicRunnerService -Start
+
+        # remove scheduled task now that we are using a service instead
+        Unregister-ScheduledTask "KickOff-AtomicRunner" -confirm:$false -ErrorAction Ignore
     }
     else {
         # sets cronjob string using basepath from config.ps1
