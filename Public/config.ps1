@@ -86,14 +86,6 @@ Add-Member @scriptParam
 $scriptParam = @{
   MemberType  = "ScriptProperty"
   InputObject = $artConfig
-  Name        = "credFile"
-  Value       = { Join-Path $artConfig.runnerFolder "psc_$($artConfig.basehostname).txt" }
-}
-Add-Member @scriptParam
-
-$scriptParam = @{
-  MemberType  = "ScriptProperty"
-  InputObject = $artConfig
   Name        = "execLogPath"
   Value       = { Join-Path $artConfig.atomicLogsPath "$($artConfig.timeLocal)`_$($artConfig.basehostname)-ExecLog.csv" }
 }
