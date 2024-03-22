@@ -1,10 +1,11 @@
+# Slightly modified the PSService example below to kick-off the atomic runner
 ###############################################################################
 #                                                                             #
-#   File name       AtomicRunnerService.ps1                                             #
+#   File name       PSService.ps1                                             #
 #                                                                             #
 #   Description     A sample service in a standalone PowerShell script        #
 #                                                                             #
-#   Notes           The latest AtomicRunnerService.ps1 version is available in GitHub   #
+#   Notes           The latest PSService.ps1 version is available in GitHub   #
 #                   repository https://github.com/JFLarvoire/SysToolsLib/ ,   #
 #                   in the PowerShell subdirectory.                           #
 #                   Please report any problem in the Issues tab in that       #
@@ -29,7 +30,7 @@
 #                   reusable, and will allow building much more powerful      #
 #                   services.                                                 #
 #                                                                             #
-#                   Dynamically generates a small AtomicRunnerService.exe wrapper       #
+#                   Dynamically generates a small PSService.exe wrapper       #
 #                   application, that in turn invokes this PowerShell script. #
 #                                                                             #
 #                   Some arguments are inspired by Linux' service management  #
@@ -50,14 +51,14 @@
 #                   suitable for most projects.                               #
 #                                                                             #
 #                   Service installation and usage: See the dynamic help      #
-#                   section below, or run: help .\AtomicRunnerService.ps1 -Detailed     #
+#                   section below, or run: help .\PSService.ps1 -Detailed     #
 #                                                                             #
 #                   Debugging: The Log function writes messages into a file   #
-#                   called C:\Windows\Logs\AtomicRunnerService.log (or actually         #
+#                   called C:\Windows\Logs\PSService.log (or actually         #
 #                   ${env:windir}\Logs\$serviceName.log).                     #
 #                   It is very convenient to monitor what's written into that #
 #                   file with a WIN32 port of the Unix tail program. Usage:   #
-#                   tail -f C:\Windows\Logs\AtomicRunnerService.log                     #
+#                   tail -f C:\Windows\Logs\PSService.log                     #
 #                                                                             #
 #   History                                                                   #
 #    2015-07-10 JFL jf.larvoire@hpe.com created this script.                  #
@@ -95,7 +96,7 @@
 #                   script parameters.                                        #
 #    2017-12-10 JFL Removed the unreliable service account detection tests,   #
 #                   and instead use dedicated -SCMStart and -SCMStop          #
-#                   arguments in the AtomicRunnerService.exe helper app.                #
+#                   arguments in the PSService.exe helper app.                #
 #                   Renamed variable userName as currentUserName.             #
 #                   Renamed arguments ServiceUser and ServicePassword to the  #
 #                   more standard UserName and Password.                      #
