@@ -1,15 +1,18 @@
 function Invoke-SetupAtomicRunner {
 
     # ensure running with admin privs
-    if ($artConfig.OS -eq "windows") { # auto-elevate on Windows
+    if ($artConfig.OS -eq "windows") {
+        # auto-elevate on Windows
         $currentUser = New-Object Security.Principal.WindowsPrincipal $([Security.Principal.WindowsIdentity]::GetCurrent())
         $testadmin = $currentUser.IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)
         if ($testadmin -eq $false) {
             Start-Process powershell.exe -Verb RunAs -ArgumentList ('-noprofile -noexit -file "{0}" -elevated' -f ($myinvocation.MyCommand.Definition))
             exit $LASTEXITCODE
         }
-    } else { # linux and macos check - doesn't auto-elevate
-        if((id -u) -ne 0 ){
+    }
+    else {
+        # linux and macos check - doesn't auto-elevate
+        if ((id -u) -ne 0 ) {
             Throw "You must run the Invoke-SetupAtomicRunner script as root"
             exit
         }
@@ -24,11 +27,28 @@ function Invoke-SetupAtomicRunner {
     if ($artConfig.OS -eq "windows") {
 
         # create the service that will start the runner after each restart
-        # The user must have the "Log on as a service" right. To give him that right, open the Local Security Policy management console, go to the
+        # The user must have the "Log on as a service" right. To add that right, open the Local Security Policy management console, go to the
         # "\Security Settings\Local Policies\User Rights Assignments" folder, and edit the "Log on as a service" policy there.
         . "$PSScriptRoot\AtomicRunnerService.ps1" -Remove
         . "$PSScriptRoot\AtomicRunnerService.ps1" -UserName $artConfig.user -Setup
-        AtomicRunnerService -Start
+        # set service start retry options
+        $ServiceDisplayName = "AtomicRunnerService"
+        $action1, $action2, $action3 = "restart"
+        $time1 = 600000 # 10 minutes in miliseconds
+        $action2 = "restart"
+        $time2 = 600000 # 10 minutes in miliseconds
+        $actionLast = "restart"
+        $timeLast = 3600000 # 1 hour in miliseconds
+        $resetCounter = 86400 # 1 day in seconds 
+        $services = Get-CimInstance -ClassName 'Win32_Service' | Where-Object { $_.DisplayName -imatch $ServiceDisplayName }
+        $action = $action1 + "/" + $time1 + "/" + $action2 + "/" + $time2 + "/" + $actionLast + "/" + $timeLast
+        foreach ($service in $services) {
+            # https://technet.microsoft.com/en-us/library/cc742019.aspx
+            $output = sc.exe  failure $($service.Name) actions= $action reset= $resetCounter
+        }
+        # set service to delayed auto-start (doesn't reflect in the services console until after a reboot)
+        Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\AtomicRunnerService" -Name Start -Value 2
+        Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\AtomicRunnerService" -Name DelayedAutostart -Value 1
 
         # remove scheduled task now that we are using a service instead
         Unregister-ScheduledTask "KickOff-AtomicRunner" -confirm:$false -ErrorAction Ignore

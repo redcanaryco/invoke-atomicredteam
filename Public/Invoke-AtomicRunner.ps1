@@ -37,11 +37,14 @@ function Invoke-AtomicRunner {
         [ValidateRange(0, [int]::MaxValue)]
         [int] $PauseBetweenAtomics,
 
+        [parameter(Mandatory = $false)]
+        [switch] $scheduledTaskCleanup,
+
         [Parameter(Mandatory = $false, ValueFromRemainingArguments = $true)]
         $OtherArgs
     )
     Begin { }
-    Process {       
+    Process {
 
         function Get-GuidFromHostName( $basehostname ) {
             $guid = [System.Net.Dns]::GetHostName() -replace $($basehostname + "-"), ""
@@ -50,7 +53,7 @@ function Invoke-AtomicRunner {
                 LogRunnerMsg "Hostname has not been updated or could not parse out the Guid: " + $guid
                 return
             }
-            
+
             # Confirm hostname contains a guid
             [regex]$guidRegex = '(?im)^[{(]?[0-9A-F]{8}[-]?(?:[0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$'
 
@@ -139,9 +142,9 @@ function Invoke-AtomicRunner {
                 }
                 exit
             }
-            
+
         }
-        
+
         function Get-TimingVariable ($sched) {
             $atcount = $sched.Count
             if ($null -eq $atcount) { $atcount = 1 }
@@ -151,7 +154,7 @@ function Invoke-AtomicRunner {
             if ($sleeptime -lt 120) { $sleeptime = 120 } # minimum 2 minute sleep time
             return $sleeptime
         }
-        
+
         # Convert OtherArgs to hashtable so we can pass it through to the call to Invoke-AtomicTest
         $htvars = @{}
         if ($OtherArgs) {
@@ -178,6 +181,7 @@ function Invoke-AtomicRunner {
         $htvars.Remove('OtherArgs') | Out-Null
         $htvars.Remove('Cleanup') | Out-Null
         $htvars.Remove('PauseBetweenAtomics') | Out-Null
+        $htvars.Remove('scheduledTaskCleanup') | Out-Null
 
         $schedule = Get-Schedule $listOfAtomics
         # If the schedule is empty, end process
@@ -203,7 +207,7 @@ function Invoke-AtomicRunner {
             Write-Host -ForegroundColor Yellow "Exiting script because $($artConfig.stopFile) does exist."; Start-Sleep 10;
             exit
         }
-        
+
         # Find current test to run
         $guid = Get-GuidFromHostName $artConfig.basehostname
         if ([string]::IsNullOrWhiteSpace($guid)) {
@@ -218,11 +222,16 @@ function Invoke-AtomicRunner {
             }
 
             if ($null -ne $tr) {
-                # run the atomic test and exit
-                Invoke-AtomicTestFromScheduleRow $tr
-                # Cleanup after running test
-                Write-Host -Fore cyan "Sleeping for $SleepTillCleanup seconds before cleaning up for $($tr.Technique) $($tr.auto_generated_guid) "; Start-Sleep -Seconds $SleepTillCleanup
-                Invoke-AtomicTestFromScheduleRow $tr $true
+                if ($scheduledTaskCleanup) {
+                    # Cleanup after running test
+                    Write-Host -Fore cyan "Sleeping for $SleepTillCleanup seconds before cleaning up for $($tr.Technique) $($tr.auto_generated_guid) "; Start-Sleep -Seconds $SleepTillCleanup
+                    Invoke-AtomicTestFromScheduleRow $tr $true
+                }
+                else {
+                    # run the atomic test and exit
+                    Invoke-AtomicTestFromScheduleRow $tr
+                    Start-Sleep 3; exit
+                }
             }
             else {
                 LogRunnerMsg "Could not find Test: $guid in schedule. Please update schedule to run this test."
@@ -230,21 +239,21 @@ function Invoke-AtomicRunner {
         }
 
         # Load next scheduled test before renaming computer
-        $nextIndex += $currentIndex + 1     
+        $nextIndex += $currentIndex + 1
         if ($nextIndex -ge ($schedule.count)) {
             $tr = $schedule[0]
         }
         else {
             $tr = $schedule[$nextIndex]
         }
-        
-        if ($null -eq $tr) { 
-            LogRunnerMsg "Could not determine the next row to execute from the schedule, Starting from 1st row"; 
-            $tr = $schedule[0] 
+
+        if ($null -eq $tr) {
+            LogRunnerMsg "Could not determine the next row to execute from the schedule, Starting from 1st row";
+            $tr = $schedule[0]
         }
 
         #Rename Computer and Restart
         Rename-ThisComputer $tr $artConfig.basehostname
-    
+
     }
 }

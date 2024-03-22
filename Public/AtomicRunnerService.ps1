@@ -261,7 +261,6 @@ Param(
   [Parameter(ParameterSetName='Version', Mandatory=$true)]
   [Switch]$Version              # Get this script version
 )
-
 $scriptVersion = "2017-12-10"
 
 # This script name, with various levels of details
@@ -901,7 +900,14 @@ if ($SCMStart) {                # The SCM tells us to start the service
 if ($Start) {                   # The user tells us to start the service
   Write-Verbose "Starting service $serviceName"
   Write-EventLog -LogName $logName -Source $serviceName -EventId 1002 -EntryType Information -Message "$scriptName -Start: Starting service $serviceName"
-  Start-Service $serviceName # Ask Service Control Manager to start it
+  try {
+    Start-Service $serviceName -ErrorAction Stop # Ask Service Control Manager to start it
+  }
+  catch {
+    $_
+    Write-Host -ForegroundColor Red "Remember, the user '$($artConfig.user)' must have the ""Log on as a service"" right. To add that right, open the Local Security Policy management console, go to the ""\Security Settings\Local Policies\User Rights Assignments"" folder, and edit the ""Log on as a service"" policy there."
+    Write-Host -ForegroundColor Yellow "If you already have the rights set, then you probably entered the wrong password for the user. Try running the Invoke-SetupAtomicRunner script again and entering the correct password"
+  }
   return
 }
 
@@ -1066,10 +1072,10 @@ if ($Service) {                 # Run the service
     $pipeThread = Start-PipeHandlerThread $pipeName -Event "ControlMessage"
 
     ######### TO DO: Implement your own service code here. ##########
+    . $profile
+    Invoke-KickoffAtomicRunner
     # Now enter the main service event loop
     do { # Keep running until told to exit by the -Stop handler
-      . $profile
-      Invoke-KickoffAtomicRunner
       $event = Wait-Event # Wait for the next incoming event
       $source = $event.SourceIdentifier
       $message = $event.MessageData
@@ -1107,7 +1113,7 @@ if ($Service) {                 # Run the service
     Log "$scriptName -Service # Error at line ${line}: $msg"
   } finally { # Invoked in all cases: Exception or normally by -Stop
     ############### End of the service code example. ################
-    
+
     # Terminate the control pipe handler thread
     Get-PSThread | Remove-PSThread # Remove all remaining threads
     # Flush all leftover events (There may be some that arrived after we exited the while event loop, but before we unregistered the events)
