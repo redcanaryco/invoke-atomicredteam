@@ -122,13 +122,11 @@ function Invoke-AtomicRunner {
                     }
                 }
                 else {
-                    $cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $artConfig.user, (Get-Content $artConfig.credFile | ConvertTo-SecureString)
                     try {
-                        Rename-Computer -NewName $newHostName -Force -DomainCredential $cred -Restart -ErrorAction stop
+                        Rename-Computer -NewName $newHostName -Force -Restart -ErrorAction stop
                     }
                     catch {
                         if ($artConfig.verbose) { LogRunnerMsg $_ }
-                        try { Rename-Computer -NewName $newHostName -Force -LocalCredential $cred -Restart -ErrorAction stop } catch { if ($artConfig.verbose) { LogRunnerMsg $_ } }
                     }
                 }
                 Start-Sleep -seconds 30
