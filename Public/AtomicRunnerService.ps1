@@ -1074,7 +1074,7 @@ if ($Service) {                 # Run the service
 
     ######### TO DO: Implement your own service code here. ##########
     . $profile
-    Invoke-KickoffAtomicRunner
+    $p1,$p2 = Invoke-KickoffAtomicRunner
     # Now enter the main service event loop
     do { # Keep running until told to exit by the -Stop handler
       $event = Wait-Event # Wait for the next incoming event
@@ -1113,6 +1113,8 @@ if ($Service) {                 # Run the service
     $line = $_.InvocationInfo.ScriptLineNumber
     Log "$scriptName -Service # Error at line ${line}: $msg"
   } finally { # Invoked in all cases: Exception or normally by -Stop
+    Invoke-KillProcessTree $p1.Id -ErrorAction Ignore
+    Invoke-KillProcessTree $p2.Id -ErrorAction Ignore
     ############### End of the service code example. ################
 
     # Terminate the control pipe handler thread

@@ -45,10 +45,12 @@ function Invoke-KickoffAtomicRunner {
     $FileName = if ($IsLinux -or $IsMacOS) { "pwsh" } else { "powershell.exe" }
     if ($artConfig.debug) { $Arguments = "-Command Invoke-AtomicRunner *>> $all_log_file" } else { $Arguments = "-Command Invoke-AtomicRunner" }
     # Invoke the atomic as its own process because we don't want to skip the cleanup and rename process in the event that AV kills the process running the atomic
-    Start-Process -FilePath $FileName -ArgumentList $Arguments -WorkingDirectory $WorkingDirectory
+    $p1 = Start-Process -FilePath $FileName -ArgumentList $Arguments -WorkingDirectory $WorkingDirectory -PassThru
     
     if ($artConfig.debug) { $Arguments = "-Command Invoke-AtomicRunner -scheduledTaskCleanup *>> $all_log_file_cleanup" } else { $Arguments = "-Command Invoke-AtomicRunner -scheduledTaskCleanup" }
-    Start-Process -FilePath $FileName -ArgumentList $Arguments -WorkingDirectory $WorkingDirectory
+    $p2 = Start-Process -FilePath $FileName -ArgumentList $Arguments -WorkingDirectory $WorkingDirectory -PassThru
+
+    return $p1,$p2
 
 }
 
