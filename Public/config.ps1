@@ -41,6 +41,9 @@ $artConfig = [PSCustomObject]@{
   # amsi bypass script block (applies to Windows only)
   absb                       = $null
 
+  # AtomicRunnerService install directory
+  ServiceInstallDir                 = "${ENV:windir}\System32"
+
 }
 
 # If you create a file called privateConfig.ps1 in the same directory as you installed Invoke-AtomicRedTeam you can overwrite any of these settings with your custom values

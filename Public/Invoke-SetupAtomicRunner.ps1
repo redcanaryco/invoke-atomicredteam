@@ -40,7 +40,8 @@ function Invoke-SetupAtomicRunner {
             # The user must have the "Log on as a service" right. To add that right, open the Local Security Policy management console, go to the
             # "\Security Settings\Local Policies\User Rights Assignments" folder, and edit the "Log on as a service" policy there.
             . "$PSScriptRoot\AtomicRunnerService.ps1" -Remove
-            . "$PSScriptRoot\AtomicRunnerService.ps1" -UserName $artConfig.user -Setup
+            . "$PSScriptRoot\AtomicRunnerService.ps1" -UserName $artConfig.user -installDir $artConfig.serviceInstallDir -Setup
+            Add-EnvPath -Container Machine -Path $artConfig.serviceInstallDir
             # set service start retry options
             $ServiceDisplayName = "AtomicRunnerService"
             $action1, $action2, $action3 = "restart"
@@ -112,5 +113,36 @@ function Invoke-SetupAtomicRunner {
     else {
         # Get the prereqs for all of the tests on the schedule
         Invoke-AtomicRunner -GetPrereqs
+    }
+}
+
+# Add-EnvPath from https://gist.github.com/mkropat/c1226e0cc2ca941b23a9
+function Add-EnvPath {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $Path,
+
+        [ValidateSet('Machine', 'User', 'Session')]
+        [string] $Container = 'Session'
+    )
+
+    if ($Container -ne 'Session') {
+        $containerMapping = @{
+            Machine = [EnvironmentVariableTarget]::Machine
+            User = [EnvironmentVariableTarget]::User
+        }
+        $containerType = $containerMapping[$Container]
+
+        $persistedPaths = [Environment]::GetEnvironmentVariable('Path', $containerType) -split ';'
+        if ($persistedPaths -notcontains $Path) {
+            $persistedPaths = $persistedPaths + $Path | where { $_ }
+            [Environment]::SetEnvironmentVariable('Path', $persistedPaths -join ';', $containerType)
+        }
+    }
+
+    $envPaths = $env:Path -split ';'
+    if ($envPaths -notcontains $Path) {
+        $envPaths = $envPaths + $Path | where { $_ }
+        $env:Path = $envPaths -join ';'
     }
 }

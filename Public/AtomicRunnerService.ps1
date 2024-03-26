@@ -240,6 +240,9 @@ Param(
   
   [Parameter(ParameterSetName='Setup', Mandatory=$false)]
   [String]$Password,              # Use this password for the user
+
+  [Parameter(ParameterSetName='Setup', Mandatory=$false)]
+  [String]$installDir= "${ENV:windir}\System32",   # Where to install the service files
   
   [Parameter(ParameterSetName='Setup2', Mandatory=$false)]
   [System.Management.Automation.PSCredential]$Credential, # Service account credential
@@ -275,8 +278,6 @@ $serviceName = $script                  # A one-word name used for net start com
 $serviceDisplayName = "AtomicRunnerService"
 $ServiceDescription = "Executes the Invoke-KickOffAtomicRunner Script"
 $pipeName = "Service_$serviceName"      # Named pipe name. Used for sending messages to the service task
-# $installDir = "${ENV:ProgramFiles}\$serviceName" # Where to install the service files
-$installDir = "${ENV:windir}\System32"  # Where to install the service files
 $scriptCopy = "$installDir\$scriptName"
 $exeName = "$serviceName.exe"
 $exeFullName = "$installDir\$exeName"
