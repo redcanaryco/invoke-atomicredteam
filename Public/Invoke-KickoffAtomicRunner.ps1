@@ -58,7 +58,7 @@ function LogRunnerMsg ($message) {
     $mutexName = 'AtomicRunnerLoggingMutex'
     $mutex = New-Object 'Threading.Mutex' $false, $mutexName
     # Grab the mutex. Will block until this process has it.
-    $mutex.WaitOne();
+    $mutex.WaitOne() | Out-Null
     try {
         # OK. Now it is safe to write to your log file
         $now = "[{0:MM/dd/yy} {0:HH:mm:ss}]" -f (Get-Date)
