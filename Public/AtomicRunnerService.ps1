@@ -1076,6 +1076,7 @@ if ($Service) {                 # Run the service
     ######### TO DO: Implement your own service code here. ##########
     . $profile
     $p1,$p2 = Invoke-KickoffAtomicRunner
+    Log "p1: $($p1.Id)  p2: $($p2.Id)"
     # Now enter the main service event loop
     do { # Keep running until told to exit by the -Stop handler
       $event = Wait-Event # Wait for the next incoming event
