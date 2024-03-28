@@ -47,7 +47,8 @@
         'Invoke-AtomicRunner',
         'Get-Schedule',
         'Invoke-KickoffAtomicRunner',
-        'Get-PreferredIPAddress'
+        'Get-PreferredIPAddress',
+        'Invoke-KillProcessTree'
     )
 
     # Variables to export from this module

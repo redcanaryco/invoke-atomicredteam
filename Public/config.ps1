@@ -41,6 +41,9 @@ $artConfig = [PSCustomObject]@{
   # amsi bypass script block (applies to Windows only)
   absb                       = $null
 
+  # AtomicRunnerService install directory
+  ServiceInstallDir                 = "${ENV:windir}\System32"
+
 }
 
 # If you create a file called privateConfig.ps1 in the same directory as you installed Invoke-AtomicRedTeam you can overwrite any of these settings with your custom values
@@ -80,14 +83,6 @@ $scriptParam = @{
   InputObject = $artConfig
   Name        = "scheduleFile"
   Value       = { Join-Path $artConfig.runnerFolder  $artConfig.scheduleFileName }
-}
-Add-Member @scriptParam
-
-$scriptParam = @{
-  MemberType  = "ScriptProperty"
-  InputObject = $artConfig
-  Name        = "credFile"
-  Value       = { Join-Path $artConfig.runnerFolder "psc_$($artConfig.basehostname).txt" }
 }
 Add-Member @scriptParam
 
