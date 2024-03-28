@@ -5,7 +5,7 @@ function Start-AtomicGUI {
     # Install-Module UniversalDashboard if not already installed
     $UDcommunityInstalled = Get-InstalledModule -Name "UniversalDashboard.Community" -ErrorAction:SilentlyContinue
     $UDinstalled = Get-InstalledModule -Name "UniversalDashboard" -ErrorAction:SilentlyContinue
-    if (-not $UDcommunityInstalled -and -not $UDinstalled) { 
+    if (-not $UDcommunityInstalled -and -not $UDinstalled) {
         Write-Host "Installing UniversalDashboard.Community"
         Install-Module -Name UniversalDashboard.Community -Scope CurrentUser -Force
     }
@@ -30,8 +30,8 @@ function Start-AtomicGUI {
         $cardNumber = $InputArgCards.count + 1
         $newCard = New-UDCard -ID "InputArgCard$cardNumber" -Content {
             New-UDTextBoxX "InputArgCard$cardNumber-InputArgName" "Input Argument Name"
-            New-UDTextAreaX "InputArgCard$cardNumber-InputArgDescription" "Description"        
-            New-UDTextBoxX "InputArgCard$cardNumber-InputArgDefault" "Default Value" 
+            New-UDTextAreaX "InputArgCard$cardNumber-InputArgDescription" "Description"
+            New-UDTextBoxX "InputArgCard$cardNumber-InputArgDefault" "Default Value"
             New-UDLayout -columns 4 {
                 New-UDSelect -ID "InputArgCard$cardNumber-InputArgType" -Label "Type" -Option {
                     New-UDSelectOption -Name "Path" -Value "path"
@@ -56,8 +56,8 @@ function Start-AtomicGUI {
         $cardNumber = $depCards.count + 1
         $newCard = New-UDCard -ID "depCard$cardNumber" -Content {
             New-UDTextBoxX "depCard$cardNumber-depDescription" "Prereq Description"
-            New-UDTextAreaX "depCard$cardNumber-prereqCommand" "Check prereqs Command"        
-            New-UDTextAreaX "depCard$cardNumber-getPrereqCommand" "Get Prereqs Command"        
+            New-UDTextAreaX "depCard$cardNumber-prereqCommand" "Check prereqs Command"
+            New-UDTextAreaX "depCard$cardNumber-getPrereqCommand" "Get Prereqs Command"
             New-UDButton -Text "Remove this Prereq"  -OnClick (
                 New-UDEndpoint -Endpoint {
                     Remove-UDElement -Id "depCard$cardNumber"
@@ -72,7 +72,7 @@ function Start-AtomicGUI {
     function New-UDSelectX ($Id, $Label) {
         New-UDSelect -Label $Label -Id $Id -Option {
             New-UDSelectOption -Name "PowerShell" -Value "PowerShell" -Selected
-            New-UDSelectOption -Name "Command Prompt" -Value "CommandPrompt" 
+            New-UDSelectOption -Name "Command Prompt" -Value "CommandPrompt"
             New-UDSelectOption -Name "Bash" -Value "Bash"
             New-UDSelectOption -Name "Sh" -Value "Sh"
         }
@@ -87,7 +87,7 @@ function Start-AtomicGUI {
         -Module @("..\Invoke-AtomicRedTeam.psd1")
 
     ############## EndPoint (ep) Definitions: Dynamic code called to generate content for an element or perfrom onClick actions
-    $BuildAndDisplayYamlScriptBlock = {   
+    $BuildAndDisplayYamlScriptBlock = {
         $testName = (Get-UDElement -Id atomicName).Attributes['value']
         $testDesc = (Get-UDElement -Id atomicDescription).Attributes['value']
         $platforms = @()
@@ -138,11 +138,11 @@ function Start-AtomicGUI {
         if (($cleanupCommands -ne "") -and ($null -ne $cleanupCommands)) { $depParams.add("ExecutorCleanupCommand", $cleanupCommands) }
         $depParams.add("ExecutorElevationRequired", $elevationRequired)
 
-        $AtomicTest = New-AtomicTest -Name $testName -Description $testDesc -SupportedPlatforms $platforms -InputArguments $inputArgs -ExecutorType $executor -ExecutorCommand $attackCommands -WarningVariable +warnings @depParams                                           
+        $AtomicTest = New-AtomicTest -Name $testName -Description $testDesc -SupportedPlatforms $platforms -InputArguments $inputArgs -ExecutorType $executor -ExecutorCommand $attackCommands -WarningVariable +warnings @depParams
         $yaml = ($AtomicTest | ConvertTo-Yaml) -replace "^", "- " -replace "`n", "`n  "
         foreach ($warning in $warnings) { Show-UDToast $warning -BackgroundColor LightYellow -Duration 10000 }
         New-UDElement -ID yaml -Tag pre -Content { $yaml }
-    } 
+    }
 
     $epYamlModal = New-UDEndpoint -Endpoint {
         Show-UDModal -Header { New-UDHeading -Size 3 -Text "Test Definition YAML" } -Content {
@@ -172,14 +172,14 @@ function Start-AtomicGUI {
                 New-UDEndpoint -Endpoint {
                     $yaml = (Get-UDElement -Id "yaml").Content[0]
                     Set-UDClipboard -Data $yaml
-                    Show-UDToast -Message "Copied YAML to the Clipboard" -BackgroundColor YellowGreen 
+                    Show-UDToast -Message "Copied YAML to the Clipboard" -BackgroundColor YellowGreen
                 }
             )
         }
     }
 
     $epFillTestData = New-UDEndpoint -Endpoint {
-        Add-UDElement -ParentId "inputCard" -Content { New-InputArgCard }        
+        Add-UDElement -ParentId "inputCard" -Content { New-InputArgCard }
         Add-UDElement -ParentId "depCard"   -Content { New-depCard }
         Start-Sleep 1
         Set-UDElement -Id atomicName -Attributes @{value = "My new atomic" }
@@ -189,19 +189,19 @@ function Start-AtomicGUI {
         # InputArgs
         $cardNumber = 1
         Set-UDElement -Id "InputArgCard$cardNumber-InputArgName" -Attributes @{value = "input_arg_1" }
-        Set-UDElement -Id "InputArgCard$cardNumber-InputArgDescription" -Attributes @{value = "InputArg1 description" }        
-        Set-UDElement -Id "InputArgCard$cardNumber-InputArgDefault" -Attributes @{value = "this is the default value" }        
+        Set-UDElement -Id "InputArgCard$cardNumber-InputArgDescription" -Attributes @{value = "InputArg1 description" }
+        Set-UDElement -Id "InputArgCard$cardNumber-InputArgDefault" -Attributes @{value = "this is the default value" }
         # dependencies
         Set-UDElement -Id "depCard$cardNumber-depDescription" -Attributes @{value = "This file must exist" }
-        Set-UDElement -Id "depCard$cardNumber-prereqCommand" -Attributes @{value = "if (this) then that" }       
-        Set-UDElement -Id "depCard$cardNumber-getPrereqCommand" -Attributes @{value = "iwr" }       
-        
+        Set-UDElement -Id "depCard$cardNumber-prereqCommand" -Attributes @{value = "if (this) then that" }
+        Set-UDElement -Id "depCard$cardNumber-getPrereqCommand" -Attributes @{value = "iwr" }
+
     }
     ############## End EndPoint (ep) Definitions
 
     ############## Static Definitions
     $supportedPlatforms = New-UDLayout -Columns 4 {
-        New-UDElement -Tag Label -Attributes @{ style = @{"font-size" = "15px" } } -Content { "Supported Platforms:" } 
+        New-UDElement -Tag Label -Attributes @{ style = @{"font-size" = "15px" } } -Content { "Supported Platforms:" }
         New-UDCheckbox -FilledIn -Label "Windows" -Checked -Id spWindows
         New-UDCheckbox -FilledIn -Label "Linux" -Id spLinux
         New-UDCheckbox -FilledIn -Label "macOS"-Id spMacOS
@@ -209,7 +209,7 @@ function Start-AtomicGUI {
 
     $executorRow = New-UDLayout -Columns 4 {
         New-UDSelectX 'executorSelector' "Executor for Attack Commands"
-        New-UDCheckbox -ID elevationRequired -FilledIn -Label "Requires Elevation to Execute Successfully?" 
+        New-UDCheckbox -ID elevationRequired -FilledIn -Label "Requires Elevation to Execute Successfully?"
     }
 
     $genarateYamlButton = New-UDRow -Columns {
@@ -232,7 +232,7 @@ function Start-AtomicGUI {
                 New-UDTextAreaX "attackCommands" "Attack Commands"
                 $executorRow
                 New-UDTextAreaX "cleanupCommands" "Cleanup Commands (Optional)"
-                $genarateYamlButton  
+                $genarateYamlButton
             }
 
             # input args
@@ -248,9 +248,9 @@ function Start-AtomicGUI {
                     New-UDButton -Text "Add Prerequisite (Optional)" -OnClick (
                         New-UDEndpoint -Endpoint { Add-UDElement -ParentId "depCard" -Content { New-depCard } }
                     )
-                    New-UDSelectX 'preReqEx' "Executor for Prereq Commands" 
+                    New-UDSelectX 'preReqEx' "Executor for Prereq Commands"
                 }
-            }   
+            }
         }
 
         # button to fill form with test data for development purposes

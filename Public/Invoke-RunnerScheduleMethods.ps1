@@ -4,9 +4,9 @@ function Loop($fileList, $atomicType) {
 
     $fileList | ForEach-Object {
         $currentTechnique = [System.IO.Path]::GetFileNameWithoutExtension($_.FullName)
-        if ( $currentTechnique -ne "index" ) { 
+        if ( $currentTechnique -ne "index" ) {
             $technique = Get-AtomicTechnique -Path $_.FullName
-            if ($technique) {                                
+            if ($technique) {
                 $technique.atomic_tests | ForEach-Object -Process {
                     $test = New-Object -TypeName psobject
                     $test | Add-Member -MemberType NoteProperty -Name Order -Value $null
@@ -29,17 +29,17 @@ function Loop($fileList, $atomicType) {
     return $AllAtomicTests
 
 }
-    
+
 function Get-NewSchedule() {
     if (Test-Path $artConfig.PathToPublicAtomicsFolder) {
-        $publicAtomicFiles = Get-ChildItem $artConfig.PathToPublicAtomicsFolder -Recurse -Exclude Indexes -Filter T*.yaml -File 
+        $publicAtomicFiles = Get-ChildItem $artConfig.PathToPublicAtomicsFolder -Recurse -Exclude Indexes -Filter T*.yaml -File
         $publicAtomics = Loop $publicAtomicFiles "Public"
     }
     else {
         Write-Host -ForegroundColor Yellow "Public Atomics Folder not Found $($artConfig.PathToPublicAtomicsFolder)"
     }
     if (Test-Path $artConfig.PathToPrivateAtomicsFolder) {
-        $privateAtomicFiles = Get-ChildItem $artConfig.PathToPrivateAtomicsFolder -Recurse -Exclude Indexes -Filter T*.yaml  -File 
+        $privateAtomicFiles = Get-ChildItem $artConfig.PathToPrivateAtomicsFolder -Recurse -Exclude Indexes -Filter T*.yaml  -File
         $privateAtomics = Loop $privateAtomicFiles "Private"
     }
     else {
@@ -54,7 +54,7 @@ function Get-NewSchedule() {
 function Get-ScheduleRefresh() {
     $AllAtomicTests = Get-NewSchedule
     $schedule = Get-Schedule $null $false # get schedule, including inactive (ie not filtered)
-            
+
     # Creating new schedule object for updating changes in atomics
     $newSchedule = New-Object System.Collections.ArrayList
 
@@ -68,25 +68,25 @@ function Get-ScheduleRefresh() {
             $update = $true
             $newSchedule += $fresh
         }
-              
+
         # Updating schedule with changes
         else {
             if ($fresh -is [array]) {
                 $fresh = $fresh[0]
-                LogRunnerMsg "Duplicated auto_generated_guid found $($fresh.auto_generated_guid) with technique $($fresh.Technique). 
+                LogRunnerMsg "Duplicated auto_generated_guid found $($fresh.auto_generated_guid) with technique $($fresh.Technique).
                             `nCannot Continue Execution. System Exit"
-                Write-Host -ForegroundColor Yellow "Duplicated auto_generated_guid found $($fresh.auto_generated_guid) with technique $($fresh.Technique). 
+                Write-Host -ForegroundColor Yellow "Duplicated auto_generated_guid found $($fresh.auto_generated_guid) with technique $($fresh.Technique).
                             `nCannot Continue Execution. System Exit"; Start-Sleep 10
                 exit
             }
             $old.Technique = $fresh.Technique
             $old.TestName = $fresh.TestName
             $old.supported_platforms = $fresh.supported_platforms
-                    
+
             $update = $true
             $newSchedule += $old
         }
-              
+
     }
     if ($update) {
         $newSchedule | Export-Csv $artConfig.scheduleFile
@@ -104,11 +104,11 @@ function Get-Schedule($listOfAtomics, $filterByEnabled = $true, $testGuids = $nu
         else {
             $schedule = Import-Csv $artConfig.scheduleFile
         }
-    
+
         # Filter schedule to either Active/Supported Platform or TestGuids List
         if ($TestGuids) {
             $schedule = $schedule | Where-Object {
-                ($Null -ne $TestGuids -and $TestGuids -contains $_.auto_generated_guid)  
+                ($Null -ne $TestGuids -and $TestGuids -contains $_.auto_generated_guid)
             }
         }
         else {
@@ -127,7 +127,7 @@ function Get-Schedule($listOfAtomics, $filterByEnabled = $true, $testGuids = $nu
     else {
         Write-Host -ForegroundColor Yellow "Couldn't find schedule file ($($artConfig.scheduleFile)) Update the path to the schedule file in the config or generate a new one with 'Invoke-GenerateNewSchedule'"
     }
-                
+
     if (($null -eq $schedule) -or ($schedule.length -eq 0)) { Write-Host -ForegroundColor Yellow "No active tests were found. Edit the 'enabled' column of your schedule file and set some to enabled (True)"; return $null }
     return $schedule
 }

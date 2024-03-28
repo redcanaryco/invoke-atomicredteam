@@ -7,9 +7,9 @@ function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testNa
     $timeLocal = (Get-Date($startTime) -uformat "%Y-%m-%dT%H:%M:%SZ").ToString()
     $ipAddress = Get-PreferredIPAddress $isWindows
 
-    $msg = [PSCustomObject][ordered]@{ 
+    $msg = [PSCustomObject][ordered]@{
         "Execution Time (UTC)"   = $timeUTC
-        "Execution Time (Local)" = $timeLocal 
+        "Execution Time (Local)" = $timeLocal
         "Technique"              = $technique
         "Test Number"            = $testNum
         "Test Name"              = $testName
@@ -21,8 +21,8 @@ function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testNa
         "CustomTag"              = $artConfig.CustomTag
         "ProcessId"              = $res.ProcessId
         "ExitCode"               = $res.ExitCode
-    } 
-    
+    }
+
     # send syslog message if a syslog server is defined in Public/config.ps1
     if ([bool]$artConfig.syslogServer -and [bool]$artConfig.syslogPort) {
         $jsonMsg = $msg | ConvertTo-Json -Compress

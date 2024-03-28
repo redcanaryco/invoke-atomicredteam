@@ -2,7 +2,7 @@
 $artConfig = [PSCustomObject]@{
 
   # [optional] These two configs are calculated programatically, you probably don't need to change them
-  basehostname               = $((hostname).split("-")[0])
+  basehostname               = $((hostname | Select-String -Pattern "(.*?)(-[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12})?$").Matches.Groups[1].value)
   OS                         = $( if ($IsLinux) { "linux" } elseif ($IsMacOS) { "macos" } else { "windows" })
 
   # [optional(if using default install paths)] Paths to your Atomic Red Team "atomics" folder and your "invoke-atomicredteam" folder
@@ -25,13 +25,13 @@ $artConfig = [PSCustomObject]@{
   gmsaAccount                = $null
 
   # [optional] Logging Module, uses Syslog-ExecutionLogger if left blank and the syslogServer and syslogPort are set, otherwise it uses the Default-ExecutionLogger
-  LoggingModule = ''
+  LoggingModule              = ''
 
   # [optional] Syslog configuration, default execution logs will be sent to this server:port
   syslogServer               = '' # set to empty string '' if you don't want to log atomic execution details to a syslog server (don't includle http(s):\\)
   syslogPort                 = 514
   syslogProtocol             = 'UDP' # options are UDP, TCP, TCPwithTLS
- 
+
   verbose                    = $true; # set to true for more log output
 
   # [optional] logfile filename configs

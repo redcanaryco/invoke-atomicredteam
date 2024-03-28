@@ -72,7 +72,7 @@ function Invoke-SetupAtomicRunner {
         $exists = cat /etc/crontab | Select-String -Quiet "KickoffAtomicRunner"
         #checks if the Kickoff-AtomicRunner job exists. If not appends it to the system crontab.
         if ($null -eq $exists) {
-            $(echo "$job" >> /etc/crontab)
+            $(Write-Output "$job" >> /etc/crontab)
             write-host "setting cronjob"
         }
         else {
@@ -93,7 +93,7 @@ function Invoke-SetupAtomicRunner {
     else {
         Add-Content $profile $importStatement
     }
-    
+
     # Install the Posh-SYLOG module if we are configured to use it and it is not already installed
     if ((-not (Get-Module -ListAvailable "Posh-SYSLOG")) -and [bool]$artConfig.syslogServer -and [bool]$artConfig.syslogPort) {
         write-verbose "Posh-SYSLOG"

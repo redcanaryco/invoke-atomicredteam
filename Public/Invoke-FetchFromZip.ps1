@@ -29,11 +29,11 @@ function Invoke-FetchFromZip {
     }
 
     # find all files in ZIP that match the filter (i.e. file extension)
-    $zip.Entries | 
-    Where-Object { 
-            ($_.FullName -like $targetFilter) 
+    $zip.Entries |
+    Where-Object {
+            ($_.FullName -like $targetFilter)
     } |
-    ForEach-Object { 
+    ForEach-Object {
         # extract the selected items from the ZIP archive
         # and copy them to the out folder
         $dstDir = Join-Path $destinationPath ($_.FullName | split-path | split-path -Leaf)
