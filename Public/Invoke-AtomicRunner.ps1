@@ -227,12 +227,8 @@ function Invoke-AtomicRunner {
                 if ($scheduledTaskCleanup) {
                     # Cleanup after running test
                     Write-Host -Fore cyan "Sleeping for $SleepTillCleanup seconds before cleaning up for $($tr.Technique) $($tr.auto_generated_guid) "; Start-Sleep -Seconds $SleepTillCleanup
-<<<<<<< HEAD
                     $htvars.Add("Cleanup")
                     Invoke-AtomicTestFromScheduleRow $tr
-=======
-                    Invoke-AtomicTestFromScheduleRow $tr $true
->>>>>>> f43d87e7447bcc8b180d7f0898d4a92fba4da33f
                 }
                 else {
                     # run the atomic test and exit
