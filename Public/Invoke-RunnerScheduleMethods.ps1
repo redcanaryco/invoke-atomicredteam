@@ -96,7 +96,7 @@ function Get-ScheduleRefresh() {
 
 }
 
-function Get-Schedule($listOfAtomics, $filtered = $true, $testGuids = $null) {
+function Get-Schedule($listOfAtomics, $filterByEnabled = $true, $testGuids = $null, $filterByPlatform = $true) {
     if ($listOfAtomics -or (Test-Path($artConfig.scheduleFile))) {
         if ($listOfAtomics) {
             $schedule = Import-Csv $listOfAtomics
@@ -111,9 +111,15 @@ function Get-Schedule($listOfAtomics, $filtered = $true, $testGuids = $null) {
                 ($Null -ne $TestGuids -and $TestGuids -contains $_.auto_generated_guid)  
             }
         }
-        elseif ($filtered) {
-            $schedule = $schedule | Where-Object {
-                ($_.enabled -eq $true -and ($_.supported_platforms -like "*" + $artConfig.OS + "*" ))
+        else {
+            if ($filterByEnabled -and $filterByPlatform) {
+                $schedule = $schedule | Where-Object { ($_.enabled -eq $true -and ($_.supported_platforms -like "*" + $artConfig.OS + "*" )) }
+            }
+            elseif ($filterByEnabled) {
+                $schedule = $schedule | Where-Object { $_.enabled -eq $true }
+            }
+            elseif ($filterByPlatform) {
+                $schedule = $schedule | Where-Object { $_.supported_platforms -like "*" + $artConfig.OS + "*" }
             }
         }
 

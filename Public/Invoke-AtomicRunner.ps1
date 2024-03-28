@@ -33,6 +33,10 @@ function Invoke-AtomicRunner {
         [Parameter(Mandatory = $false)]
         $ListOfAtomics,
 
+        [Parameter(Mandatory = $false)]
+        [switch]
+        $anyOS=$false,
+
         [parameter(Mandatory = $false)]
         [ValidateRange(0, [int]::MaxValue)]
         [int] $PauseBetweenAtomics,
@@ -60,7 +64,7 @@ function Invoke-AtomicRunner {
             if ($guid -match $guidRegex) { return $guid } else { return "" }
         }
 
-        function Invoke-AtomicTestFromScheduleRow ($tr, $Cleanup = $false) {
+        function Invoke-AtomicTestFromScheduleRow ($tr) {
             $theArgs = $tr.InputArgs
             if ($theArgs.GetType().Name -ne "Hashtable") {
                 $tr.InputArgs = ConvertFrom-StringData -StringData $theArgs
@@ -68,10 +72,10 @@ function Invoke-AtomicRunner {
             $sc = $tr.AtomicsFolder
             #Run the Test based on if scheduleContext is 'private' or 'public'
             if (($sc -eq 'public') -or ($null -eq $sc)) {
-                Invoke-AtomicTest $tr.Technique -TestGuids $tr.auto_generated_guid -InputArgs $tr.InputArgs -TimeoutSeconds $tr.TimeoutSeconds -ExecutionLogPath $artConfig.execLogPath -PathToAtomicsFolder $artConfig.PathToPublicAtomicsFolder @htvars -Cleanup:$Cleanup -supressPathToAtomicsFolder
+                Invoke-AtomicTest $tr.Technique -TestGuids $tr.auto_generated_guid -InputArgs $tr.InputArgs -TimeoutSeconds $tr.TimeoutSeconds -ExecutionLogPath $artConfig.execLogPath -PathToAtomicsFolder $artConfig.PathToPublicAtomicsFolder @htvars -supressPathToAtomicsFolder
             }
             elseif ($sc -eq 'private') {
-                Invoke-AtomicTest $tr.Technique -TestGuids $tr.auto_generated_guid -InputArgs $tr.InputArgs -TimeoutSeconds $tr.TimeoutSeconds -ExecutionLogPath $artConfig.execLogPath -PathToAtomicsFolder $artConfig.PathToPrivateAtomicsFolder @htvars -Cleanup:$Cleanup -supressPathToAtomicsFolder
+                Invoke-AtomicTest $tr.Technique -TestGuids $tr.auto_generated_guid -InputArgs $tr.InputArgs -TimeoutSeconds $tr.TimeoutSeconds -ExecutionLogPath $artConfig.execLogPath -PathToAtomicsFolder $artConfig.PathToPrivateAtomicsFolder @htvars -supressPathToAtomicsFolder
             }
             if ($timeToPause -gt 0) {
                 Write-Host "Sleeping for $timeToPause seconds..."
@@ -177,11 +181,11 @@ function Invoke-AtomicRunner {
         $htvars += [Hashtable]$PSBoundParameters
         $htvars.Remove('listOfAtomics') | Out-Null
         $htvars.Remove('OtherArgs') | Out-Null
-        $htvars.Remove('Cleanup') | Out-Null
         $htvars.Remove('PauseBetweenAtomics') | Out-Null
         $htvars.Remove('scheduledTaskCleanup') | Out-Null
 
-        $schedule = Get-Schedule $listOfAtomics
+        $schedule = Get-Schedule $listOfAtomics $true $null (-not $anyOS)
+
         # If the schedule is empty, end process
         if (-not $schedule) {
             LogRunnerMsg "No test guid's or enabled tests."
@@ -194,7 +198,7 @@ function Invoke-AtomicRunner {
         # Perform cleanup, Showdetails or Prereq stuff for all scheduled items and then exit
         if ($Cleanup -or $ShowDetails -or $CheckPrereqs -or $ShowDetailsBrief -or $GetPrereqs -or $listOfAtomics) {
             $schedule | ForEach-Object {
-                Invoke-AtomicTestFromScheduleRow $_ $Cleanup
+                Invoke-AtomicTestFromScheduleRow $_ 
             }
             return
         }
@@ -223,7 +227,8 @@ function Invoke-AtomicRunner {
                 if ($scheduledTaskCleanup) {
                     # Cleanup after running test
                     Write-Host -Fore cyan "Sleeping for $SleepTillCleanup seconds before cleaning up for $($tr.Technique) $($tr.auto_generated_guid) "; Start-Sleep -Seconds $SleepTillCleanup
-                    Invoke-AtomicTestFromScheduleRow $tr $true
+                    $htvars.Add("Cleanup")
+                    Invoke-AtomicTestFromScheduleRow $tr
                 }
                 else {
                     # run the atomic test and exit
