@@ -84,6 +84,8 @@ function Invoke-SetupAtomicRunner {
     $root = Split-Path $PSScriptRoot -Parent
     $pathToPSD1 = Join-Path $root "Invoke-AtomicRedTeam.psd1"
     $importStatement = "Import-Module ""$pathToPSD1"" -Force"
+    $profileFolder = Split-Path $profile
+    New-Item -ItemType Directory -Force -Path $profileFolder | Out-Null
     New-Item $PROFILE -ErrorAction Ignore
     $profileContent = Get-Content $profile
     $line = $profileContent | Select-String ".*import-module.*invoke-atomicredTeam.psd1" | Select-Object -ExpandProperty Line
