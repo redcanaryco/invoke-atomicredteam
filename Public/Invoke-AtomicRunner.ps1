@@ -35,7 +35,7 @@ function Invoke-AtomicRunner {
 
         [Parameter(Mandatory = $false)]
         [switch]
-        $anyOS=$false,
+        $anyOS = $false,
 
         [parameter(Mandatory = $false)]
         [ValidateRange(0, [int]::MaxValue)]
@@ -115,31 +115,22 @@ function Invoke-AtomicRunner {
             else {
                 if ($debug) { LogRunnerMsg "Debug: pretending to rename the computer to $newHostName"; exit }
                 if (-not $shouldRename) { Restart-Computer -Force }
-                if ($artConfig.gmsaAccount) {
-                    $retry = $true; $count = 0
-                    while ($retry) {
-                        # add retry loop to avoid this occassional error "The verification of the MSA failed with error 1355"
-                        Invoke-Command -ComputerName '127.0.0.1' -ConfigurationName 'RenameRunnerEndpoint' -ScriptBlock { Rename-Computer -NewName $Using:newHostName -Force -Restart }
-                        Start-Sleep 120; $count = $count + 1
-                        LogRunnerMsg "Retrying computer rename $count"
-                        if ($count -gt 15) { $retry = $false }
-                    }
+                $retry = $true; $count = 0
+                while ($retry) {
+                    Rename-Computer -NewName $newHostName -Force -Restart
+                    Start-Sleep 120; $count = $count + 1
+                    LogRunnerMsg "Retrying computer rename $count"
+                    if ($count -gt 60) { $retry = $false }
                 }
-                else {
-                    try {
-                        Rename-Computer -NewName $newHostName -Force -Restart -ErrorAction stop
-                    }
-                    catch {
-                        if ($artConfig.verbose) { LogRunnerMsg $_ }
-                    }
-                }
+
                 Start-Sleep -seconds 30
                 LogRunnerMsg "uh oh, still haven't restarted - should never get to here"
                 $retry = $true; $count = 0
                 while ($retry) {
-                    Restart-Computer -Force
-                    Start-Sleep 300; $count = $count + 1
+                    $count = $count + 1
                     LogRunnerMsg "Rename retry $count"
+                    Restart-Computer -Force
+                    Start-Sleep 300;
                     if ($count -gt 60) { $retry = $false }
                 }
                 exit
@@ -227,7 +218,7 @@ function Invoke-AtomicRunner {
                 if ($scheduledTaskCleanup) {
                     # Cleanup after running test
                     Write-Host -Fore cyan "Sleeping for $SleepTillCleanup seconds before cleaning up for $($tr.Technique) $($tr.auto_generated_guid) "; Start-Sleep -Seconds $SleepTillCleanup
-                    $htvars.Add("Cleanup",$true)
+                    $htvars.Add("Cleanup", $true)
                     Invoke-AtomicTestFromScheduleRow $tr
                 }
                 else {

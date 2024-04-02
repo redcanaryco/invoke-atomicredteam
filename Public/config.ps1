@@ -21,9 +21,6 @@ $artConfig = [PSCustomObject]@{
   kickOffDelay               = New-TimeSpan -Minutes 0 # an additional delay before Invoke-KickoffAtomicRunner calls Invoke-AtomicRunner
   scheduleFileName           = "AtomicRunnerSchedule.csv"
 
-  # [optional] If you need to use a group managed service account in order to rename the computer, enter it here
-  gmsaAccount                = $null
-
   # [optional] Logging Module, uses Syslog-ExecutionLogger if left blank and the syslogServer and syslogPort are set, otherwise it uses the Default-ExecutionLogger
   LoggingModule              = ''
 
