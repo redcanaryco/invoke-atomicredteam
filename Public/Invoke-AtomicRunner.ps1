@@ -189,7 +189,7 @@ function Invoke-AtomicRunner {
         # Perform cleanup, Showdetails or Prereq stuff for all scheduled items and then exit
         if ($Cleanup -or $ShowDetails -or $CheckPrereqs -or $ShowDetailsBrief -or $GetPrereqs -or $listOfAtomics) {
             $schedule | ForEach-Object {
-                Invoke-AtomicTestFromScheduleRow $_ 
+                Invoke-AtomicTestFromScheduleRow $_
             }
             return
         }

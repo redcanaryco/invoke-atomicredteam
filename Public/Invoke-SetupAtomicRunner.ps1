@@ -7,7 +7,7 @@ function Invoke-SetupAtomicRunner {
     Param(
         [Parameter(Mandatory = $false)]
         [switch]
-        $SkipServiceSetup       
+        $SkipServiceSetup
     )
 
     # ensure running with admin privs
@@ -50,7 +50,7 @@ function Invoke-SetupAtomicRunner {
             $time2 = 600000 # 10 minutes in miliseconds
             $actionLast = "restart"
             $timeLast = 3600000 # 1 hour in miliseconds
-            $resetCounter = 86400 # 1 day in seconds 
+            $resetCounter = 86400 # 1 day in seconds
             $services = Get-CimInstance -ClassName 'Win32_Service' | Where-Object { $_.DisplayName -imatch $ServiceDisplayName }
             $action = $action1 + "/" + $time1 + "/" + $action2 + "/" + $time2 + "/" + $actionLast + "/" + $timeLast
             foreach ($service in $services) {
@@ -137,14 +137,14 @@ function Add-EnvPath {
 
         $persistedPaths = [Environment]::GetEnvironmentVariable('Path', $containerType) -split ';'
         if ($persistedPaths -notcontains $Path) {
-            $persistedPaths = $persistedPaths + $Path | where { $_ }
+            $persistedPaths = $persistedPaths + $Path | Where-Object { $_ }
             [Environment]::SetEnvironmentVariable('Path', $persistedPaths -join ';', $containerType)
         }
     }
 
     $envPaths = $env:Path -split ';'
     if ($envPaths -notcontains $Path) {
-        $envPaths = $envPaths + $Path | where { $_ }
+        $envPaths = $envPaths + $Path | Where-Object { $_ }
         $env:Path = $envPaths -join ';'
     }
 }
