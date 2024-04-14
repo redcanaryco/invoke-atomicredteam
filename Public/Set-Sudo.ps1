@@ -5,7 +5,7 @@ function Set-Sudo ($set_sudo) {
 
     try {
         if ((sudo -A whoami) -and ((sudo grep -r $env:USER /etc/sudoers | grep NOPASSWD:ALL) -or (sudo grep -r $env:USER /etc/sudoers.d | grep NOPASSWD:ALL))){
-           
+
             if($set_sudo){
                 Write-Host "Passwordless logon already configured.`n"
             }
@@ -13,9 +13,9 @@ function Set-Sudo ($set_sudo) {
 
         }
         elseif ($set_sudo -eq $true){
-            
+
             Write-Host "Configuring Passwordless logon...`n"
-            echo "$env:USER ALL=(ALL) NOPASSWD:ALL" > /tmp/90-$env:USER-sudo-access
+            Write-Output "$env:USER ALL=(ALL) NOPASSWD:ALL" > /tmp/90-$env:USER-sudo-access
             sudo install -m 440 /tmp/90-$env:USER-sudo-access /etc/sudoers.d/90-$env:USER-sudo-access
             rm -f /tmp/90-$env:USER-sudo-access
             $nopassword_enabled = $true

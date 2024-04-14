@@ -12,7 +12,7 @@ function Invoke-ExecuteCommand ($finalCommand, $executor, $elevationreq, $can_su
                 $execExe = $executor
                 $execPrefix = "-c"
             }
-            
+
             if ($executor -eq "command_prompt") {
                 $execPrefix = "/c";
                 $execExe = "cmd.exe";

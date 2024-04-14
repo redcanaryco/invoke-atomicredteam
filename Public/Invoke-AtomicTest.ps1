@@ -431,7 +431,7 @@ function Invoke-AtomicTest {
 
                     # Check if linux Host can use sudo without a password.
                     $can_sudo = Set-Sudo($false)
-                    
+
                     if ($CheckPrereqs) {
                         Write-KeyValue "CheckPrereq's for: " $testId
                         $failureReasons = Invoke-CheckPrereqs $test $isElevated $executionPlatform $InputArgs $PathToPayloads $TimeoutSeconds $session
