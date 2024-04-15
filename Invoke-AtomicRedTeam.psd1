@@ -41,6 +41,7 @@
         'New-AtomicTestDependency',
         'Start-AtomicGUI',
         'Stop-AtomicGUI',
+        'Set-Sudo'
         'Invoke-SetupAtomicRunner',
         'Invoke-GenerateNewSchedule',
         'Invoke-RefreshExistingSchedule',
