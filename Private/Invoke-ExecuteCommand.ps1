@@ -1,18 +1,11 @@
-function Invoke-ExecuteCommand ($finalCommand, $executor, $elevationreq, $can_sudo, $executionPlatform, $TimeoutSeconds, $session = $null, $interactive) {
+function Invoke-ExecuteCommand ($finalCommand, $executor, $executionPlatform, $TimeoutSeconds, $session = $null, $interactive) {
     $null = @(
         if ($null -eq $finalCommand) { return 0 }
         $finalCommand = $finalCommand.trim()
         Write-Verbose -Message 'Invoking Atomic Tests using defined executor'
         if ($executor -eq "command_prompt" -or $executor -eq "sh" -or $executor -eq "bash") {
-            if (($executor -eq "sh" -or $executor -eq "bash") -and ($elevationreq -eq $true) -and ($can_sudo -eq $true)) {
-                $execExe = "$(which sudo)"
-                $execPrefix = "$(which $executor) -c"
-            }
-            else {
-                $execExe = $executor
-                $execPrefix = "-c"
-            }
-
+            $execPrefix = "-c"
+            $execExe = $executor
             if ($executor -eq "command_prompt") {
                 $execPrefix = "/c";
                 $execExe = "cmd.exe";
