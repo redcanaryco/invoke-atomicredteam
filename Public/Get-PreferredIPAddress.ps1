@@ -12,4 +12,3 @@ function Get-PreferredIPAddress($isWindows) {
         return ''
     }
 }
-
