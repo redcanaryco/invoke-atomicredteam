@@ -7,7 +7,7 @@ function Invoke-CheckPrereqs ($test, $isElevated, $executionPlatform, $customInp
         $executor = Get-PrereqExecutor $test
         $final_command = Merge-InputArgs $dep.prereq_command $test $customInputArgs $PathToAtomicsFolder
         if ($executor -ne "powershell") { $final_command = ($final_Command.trim()).Replace("`n", " && ") }
-        $res = Invoke-ExecuteCommand -FinalCommand $final_command -Executor $executor -ExecutionPlatform $executionPlatform -TimeoutSeconds $TimeoutSeconds -Session $session
+        $res = Invoke-ExecuteCommand $final_command $executor $executionPlatform $TimeoutSeconds  $session
         $description = Merge-InputArgs $dep.description $test $customInputArgs $PathToAtomicsFolder
         if ($res.ExitCode -ne 0) {
             $FailureReasons.add($description) | Out-Null
