@@ -1,6 +1,5 @@
 name: Check installation
 on: pull_request
-
 jobs:
   install-invoke:
     name: Install Invoke-Atomic

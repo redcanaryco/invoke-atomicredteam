@@ -16,11 +16,11 @@ spec:
         app: atomicred
     spec:
       containers:
-      - name: atomicred
-        image: redcanary/invoke-atomicredteam
-        imagePullPolicy: "IfNotPresent"
-        command: ["sleep", "3560d"]
-        securityContext:
-          privileged: true
+        - name: atomicred
+          image: redcanary/invoke-atomicredteam
+          imagePullPolicy: "IfNotPresent"
+          command: ["sleep", "3560d"]
+          securityContext:
+            privileged: true
       nodeSelector:
         kubernetes.io/os: linux
