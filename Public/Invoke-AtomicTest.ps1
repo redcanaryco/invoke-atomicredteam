@@ -458,14 +458,14 @@ function Invoke-AtomicTest {
                             $final_command_prereq = Merge-InputArgs $dep.prereq_command $test $InputArgs $PathToPayloads
                             if ($executor -ne "powershell") { $final_command_prereq = ($final_command_prereq.trim()).Replace("`n", " && ") }
                             $final_command_get_prereq = Merge-InputArgs $dep.get_prereq_command $test $InputArgs $PathToPayloads
-                            $res = Invoke-ExecuteCommand -FinalCommand $final_command_prereq -Executor $executor -ExecutionPlatform $executionPlatform -TimeoutSeconds $TimeoutSeconds -Session $session -Interactive:$true
+                            $res = Invoke-ExecuteCommand $final_command_prereq $executor $executionPlatform $TimeoutSeconds $session -Interactive:$true
 
                             if ($res.ExitCode -eq 0) {
                                 Write-KeyValue "Prereq already met: " $description
                             }
                             else {
-                                $res = Invoke-ExecuteCommand -FinalCommand $final_command_get_prereq -Executor $executor -ExecutionPlatform $executionPlatform -TimeoutSeconds $TimeoutSeconds -Session $session -Interactive:$Interactive
-                                $res = Invoke-ExecuteCommand -FinalCommand $final_command_prereq -Executor $executor -ExecutionPlatform $executionPlatform -TimeoutSeconds $TimeoutSeconds -Session $session -Interactive:$true
+                                $res = Invoke-ExecuteCommand $final_command_get_prereq $executor $executionPlatform $TimeoutSeconds $session -Interactive:$Interactive
+                                $res = Invoke-ExecuteCommand $final_command_prereq $executor $executionPlatform $TimeoutSeconds $session -Interactive:$true
                                 if ($res.ExitCode -eq 0) {
                                     Write-KeyValue "Prereq successfully met: " $description
                                 }
@@ -479,7 +479,7 @@ function Invoke-AtomicTest {
                         Write-KeyValue "Executing cleanup for test: " $testId
                         $final_command = Merge-InputArgs $test.executor.cleanup_command $test $InputArgs $PathToPayloads
                         if (Get-Command 'Invoke-ARTPreAtomicCleanupHook' -errorAction SilentlyContinue) { Invoke-ARTPreAtomicCleanupHook $test $InputArgs }
-                        $res = Invoke-ExecuteCommand -FinalCommand $final_command -Executor $test.executor.name -ExecutionPlatform $executionPlatform -TimeoutSeconds $TimeoutSeconds -Session $session -Interactive:$Interactive
+                        $res = Invoke-ExecuteCommand $final_command $test.executor.name $executionPlatform $TimeoutSeconds $session -Interactive:$Interactive
                         Write-KeyValue "Done executing cleanup for test: " $testId
                         if (Get-Command 'Invoke-ARTPostAtomicCleanupHook' -errorAction SilentlyContinue) { Invoke-ARTPostAtomicCleanupHook $test $InputArgs }
                         if ($(Test-IncludesTerraform $AT $testCount)) {
@@ -491,7 +491,7 @@ function Invoke-AtomicTest {
                         $startTime = Get-Date
                         $final_command = Merge-InputArgs $test.executor.command $test $InputArgs $PathToPayloads
                         if (Get-Command 'Invoke-ARTPreAtomicHook' -errorAction SilentlyContinue) { Invoke-ARTPreAtomicHook $test $InputArgs }
-                        $res = Invoke-ExecuteCommand -FinalCommand $final_command -Executor $test.executor.name -Elevationreq $test.executor.elevation_required -Can_sudo $can_sudo -ExecutionPlatform $executionPlatform -TimeoutSeconds $TimeoutSeconds -Session $session -Interactive:$Interactive
+                        $res = Invoke-ExecuteCommand $final_command $test.executor.name $test.executor.elevation_required $can_sudo $executionPlatform $TimeoutSeconds $session -Interactive:$Interactive
                         Write-Host "Exit code: $($res.ExitCode)"
                         if (Get-Command 'Invoke-ARTPostAtomicHook' -errorAction SilentlyContinue) { Invoke-ARTPostAtomicHook $test $InputArgs }
                         $stopTime = Get-Date
