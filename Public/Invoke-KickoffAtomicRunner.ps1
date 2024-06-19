@@ -45,13 +45,27 @@ function Invoke-KickoffAtomicRunner {
     $FileName = if ($IsLinux -or $IsMacOS) { "pwsh" } else { "powershell.exe" }
     if ($artConfig.debug) { $Arguments = "-Command Invoke-AtomicRunner *>> $all_log_file" } else { $Arguments = "-Command Invoke-AtomicRunner" }
     # Invoke the atomic as its own process because we don't want to skip the cleanup and rename process in the event that AV kills the process running the atomic
-    Start-Process -FilePath $FileName -ArgumentList $Arguments -WorkingDirectory $WorkingDirectory
-    # Run the cleanup commmands
-    if ($artConfig.debug) { Invoke-AtomicRunner -scheduledTaskCleanup *>> $all_log_file_cleanup } else { Invoke-AtomicRunner -scheduledTaskCleanup }
+    $p1 = Start-Process -FilePath $FileName -ArgumentList $Arguments -WorkingDirectory $WorkingDirectory -PassThru
+
+    if ($artConfig.debug) { $Arguments = "-Command Invoke-AtomicRunner -scheduledTaskCleanup *>> $all_log_file_cleanup" } else { $Arguments = "-Command Invoke-AtomicRunner -scheduledTaskCleanup" }
+    $p2 = Start-Process -FilePath $FileName -ArgumentList $Arguments -WorkingDirectory $WorkingDirectory -PassThru
+
+    return $p1,$p2
+
 }
 
 function LogRunnerMsg ($message) {
-    $now = "[{0:MM/dd/yy} {0:HH:mm:ss}]" -f (Get-Date)
-    Write-Host -fore cyan $message
-    Add-Content $artConfig.logFile "$now`: $message"
+    $mutexName = 'AtomicRunnerLoggingMutex'
+    $mutex = New-Object 'Threading.Mutex' $false, $mutexName
+    # Grab the mutex. Will block until this process has it.
+    $mutex.WaitOne() | Out-Null
+    try {
+        # OK. Now it is safe to write to your log file
+        $now = "[{0:MM/dd/yy} {0:HH:mm:ss}]" -f (Get-Date)
+        Write-Host -fore cyan $message
+        Add-Content $artConfig.logFile "$now`: $message"
+    }
+    finally {
+        $mutex.ReleaseMutex()
+    }
 }
