@@ -237,13 +237,13 @@ Param(
 
   [Parameter(ParameterSetName='Setup', Mandatory=$true)]
   [String]$UserName,              # Set the service to run as this user
-  
+
   [Parameter(ParameterSetName='Setup', Mandatory=$false)]
-  [String]$Password,              # Use this password for the user
+  [SecureString]$Password,              # Use this password for the user
 
   [Parameter(ParameterSetName='Setup', Mandatory=$false)]
   [String]$installDir= "${ENV:windir}\System32",   # Where to install the service files
-  
+
   [Parameter(ParameterSetName='Setup2', Mandatory=$false)]
   [System.Management.Automation.PSCredential]$Credential, # Service account credential
 
@@ -331,7 +331,7 @@ Function Now {
       $ms = $true
       $nsSuffix = "000"
     }
-  } 
+  }
   if ($ms) {
     $now += ".{0:000}$nsSuffix" -f $Date.MilliSecond
   }
@@ -399,7 +399,7 @@ Function Get-PSThread () {
     [Parameter(Mandatory=$false, ValueFromPipeline=$true, Position=0)]
     [int[]]$Id = $PSThreadList.Keys     # List of thread IDs
   )
-  $Id | % { $PSThreadList.$_ }
+  $Id | ForEach-Object { $PSThreadList.$_ }
 }
 
 Function Start-PSThread () {
@@ -441,7 +441,7 @@ Function Start-PSThread () {
   $PSPipeline = [powershell]::Create()
   $PSPipeline.Runspace = $RunSpace
   $PSPipeline.AddScript($ScriptBlock) | Out-Null
-  $Arguments | % {
+  $Arguments | ForEach-Object {
     Write-Debug "Adding argument [$($_.GetType())]'$_'"
     $PSPipeline.AddArgument($_) | Out-Null
   }
@@ -764,7 +764,7 @@ $source = @"
       AutoLog = true;
 
       eventLog = new System.Diagnostics.EventLog();                     // EVENT LOG [
-      if (!System.Diagnostics.EventLog.SourceExists(ServiceName)) {         
+      if (!System.Diagnostics.EventLog.SourceExists(ServiceName)) {
         System.Diagnostics.EventLog.CreateEventSource(ServiceName, "$logName");
       }
       eventLog.Source = ServiceName;
@@ -807,7 +807,7 @@ $source = @"
         Win32Exception w32ex = e as Win32Exception; // Try getting the WIN32 error code
         if (w32ex == null) { // Not a Win32 exception, but maybe the inner one is...
           w32ex = e.InnerException as Win32Exception;
-        }    
+        }
         if (w32ex != null) {    // Report the actual WIN32 error
           serviceStatus.dwWin32ExitCode = w32ex.NativeErrorCode;
         } else {                // Make up a reasonable reason
@@ -845,7 +845,7 @@ $source = @"
         Win32Exception w32ex = e as Win32Exception; // Try getting the WIN32 error code
         if (w32ex == null) { // Not a Win32 exception, but maybe the inner one is...
           w32ex = e.InnerException as Win32Exception;
-        }    
+        }
         if (w32ex != null) {    // Report the actual WIN32 error
           serviceStatus.dwWin32ExitCode = w32ex.NativeErrorCode;
         } else {                // Make up a reasonable reason
@@ -977,7 +977,7 @@ if ($Setup) {                   # Install the service
     Write-Debug "Installation is necessary" # Also avoids a ScriptAnalyzer warning
     # And continue with the installation.
   }
-  if (!(Test-Path $installDir)) {											 
+  if (!(Test-Path $installDir)) {
     New-Item -ItemType directory -Path $installDir | Out-Null
   }
   # Copy the service script into the installation directory
