@@ -1,20 +1,18 @@
 name: publish-release
 on:
   push:
-    tags: [ 'v*.*.*' ]
+    tags: ['v*.*.*']
 jobs:
   publish-powershell-gallery:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
         uses: actions/checkout@v2
-        
       - name: publishing
         run: |
           Install-Module -Name powershell-yaml -Force
           Publish-Module -Path '.' -NuGetApiKey ${{ secrets.PGALLERY }}
         shell: pwsh
-
   build-docker-containers:
     name: Build and Publish Containers
     runs-on: ${{ matrix.os }}
@@ -41,13 +39,12 @@ jobs:
           password: ${{ secrets.DOCKER_TOKEN }}
       - name: Docker Build
         run: |
-          docker build docker -f ${{ matrix.file }} -t ${{ matrix.tag }} 
+          docker build docker -f ${{ matrix.file }} -t ${{ matrix.tag }}
           docker build docker -f ${{ matrix.file }} -t ${{ matrix.latest }}
       - name: Docker Push
         run: |
           docker push ${{ matrix.tag }}
           docker push ${{ matrix.latest }}
-  
   publish-manfiest:
     name: Publish Manifest
     runs-on: ubuntu-latest
@@ -78,4 +75,3 @@ jobs:
         run: |
           docker manifest push redcanary/invoke-atomicredteam:${{ github.sha }}
           docker manifest push redcanary/invoke-atomicredteam:latest
-
