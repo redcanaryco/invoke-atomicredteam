@@ -34,6 +34,7 @@ $artConfig = [PSCustomObject]@{
   # [optional] logfile filename configs
   logFolder                  = "AtomicRunner-Logs"
   timeLocal                  = (Get-Date(get-date) -uformat "%Y-%m-%d").ToString()
+  logFileName                = "$($artConfig.timeLocal)`_$($artConfig.basehostname)-ExecLog.csv"
 
   # amsi bypass script block (applies to Windows only)
   absb                       = $null
@@ -95,7 +96,7 @@ $scriptParam = @{
   MemberType  = "ScriptProperty"
   InputObject = $artConfig
   Name        = "execLogPath"
-  Value       = { Join-Path $artConfig.atomicLogsPath "$($artConfig.timeLocal)`_$($artConfig.basehostname)-ExecLog.csv" }
+  Value       = { Join-Path $artConfig.atomicLogsPath $artConfig.logFileName }
 }
 Add-Member @scriptParam
 
