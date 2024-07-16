@@ -127,6 +127,15 @@ function Invoke-AtomicTest {
     )
     BEGIN { } # Intentionally left blank and can be removed
     PROCESS {
+        function ConvertTo-LoggerArray {
+            param (
+                [Parameter(Mandatory = $true)]
+                [string]$Loggers
+            )
+
+            return $Loggers -split ',' | ForEach-Object { $_.Trim() }
+        }
+
         $PathToAtomicsFolder = (Resolve-Path $PathToAtomicsFolder).Path
 
         Write-Verbose -Message 'Attempting to run Atomic Techniques'
@@ -180,35 +189,37 @@ function Invoke-AtomicTest {
         }
 
         if ($isLoggingModuleSet) {
-            if (Get-Module -name $LoggingModule) {
-                Write-Verbose "Using Logger: $LoggingModule"
-            }
-            else {
-                Write-Host -Fore Yellow "Logger not found: ", $LoggingModule
-            }
+            ConvertTo-LoggerArray $LoggingModule | ForEach-Object {
+                if (Get-Module -name $_) {
+                    Write-Verbose "Using Logger: $_"
+                }
+                else {
+                    Write-Host -Fore Yellow "Logger not found: ", $_
+                }
 
-            # Change the defult logFile extension from csv to json and add a timestamp if using the Attire-ExecutionLogger
-            if ($LoggingModule -eq "Attire-ExecutionLogger") { $ExecutionLogPath = $ExecutionLogPath.Replace("Invoke-AtomicTest-ExecutionLog.csv", "Invoke-AtomicTest-ExecutionLog-timestamp.json") }
-            $ExecutionLogPath = $ExecutionLogPath.Replace("timestamp", $(Get-Date -UFormat %s))
+                # Change the defult logFile extension from csv to json and add a timestamp if using the Attire-ExecutionLogger
+                if ($_ -eq "Attire-ExecutionLogger") { $ExecutionLogPath = $ExecutionLogPath.Replace("Invoke-AtomicTest-ExecutionLog.csv", "Invoke-AtomicTest-ExecutionLog-timestamp.json") }
+                $ExecutionLogPath = $ExecutionLogPath.Replace("timestamp", $(Get-Date -UFormat %s))
 
-            if (Get-Command "$LoggingModule\Start-ExecutionLog" -erroraction silentlycontinue) {
-                if (Get-Command "$LoggingModule\Write-ExecutionLog" -erroraction silentlycontinue) {
-                    if (Get-Command "$LoggingModule\Stop-ExecutionLog" -erroraction silentlycontinue) {
-                        Write-Verbose "All logging commands found"
+                if (Get-Command "$_\Start-ExecutionLog" -erroraction silentlycontinue) {
+                    if (Get-Command "$_\Write-ExecutionLog" -erroraction silentlycontinue) {
+                        if (Get-Command "$_\Stop-ExecutionLog" -erroraction silentlycontinue) {
+                            Write-Verbose "All logging commands found"
+                        }
+                        else {
+                            Write-Host "Stop-ExecutionLog not found or loaded from the wrong module"
+                            return
+                        }
                     }
                     else {
-                        Write-Host "Stop-ExecutionLog not found or loaded from the wrong module"
+                        Write-Host "Write-ExecutionLog not found or loaded from the wrong module"
                         return
                     }
                 }
                 else {
-                    Write-Host "Write-ExecutionLog not found or loaded from the wrong module"
+                    Write-Host "Start-ExecutionLog not found or loaded from the wrong module"
                     return
                 }
-            }
-            else {
-                Write-Host "Start-ExecutionLog not found or loaded from the wrong module"
-                return
             }
 
             # Here we're rebuilding an equivalent command line to put in the logs
@@ -290,7 +301,9 @@ function Invoke-AtomicTest {
             }
 
             $startTime = Get-Date
-            &"$LoggingModule\Start-ExecutionLog" $startTime $ExecutionLogPath $executionHostname $executionUser $commandLine (-Not($IsLinux -or $IsMacOS))
+            ConvertTo-LoggerArray $LoggingModule | ForEach-Object {
+                &"$_\Start-ExecutionLog" $startTime $ExecutionLogPath $executionHostname $executionUser $commandLine (-Not($IsLinux -or $IsMacOS))
+            }
         }
 
         function Platform-IncludesCloud {
@@ -489,7 +502,9 @@ function Invoke-AtomicTest {
                         if (Get-Command 'Invoke-ARTPostAtomicHook' -errorAction SilentlyContinue) { Invoke-ARTPostAtomicHook $test $InputArgs }
                         $stopTime = Get-Date
                         if ($isLoggingModuleSet) {
-                            &"$LoggingModule\Write-ExecutionLog" $startTime $stopTime $AT $testCount $test.name $test.auto_generated_guid $test.executor.name $test.description $final_command $ExecutionLogPath $executionHostname $executionUser $res (-Not($IsLinux -or $IsMacOS))
+                            ConvertTo-LoggerArray $LoggingModule | ForEach-Object {
+                                &"$_\Write-ExecutionLog" $startTime $stopTime $AT $testCount $test.name $test.auto_generated_guid $test.executor.name $test.description $final_command $ExecutionLogPath $executionHostname $executionUser $res (-Not($IsLinux -or $IsMacOS))
+                            }
                         }
                         Write-KeyValue "Done executing test: " $testId
                     }
@@ -521,7 +536,9 @@ function Invoke-AtomicTest {
         }
 
         if ($isLoggingModuleSet) {
-            &"$LoggingModule\Stop-ExecutionLog" $startTime $ExecutionLogPath $executionHostname $executionUser (-Not($IsLinux -or $IsMacOS))
+            ConvertTo-LoggerArray $LoggingModule | ForEach-Object {
+                &"$_\Stop-ExecutionLog" $startTime $ExecutionLogPath $executionHostname $executionUser (-Not($IsLinux -or $IsMacOS))
+            }
         }
 
     } # End of PROCESS block
