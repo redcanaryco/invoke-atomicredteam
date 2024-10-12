@@ -82,6 +82,9 @@ function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testNa
         'time-stop'  = $stopTime
         'executor'   = $testExecutor
         'command'    = $command
+        'process-id' = $res.ProcessId
+        'exit-code'  = $res.ExitCode
+        'is-timeout' = $res.IsTimeout
         'output'     = @()
     }
 
