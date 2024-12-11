@@ -53,8 +53,9 @@ function Invoke-ExecuteCommand ($finalCommand, $executor, $executionPlatform, $T
         # Write-Host -ForegroundColor Magenta "$execExe $arguments"
         if ($session) {
             $scriptParentPath = Split-Path $import -Parent
+            $publicPath = Join-Path (Split-Path $scriptParentPath -Parent) "Public"
             $fp = Join-Path $scriptParentPath "Invoke-Process.ps1"
-            $fp2 = Join-Path $scriptParentPath "Invoke-KillProcessTree.ps1"
+            $fp2 = Join-Path $publicPath "Invoke-KillProcessTree.ps1"
             invoke-command -Session $session -FilePath $fp
             invoke-command -Session $session -FilePath $fp2
             $res = invoke-command -Session $session -ScriptBlock { Invoke-Process -filename $Using:execExe -Arguments $Using:arguments -TimeoutSeconds $Using:TimeoutSeconds -stdoutFile "art-out.txt" -stderrFile "art-err.txt" }
