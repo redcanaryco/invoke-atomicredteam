@@ -10,7 +10,7 @@ function Invoke-ExecuteCommand ($finalCommand, $executor, $executionPlatform, $T
             }else{
                 Import-Module Invoke-ArgFuscator
             }
-            $obfuscatedCommand = $finalCommand -split "`n" | ForEach-Object {
+            $obfuscatedCommand = ($finalCommand -split "`n" | ForEach-Object {
                 if ($_.Trim()) {
                     Invoke-ArgFuscator -Command $_ -n 1
                 } else {
