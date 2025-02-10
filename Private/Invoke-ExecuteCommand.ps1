@@ -16,7 +16,7 @@ function Invoke-ExecuteCommand ($finalCommand, $executor, $executionPlatform, $T
                 } else {
                     $_
                 }
-            } | Join-String -Separator "`n"
+            }) -join "`n"
             # If the command doesn't support Obfuscation, Invoke-ArgFuscator returns empty. 
             if ($obfuscatedCommand) {
                 Write-Warning "Command obfuscation is an experimental feature that may produce unexpected results. Please verify commands before execution."
