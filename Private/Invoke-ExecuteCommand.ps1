@@ -1,7 +1,19 @@
-function Invoke-ExecuteCommand ($finalCommand, $executor, $executionPlatform, $TimeoutSeconds, $session = $null, $interactive) {
+function Invoke-ExecuteCommand ($finalCommand, $executor, $executionPlatform, $TimeoutSeconds, $session = $null, $interactive, $Obfuscate = $false) {
     $null = @(
         if ($null -eq $finalCommand) { return 0 }
         $finalCommand = $finalCommand.trim()
+        # Invoke-ArgFuscator right now works only with Windows
+        if ($Obfuscate -and -not (($IsLinux -or $IsMacOS))) {
+            # Install module if it doesn't exist
+            if (-not (Get-Module -ListAvailable "Invoke-ArgFuscator")) {
+                Install-Module Invoke-ArgFuscator
+            }
+            $obfuscatedCommand = Invoke-ArgFuscator -Command $finalCommand 1
+            # If the command doesn't support Obfuscation, Invoke-ArgFuscator returns empty. 
+            if ($obfuscatedCommand) {
+                $finalCommand = $obfuscatedCommand
+            }
+        }
         Write-Verbose -Message 'Invoking Atomic Tests using defined executor'
         if ($executor -eq "command_prompt" -or $executor -eq "sh" -or $executor -eq "bash") {
             $execPrefix = "-c"
@@ -50,7 +62,7 @@ function Invoke-ExecuteCommand ($finalCommand, $executor, $executionPlatform, $T
             }
         }
 
-        # Write-Host -ForegroundColor Magenta "$execExe $arguments"
+        Write-Host -ForegroundColor Magenta "$execExe $arguments"
         if ($session) {
             $scriptParentPath = Split-Path $import -Parent
             $publicPath = Join-Path (Split-Path $scriptParentPath -Parent) "Public"
