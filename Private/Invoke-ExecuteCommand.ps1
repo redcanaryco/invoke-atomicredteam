@@ -7,10 +7,19 @@ function Invoke-ExecuteCommand ($finalCommand, $executor, $executionPlatform, $T
             # Install module if it doesn't exist
             if (-not (Get-Module -ListAvailable "Invoke-ArgFuscator")) {
                 Install-Module Invoke-ArgFuscator
+            }else{
+                Import-Module Invoke-ArgFuscator
             }
-            $obfuscatedCommand = Invoke-ArgFuscator -Command $finalCommand 1
+            $obfuscatedCommand = $finalCommand -split "`n" | ForEach-Object {
+                if ($_.Trim()) {
+                    Invoke-ArgFuscator -Command $_ -n 1
+                } else {
+                    $_
+                }
+            } | Join-String -Separator "`n"
             # If the command doesn't support Obfuscation, Invoke-ArgFuscator returns empty. 
             if ($obfuscatedCommand) {
+                Write-Warning "Command obfuscation is an experimental feature that may produce unexpected results. Please verify commands before execution."
                 $finalCommand = $obfuscatedCommand
             }
         }
