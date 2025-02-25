@@ -1,7 +1,7 @@
 name: publish-release
 on:
   push:
-    tags: ['v*.*.*']
+    tags: ["v*.*.*"]
 jobs:
   publish-powershell-gallery:
     runs-on: ubuntu-latest
@@ -10,7 +10,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Update Module Version
         run: |
-          sed -i "s/ModuleVersion     = '.*'/ModuleVersion     = '${{ github.event.release.tag_name | replace('v', '') }}'/g" Invoke-AtomicRedTeam.psd1
+          sed -i '' "s/ModuleVersion     = '.*'/ModuleVersion     = '$(echo '${{ github.event.release.tag_name }}' | cut -c 2-)'/g" Invoke-AtomicRedTeam.psd1
       - name: publishing
         run: |
           Install-Module -Name powershell-yaml -Force
