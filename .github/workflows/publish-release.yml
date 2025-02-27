@@ -10,7 +10,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Update Module Version
         run: |
-          sed -i "s/ModuleVersion     = '.*'/ModuleVersion     = '$(echo '${{ GITHUB_REF_NAME }}' | cut -c 2-)'/g" Invoke-AtomicRedTeam.psd1
+          sed -i "s/ModuleVersion     = '.*'/ModuleVersion     = '$(echo $GITHUB_REF_NAME | cut -c 2-)'/g" Invoke-AtomicRedTeam.psd1
       - name: publishing
         run: |
           Install-Module -Name powershell-yaml -Force
