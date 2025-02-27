@@ -11,9 +11,6 @@ jobs:
       - name: Update Module Version
         run: |
           sed -i "s/ModuleVersion     = '.*'/ModuleVersion     = '$(echo $GITHUB_REF_NAME | cut -c 2-)'/g" Invoke-AtomicRedTeam.psd1
-      - name: Get psd1
-        run: |
-          cat Invoke-AtomicRedTeam.psd1
       - name: publishing
         run: |
           Install-Module -Name powershell-yaml -Force
