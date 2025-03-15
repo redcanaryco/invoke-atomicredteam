@@ -202,70 +202,15 @@ function Invoke-AtomicTest {
             $Parameters['SupressPathToAtomicsFolder'] = $true
             $Parameters["ExecutionLogPath"] = $ExecutionLogPath
 
-            if ($ShowDetails) {
-                $Parameters["ShowDetails"] = $ShowDetails
+            # Copy all bound parameters except TestGuids (which is handled separately)
+            $PSBoundParameters.GetEnumerator() | Where-Object { $_.Key -ne 'TestGuids' } | ForEach-Object {
+                $Parameters[$_.Key] = $_.Value
             }
-
-            if ($ShowDetailsBrief) {
-                $Parameters["ShowDetailsBrief"] = $ShowDetailsBrief
-            }
-
-            if ($null -ne $TestNumbers) {
-                $Parameters["TestNumbers"] = $TestNumbers
-            }
-
-            if ($null -ne $TestNames) {
-                $Parameters["TestNames"] = $TestNames
-            }
-
-            if ($CheckPrereqs) {
-                $Parameters["CheckPrereqs"] = $CheckPrereqs
-            }
-
-            if ($PromptForInputArgs) {
-                $Parameters["PromptForInputArgs"] = $PromptForInputArgs
-            }
-
-            if ($GetPrereqs) {
-                $Parameters["GetPrereqs"] = $GetPrereqs
-            }
-
-            if ($Cleanup) {
-                $Parameters["Cleanup"] = $Cleanup
-            }
-
-            if ($NoExecutionLog) {
-                $Parameters["NoExecutionLog"] = $NoExecutionLog
-            }
-
-            if ($Force) {
-                $Parameters["Force"] = $Force
-            }
-
-            if ($null -ne $InputArgs) {
-                $Parameters["InputArgs"] = $InputArgs
-            }
-
-            if ($PSBoundParameters.ContainsKey('Session')) {
-                if ( $null -eq $Session ) {
-                    Write-Error "The provided session is null and cannot be used."
-                    continue
-                }
-                else {
-                    $Parameters["Session"] = $Session
-                }
-            }
-
-            if ($Interactive) {
-                $Parameters["Interactive"] = $Interactive
-            }
-
-            if ($KeepStdOutStdErrFiles) {
-                $Parameters["KeepStdOutStdErrFiles"] = $KeepStdOutStdErrFiles
-            }
-
-            if ($LoggingModule) {
-                $Parameters["LoggingModule"] = $LoggingModule
+            
+            # Special handling for Session parameter
+            if ($Parameters.ContainsKey('Session') -and $null -eq $Parameters['Session']) {
+                Write-Error "The provided session is null and cannot be used."
+                continue
             }
 
             foreach ($guid in $TestGuids) {
