@@ -2,10 +2,10 @@ name: Installation Check
 on:
   pull_request:
     branches:
-      - main
+      - master
   push:
     branches:
-      - main
+      - master
 permissions:
   contents: read
 jobs:
@@ -23,7 +23,7 @@ jobs:
       - name: Add upstream remote and fetch base branch
         run: |
           git remote add upstream https://github.com/${{ github.repository }}.git
-          git fetch upstream main
+          git fetch upstream master
       - name: Detect fork
         id: forkcheck
         run: |
@@ -35,7 +35,7 @@ jobs:
       - name: Check if install scripts were modified
         id: filecheck
         run: |
-          MODIFIED=$(git diff --name-only upstream/main HEAD)
+          MODIFIED=$(git diff --name-only upstream/master HEAD)
           echo "$MODIFIED"
           if echo "$MODIFIED" | grep -qE '^install-atomicredteam\.ps1$|^install-atomicsfolder\.ps1$'; then
             echo "scripts_modified=true" >> $GITHUB_OUTPUT
