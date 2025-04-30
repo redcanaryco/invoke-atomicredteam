@@ -19,7 +19,7 @@ jobs:
       - name: Checkout PR branch with history
         uses: actions/checkout@v3
         with:
-          fetch-depth: 2 # allow accurate diffs
+          fetch-depth: 0 # allow accurate diffs
       - name: Add upstream remote and fetch base branch
         run: |
           git remote add upstream https://github.com/${{ github.repository }}.git
