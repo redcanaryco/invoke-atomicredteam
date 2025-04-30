@@ -57,8 +57,8 @@ jobs:
         shell: pwsh
         run: |
           Write-Output "Running install scripts from trusted context"
-          powershell -ExecutionPolicy Bypass -File ./install-atomicredteam.ps1
-          powershell -ExecutionPolicy Bypass -File ./install-atomicsfolder.ps1
+          ./install-atomicredteam.ps1
+          ./install-atomicsfolder.ps1
       - name: Skip script execution
         if: steps.safecheck.outputs.safe != 'true'
         run: |
