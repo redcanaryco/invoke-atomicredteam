@@ -9,7 +9,7 @@ on:
 permissions:
   contents: read
 jobs:
-  install-check:
+  secure-install-check:
     name: Secure Install Check
     runs-on: ${{ matrix.os }}
     strategy:
@@ -19,21 +19,24 @@ jobs:
       - name: Checkout PR branch with full history
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0 # full history for accurate diffing
+          fetch-depth: 0
       - name: Add upstream remote and fetch base branch
+        shell: bash
         run: |
           git remote add upstream https://github.com/${{ github.repository }}.git
           git fetch upstream master
       - name: Detect fork
         id: forkcheck
+        shell: pwsh
         run: |
-          if [ "${{ github.repository }}" != "${{ github.event.pull_request.head.repo.full_name }}" ]; then
-            echo "is_fork=true" >> $GITHUB_OUTPUT
-          else
-            echo "is_fork=false" >> $GITHUB_OUTPUT
-          fi
+          if ("${{ github.repository }}" -ne "${{ github.event.pull_request.head.repo.full_name }}") {
+            "is_fork=true" >> $env:GITHUB_OUTPUT
+          } else {
+            "is_fork=false" >> $env:GITHUB_OUTPUT
+          }
       - name: Check if install scripts were modified
         id: filecheck
+        shell: bash
         run: |
           MODIFIED=$(git diff --name-only upstream/master HEAD)
           echo "$MODIFIED"
@@ -44,14 +47,17 @@ jobs:
           fi
       - name: Decide whether to run scripts
         id: safecheck
+        shell: pwsh
         run: |
-          if [ "${{ steps.filecheck.outputs.scripts_modified }}" = "false" ]; then
-            echo "safe=true" >> $GITHUB_OUTPUT
-          elif [ "${{ steps.forkcheck.outputs.is_fork }}" = "false" ]; then
-            echo "safe=true" >> $GITHUB_OUTPUT
-          else
-            echo "safe=false" >> $GITHUB_OUTPUT
-          fi
+          if ("${{ steps.filecheck.outputs.scripts_modified }}" -eq "false") {
+            "safe=true" >> $env:GITHUB_OUTPUT
+          } elseif ("${{ github.event_name }}" -eq "push") {
+            "safe=true" >> $env:GITHUB_OUTPUT
+          } elseif ("${{ steps.forkcheck.outputs.is_fork }}" -eq "false") {
+            "safe=true" >> $env:GITHUB_OUTPUT
+          } else {
+            "safe=false" >> $env:GITHUB_OUTPUT
+          }
       - name: Execute install scripts
         if: steps.safecheck.outputs.safe == 'true'
         shell: pwsh
