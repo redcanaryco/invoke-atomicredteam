@@ -16,10 +16,10 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
-      - name: Checkout PR branch with history
+      - name: Checkout PR branch with full history
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0 # allow accurate diffs
+          fetch-depth: 0 # full history for accurate diffing
       - name: Add upstream remote and fetch base branch
         run: |
           git remote add upstream https://github.com/${{ github.repository }}.git
@@ -43,12 +43,14 @@ jobs:
             echo "scripts_modified=false" >> $GITHUB_OUTPUT
           fi
       - name: Decide whether to run scripts
-        id: check
+        id: safecheck
         run: |
-          if [ "${{ steps.forkcheck.outputs.is_fork }}" = "true" ] && [ "${{ steps.filecheck.outputs.scripts_modified }}" = "true" ]; then
-            echo "safe=false" >> $GITHUB_OUTPUT
-          else
+          if [ "${{ steps.filecheck.outputs.scripts_modified }}" = "false" ]; then
             echo "safe=true" >> $GITHUB_OUTPUT
+          elif [ "${{ steps.forkcheck.outputs.is_fork }}" = "false" ]; then
+            echo "safe=true" >> $GITHUB_OUTPUT
+          else
+            echo "safe=false" >> $GITHUB_OUTPUT
           fi
       - name: Execute install scripts
         if: steps.safecheck.outputs.safe == 'true'
