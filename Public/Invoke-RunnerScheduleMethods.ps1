@@ -46,8 +46,8 @@ function Get-NewSchedule() {
         Write-Verbose "Private Atomics Folder not Found $($artConfig.PathToPrivateAtomicsFolder)"
     }
     $AllAtomicTests = New-Object System.Collections.ArrayList
-    try { $AllAtomicTests.AddRange($publicAtomics) }catch {}
-    try { $AllAtomicTests.AddRange($privateAtomics) }catch {}
+    try { $AllAtomicTests.AddRange(@($publicAtomics)) } catch { Write-Error $_ }
+    try { $AllAtomicTests.AddRange(@($privateAtomics)) } catch { Write-Error $_ }
     return $AllAtomicTests
 }
 
