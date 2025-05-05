@@ -31,10 +31,8 @@ $artConfig = [PSCustomObject]@{
 
   verbose                    = $true; # set to true for more log output
 
-  # [optional] logfile filename configs
+  # [optional] logfile filename config
   logFolder                  = "AtomicRunner-Logs"
-  timeLocal                  = (Get-Date(get-date) -uformat "%Y-%m-%d").ToString()
-  logFileName                = "$($artConfig.timeLocal)`_$($artConfig.basehostname)-ExecLog.csv"
 
   # amsi bypass script block (applies to Windows only)
   absb                       = $null
@@ -43,6 +41,24 @@ $artConfig = [PSCustomObject]@{
   ServiceInstallDir                 = "${ENV:windir}\System32"
 
 }
+
+# For log filenames to update with the current time when they are accessed, they need to initiated as ScriptProperty properties
+$scriptParam = @{
+  MemberType  = "ScriptProperty"
+  InputObject = $PrivateConfig
+  Name        = "timeLocal"
+  Value       = { (Get-Date(get-date) -uformat "%Y-%m-%dT%H-%M").ToString() }
+}
+Add-Member @scriptParam
+
+$scriptParam = @{
+  MemberType  = "ScriptProperty"
+  InputObject = $PrivateConfig
+  Name        = "logFileName"
+  Value       = { "$($artConfig.timeLocal)`_$($artConfig.basehostname)-ExecLog.csv" }
+}
+Add-Member @scriptParam
+
 
 # If you create a file called privateConfig.ps1 in the same directory as you installed Invoke-AtomicRedTeam you can overwrite any of these settings with your custom values
 $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
