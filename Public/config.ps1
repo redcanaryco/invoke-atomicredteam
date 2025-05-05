@@ -48,7 +48,7 @@ $scriptParam = @{
   MemberType  = "ScriptProperty"
   InputObject = $PrivateConfig
   Name        = "timeLocal"
-  Value       = { (Get-Date(get-date) -uformat "%Y-%m-%dT%H-%M").ToString() }
+  Value       = { (Get-Date(get-date) -uformat "%Y-%m-%d").ToString() }
 }
 Add-Member @scriptParam
 
