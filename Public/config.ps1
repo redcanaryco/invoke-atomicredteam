@@ -31,7 +31,7 @@ $artConfig = [PSCustomObject]@{
 
   verbose                    = $true; # set to true for more log output
 
-  # [optional] logfile filename config
+  # [optional] log location configuration
   logFolder                  = "AtomicRunner-Logs"
 
   # amsi bypass script block (applies to Windows only)
@@ -42,7 +42,8 @@ $artConfig = [PSCustomObject]@{
 
 }
 
-# For log filenames to update with the current time when they are accessed, they need to initiated as ScriptProperty properties
+# [optional] log filename configuration
+# For log filenames to update with the current time when they are accessed, they need to be initiated as ScriptProperty properties
 $scriptParam = @{
   MemberType  = "ScriptProperty"
   InputObject = $PrivateConfig
