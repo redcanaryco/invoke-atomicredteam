@@ -60,7 +60,6 @@ $scriptParam = @{
 }
 Add-Member @scriptParam
 
-
 # If you create a file called privateConfig.ps1 in the same directory as you installed Invoke-AtomicRedTeam you can overwrite any of these settings with your custom values
 $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $pathToPrivateConfig = Join-Path $root "privateConfig.ps1"
