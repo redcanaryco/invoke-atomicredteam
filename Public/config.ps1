@@ -72,7 +72,13 @@ $scriptParam = @{
   MemberType  = "ScriptProperty"
   InputObject = $artConfig
   Name        = "atomicLogsPath"
-  Value       = { Join-Path $artConfig.basePath $artConfig.logFolder }
+  Value       = {
+    if (($artConfig.logFolder -match "^[A-Za-z]:\\") -or ($artConfig.logFolder -match "^/")) {
+      $artConfig.logFolder
+    } else {
+      Join-Path $artConfig.basePath $artConfig.logFolder
+    }
+  }
 }
 Add-Member @scriptParam
 
