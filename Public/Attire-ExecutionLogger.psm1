@@ -146,11 +146,29 @@ function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testNa
 
 function Stop-ExecutionLog($startTime, $logPath, $targetHostname, $targetUser, $isWindows) {
     $script:attireLog.'execution-data'.'time-generated' = (Get-Date (Get-Date).ToUniversalTime() -UFormat '+%Y-%m-%dT%H:%M:%S.000Z')
-    #$script:attireLog | Export-Csv -Path "attireLogObject.csv"
+
+    $existingLog = $null
+    $resolvedPath = Resolve-NonexistantPath($logPath)
+
+    if (Test-Path $resolvedPath) {
+        try {
+            $existingContent = Get-Content -Path $resolvedPath -Raw -ErrorAction SilentlyContinue
+            if ($existingContent) {
+                $existingLog = $existingContent | ConvertFrom-Json -ErrorAction SilentlyContinue
+            }
+        } catch {
+            Write-Host "Warning: Could not read existing log file. Creating a new one." -ForegroundColor Yellow
+        }
+    }
+
+    # If we have a valid existing log, we will append the procedures
+    if ($existingLog -and ($existingLog.'attire-version' -eq $script:attireLog.'attire-version')) {
+        $script:attireLog.procedures = $existingLog.procedures + $script:attireLog.procedures
+    }
+
     $content = ($script:attireLog | ConvertTo-Json -Depth 12)
-    #$Utf8NoBom = New-Object System.Text.UTF8Encoding $False
-    [System.IO.File]::WriteAllLines((Resolve-NonexistantPath($logPath)), $content)
-    #Out-File -FilePath $logPath -InputObject ($script:attireLog | ConvertTo-Json -Depth 12) -Append -Encoding ASCII
+    [System.IO.File]::WriteAllLines($resolvedPath, $content)
+
     $script:attireLog = [PSCustomObject]@{
         'attire-version' = '1.1'
         'execution-data' = ''
