@@ -1,5 +1,5 @@
 function Invoke-AtomicTest {
-    [CmdletBinding(DefaultParameterSetName = 'technique',
+    [CmdletBinding(DefaultParameterSetName = 'guid',
         SupportsShouldProcess = $true,
         PositionalBinding = $false,
         ConfirmImpact = 'Medium')]
@@ -15,115 +15,165 @@ function Invoke-AtomicTest {
         [Parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'technique')]
+        [Parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'guid')]
         [switch]
         $ShowDetails,
 
         [Parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'technique')]
+        [Parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'guid')]
         [switch]
         $ShowDetailsBrief,
 
         [Parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'technique')]
+        [Parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'guid')]
         [switch]
         $anyOS,
 
         [Parameter(Mandatory = $false,
             ParameterSetName = 'technique')]
+        [Parameter(Mandatory = $false,
+            ParameterSetName = 'guid')]
         [String[]]
         $TestNumbers,
 
         [Parameter(Mandatory = $false,
             ParameterSetName = 'technique')]
+        [Parameter(Mandatory = $false,
+            ParameterSetName = 'guid')]
         [String[]]
         $TestNames,
 
         [Parameter(Mandatory = $false,
             ParameterSetName = 'technique')]
+        [Parameter(Mandatory = $true,
+            ParameterSetName = 'guid')]
         [String[]]
         $TestGuids,
 
         [Parameter(Mandatory = $false,
             ParameterSetName = 'technique')]
+        [Parameter(Mandatory = $false,
+            ParameterSetName = 'guid')]
         [String]
         $PathToAtomicsFolder = $( if ($IsLinux -or $IsMacOS) { $Env:HOME + "/AtomicRedTeam/atomics" } else { $env:HOMEDRIVE + "\AtomicRedTeam\atomics" }),
 
         [Parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'technique')]
+        [Parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'guid')]
         [switch]
         $CheckPrereqs = $false,
 
         [Parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'technique')]
+        [Parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'guid')]
         [switch]
         $PromptForInputArgs = $false,
 
         [Parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'technique')]
+        [Parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'guid')]
         [switch]
         $GetPrereqs = $false,
 
         [Parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'technique')]
+        [Parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'guid')]
         [switch]
         $Cleanup = $false,
 
         [Parameter(Mandatory = $false,
             ParameterSetName = 'technique')]
+        [Parameter(Mandatory = $false,
+            ParameterSetName = 'guid')]
         [switch]
         $NoExecutionLog = $false,
 
         [Parameter(Mandatory = $false,
             ParameterSetName = 'technique')]
+        [Parameter(Mandatory = $false,
+            ParameterSetName = 'guid')]
         [String]
         $ExecutionLogPath = $( if ($IsLinux -or $IsMacOS) { "/tmp/Invoke-AtomicTest-ExecutionLog.csv" } else { "$env:TEMP\Invoke-AtomicTest-ExecutionLog.csv" }),
 
         [Parameter(Mandatory = $false,
             ParameterSetName = 'technique')]
+        [Parameter(Mandatory = $false,
+            ParameterSetName = 'guid')]
         [switch]
         $Force,
 
         [Parameter(Mandatory = $false,
             ParameterSetName = 'technique')]
+        [Parameter(Mandatory = $false,
+            ParameterSetName = 'guid')]
         [HashTable]
         $InputArgs,
 
         [Parameter(Mandatory = $false,
             ParameterSetName = 'technique')]
+        [Parameter(Mandatory = $false,
+            ParameterSetName = 'guid')]
         [Int]
         $TimeoutSeconds = 120,
 
         [Parameter(Mandatory = $false, ParameterSetName = 'technique')]
-        [System.Management.Automation.Runspaces.PSSession[]]$Session,
+        [Parameter(Mandatory = $false, ParameterSetName = 'guid')]
+        [System.Management.Automation.Runspaces.PSSession[]]
+        $Session,
 
         [Parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'technique')]
+        [Parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'guid')]
         [switch]
         $Interactive = $false,
 
         [Parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'technique')]
+        [Parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'guid')]
         [switch]
         $KeepStdOutStdErrFiles = $false,
 
         [Parameter(Mandatory = $false,
             ParameterSetName = 'technique')]
+        [Parameter(Mandatory = $false,
+            ParameterSetName = 'guid')]
         [String]
         $LoggingModule,
 
         [Parameter(Mandatory = $false,
             ParameterSetName = 'technique')]
+        [Parameter(Mandatory = $false,
+            ParameterSetName = 'guid')]
         [switch]
         $SupressPathToAtomicsFolder = $false
-
     )
     BEGIN { } # Intentionally left blank and can be removed
     PROCESS {
@@ -143,6 +193,43 @@ function Invoke-AtomicTest {
 
         $executionPlatform, $isElevated, $tmpDir, $executionHostname, $executionUser = Get-TargetInfo $Session
         $PathToPayloads = if ($Session) { "$tmpDir`AtomicRedTeam" }  else { $PathToAtomicsFolder }
+
+
+        if ($PSCmdlet.ParameterSetName -eq 'guid') {
+            $Parameters = @{}
+            $Parameters["PathToAtomicsFolder"] = $PathToAtomicsFolder
+            $Parameters["TimeoutSeconds"] = $TimeoutSeconds
+            $Parameters['SupressPathToAtomicsFolder'] = $true
+            $Parameters["ExecutionLogPath"] = $ExecutionLogPath
+
+            # Copy all bound parameters except TestGuids (which is handled separately)
+            $PSBoundParameters.GetEnumerator() | Where-Object { $_.Key -ne 'TestGuids' } | ForEach-Object {
+                $Parameters[$_.Key] = $_.Value
+            }
+            
+            # Special handling for Session parameter
+            if ($Parameters.ContainsKey('Session') -and $null -eq $Parameters['Session']) {
+                Write-Error "The provided session is null and cannot be used."
+                continue
+            }
+
+            foreach ($guid in $TestGuids) {
+                $Match = Get-ChildItem -Path $PathToAtomicsFolder -Filter 'T*.yaml' -Recurse | Select-String -Pattern $guid | Select-Object -First 1 | Select-Object Path, line
+                if (-not $Match) {
+                    Write-Error -Message $('Test with guid "{0}" not found.' -f $guid)
+                    continue
+                }
+                $TechniqueNum = (Split-Path -Path $Match.Path -Leaf) -replace '.yaml', ''
+                if ($null -eq $TechniqueNum) {
+                    continue
+                }
+                $Parameters['AtomicTechnique'] = $TechniqueNum
+                $Parameters['TestGuids'] = $guid
+                & 'Invoke-AtomicTest' @Parameters
+            }
+
+            return
+        }
 
         # Since there might a comma(T1559-1,2,3) Powershell takes it as array.
         # So converting it back to string.
