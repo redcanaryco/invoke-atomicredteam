@@ -1,7 +1,50 @@
-function Invoke-ExecuteCommand ($finalCommand, $executor, $executionPlatform, $TimeoutSeconds, $session = $null, $interactive) {
+function Get-ObfuscatedCommand($command, $executor) {
+    $obfuscatedCommand = $null
+    if ($executor -eq "command_prompt") {
+        # Install module if it doesn't exist
+        if (-not (Get-Command Invoke-ArgFuscator)) {
+            Install-Module Invoke-ArgFuscator
+        }
+        $obfuscatedCommand = ($command -split "`n" | ForEach-Object {
+                if ($_.Trim()) {
+                    Invoke-ArgFuscator -Command $_ -n 1 -ErrorAction SilentlyContinue
+                }
+                else {
+                    $_
+                }
+            }) -join "`n"
+    }
+    elseif ($executor -eq "powershell") {
+        # The official Invoke-Obfuscation module is not available in the Powershell Gallery
+        if (-not (Get-Command Invoke-Obfuscation)) {
+            Write-Warning "Download and import Invoke-Obfuscation to enable Obfuscation. Running the command without Obfuscation."
+        }
+        else {
+            $obfuscatedCommand = Invoke-Obfuscation -ScriptBlock { $finalCommand } -Command 'TOKEN\*,ENCODING\*,STRING\*,COMPRESS\1' -Quiet
+        }
+    }
+    else {
+        Write-Warning "Obfuscation is not supported yet for $executor. Executing without Obfuscation"
+    }
+
+    # If the command doesn't support Obfuscation, Invoke-ArgFuscator returns empty.
+    if ($obfuscatedCommand) {
+        Write-Warning "Command obfuscation is an experimental feature that may produce unexpected results. Please verify commands before execution."
+        return $obfuscatedCommand
+    }
+    else {
+        return $command
+    }
+}
+
+function Invoke-ExecuteCommand ($finalCommand, $executor, $executionPlatform, $TimeoutSeconds, $session = $null, $interactive, $Obfuscate = $false) {
     $null = @(
         if ($null -eq $finalCommand) { return 0 }
         $finalCommand = $finalCommand.trim()
+        # Invoke-ArgFuscator/Invoke-Obfuscation right now works only with Windows
+        if ($Obfuscate -and -not (($IsLinux -or $IsMacOS))) {
+            $finalCommand = Get-ObfuscatedCommand $finalCommand $executor
+        }
         Write-Verbose -Message 'Invoking Atomic Tests using defined executor'
         if ($executor -eq "command_prompt" -or $executor -eq "sh" -or $executor -eq "bash") {
             $execPrefix = "-c"
