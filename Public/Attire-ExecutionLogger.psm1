@@ -1,4 +1,4 @@
-# Attire-ExecutionLogger.psm1
+﻿# Attire-ExecutionLogger.psm1
 # Copyright 2023 Security Risk Advisors
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”),
@@ -17,9 +17,23 @@ $script:attireLog = [PSCustomObject]@{
     'procedures'     = @()
 }
 
-function Start-ExecutionLog($startTime, $logPath, $targetHostname, $targetUser, $commandLine, $isWindows) {
+function Start-ExecutionLog {
+    [CmdletBinding(SupportsShouldProcess=$true)]
+    Param(
+        [Parameter(Mandatory=$true)][object]$startTime,
+        [string]$logPath,
+        [string]$targetHostname,
+        [string]$targetUser,
+        [string]$commandLine,
+        [bool]$isWindowsFlag
+    )
 
-    $ipAddress = Get-PreferredIPAddress $isWindows
+    if (-not $PSCmdlet.ShouldProcess($logPath, 'Start execution log')) { return }
+
+    # Mark parameters as used to satisfy static analysis
+    $null = $startTime; $null = $logPath; $null = $targetHostname; $null = $targetUser; $null = $commandLine; $null = $isWindowsFlag
+
+    $ipAddress = Get-PreferredIPAddress $isWindowsFlag
 
     if ($targetUser -isnot [string]) {
         if ([bool]($targetUser.PSobject.Properties.name -match "^value$")) {
@@ -66,7 +80,7 @@ function Start-ExecutionLog($startTime, $logPath, $targetHostname, $targetUser, 
     $script:attireLog.'execution-data' = $executionData
 }
 
-function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testName, $testGuid, $testExecutor, $testDescription, $command, $logPath, $targetHostname, $targetUser, $res, $isWindows) {
+function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testName, $testGuid, $testExecutor, $testDescription, $command, $logPath, $targetHostname, $targetUser, $res, $isWindowsFlag) {
 
     $startTime = (Get-Date($startTime).ToUniversalTime() -UFormat '+%Y-%m-%dT%H:%M:%S.000Z').ToString()
     $stopTime = (Get-Date($stopTime).ToUniversalTime() -UFormat '+%Y-%m-%dT%H:%M:%S.000Z').ToString()
@@ -144,7 +158,20 @@ function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testNa
     $script:attireLog.procedures += $procedure
 }
 
-function Stop-ExecutionLog($startTime, $logPath, $targetHostname, $targetUser, $isWindows) {
+function Stop-ExecutionLog {
+    [CmdletBinding(SupportsShouldProcess=$true)]
+    Param(
+        [Parameter(Mandatory=$true)][object]$startTime,
+        [string]$logPath,
+        [string]$targetHostname,
+        [string]$targetUser,
+        [bool]$isWindowsFlag
+    )
+    if (-not $PSCmdlet.ShouldProcess($logPath, 'Stop execution log')) { return }
+
+    # Mark parameters as used to satisfy static analysis
+    $null = $startTime; $null = $logPath; $null = $targetHostname; $null = $targetUser; $null = $isWindowsFlag
+
     $script:attireLog.'execution-data'.'time-generated' = (Get-Date (Get-Date).ToUniversalTime() -UFormat '+%Y-%m-%dT%H:%M:%S.000Z')
     #$script:attireLog | Export-Csv -Path "attireLogObject.csv"
     $content = ($script:attireLog | ConvertTo-Json -Depth 12)
@@ -159,10 +186,11 @@ function Stop-ExecutionLog($startTime, $logPath, $targetHostname, $targetUser, $
 }
 
 function Resolve-NonexistantPath($File) {
-    $Path = Resolve-Path $File -ErrorAction SilentlyContinue -ErrorVariable error
+    # Use a non-automatic error variable name to avoid clobbering the global $Error automatic variable
+    $Path = Resolve-Path $File -ErrorAction SilentlyContinue -ErrorVariable resolveError
 
-    if (-not($Path)) {
-        $Path = $error[0].TargetObject
+    if (-not($Path) -and $resolveError) {
+        $Path = $resolveError[0].TargetObject
     }
 
     return $Path

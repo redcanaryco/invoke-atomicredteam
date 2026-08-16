@@ -102,7 +102,7 @@ function Invoke-SetupAtomicRunner {
             $action = $action1 + "/" + $time1 + "/" + $action2 + "/" + $time2 + "/" + $actionLast + "/" + $timeLast
             foreach ($service in $services) {
                 # https://technet.microsoft.com/en-us/library/cc742019.aspx
-                $output = sc.exe  failure $($service.Name) actions= $action reset= $resetCounter
+                sc.exe  failure $($service.Name) actions= $action reset= $resetCounter | Out-Null
             }
             # set service to delayed auto-start (doesn't reflect in the services console until after a reboot)
             Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\AtomicRunnerService" -Name Start -Value 2
@@ -116,10 +116,10 @@ function Invoke-SetupAtomicRunner {
         # sets cronjob string using basepath from config.ps1
         $pwshPath = which pwsh
         $job = "@reboot root sleep 60;$pwshPath -Command Invoke-KickoffAtomicRunner"
-        $exists = cat /etc/crontab | Select-String -Quiet "KickoffAtomicRunner"
+        $exists = Get-Content /etc/crontab | Select-String -Quiet "KickoffAtomicRunner"
         #checks if the Kickoff-AtomicRunner job exists. If not appends it to the system crontab.
         if ($null -eq $exists) {
-            $(Write-Output "$job" >> /etc/crontab)
+            Add-Content -Path /etc/crontab -Value "$job"
             write-host "setting cronjob"
         }
         else {

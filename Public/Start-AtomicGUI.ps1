@@ -1,7 +1,9 @@
 function Start-AtomicGUI {
+    [CmdletBinding(SupportsShouldProcess=$true)]
     param (
         [Int] $port = 8487
     )
+    if (-not $PSCmdlet.ShouldProcess('Atomic GUI','Start')) { return }
     # Install-Module UniversalDashboard if not already installed
     $UDcommunityInstalled = Get-InstalledModule -Name "UniversalDashboard.Community" -ErrorAction:SilentlyContinue
     $UDinstalled = Get-InstalledModule -Name "UniversalDashboard" -ErrorAction:SilentlyContinue
@@ -11,14 +13,22 @@ function Start-AtomicGUI {
     }
 
     ############## Function Definitions Made Available to EndPoints
-    function New-UDTextAreaX ($ID, $PlaceHolder) {
+    function New-UDTextAreaX {
+        [CmdletBinding(SupportsShouldProcess=$true)]
+        Param($ID, $PlaceHolder)
+        if (-not $PSCmdlet.ShouldProcess($ID, 'Create UD element')) { return }
+        $null = $ID; $null = $PlaceHolder
         New-UDElement -Tag div -Attributes @{class = "input-field col" } -Content {
             New-UDElement -Tag "textarea" -id  $ID -Attributes @{ class = "materialize-textarea ud-input" }
             New-UDElement -Tag Label -Attributes @{for = $ID } -Content { $PlaceHolder }
         }
     }
 
-    function New-UDTextBoxX ($ID, $PlaceHolder) {
+    function New-UDTextBoxX {
+        [CmdletBinding(SupportsShouldProcess=$true)]
+        Param($ID, $PlaceHolder)
+        if (-not $PSCmdlet.ShouldProcess($ID, 'Create UD element')) { return }
+        $null = $ID; $null = $PlaceHolder
         New-UDElement -Tag div -Attributes @{class = "input-field col" } -Content {
             New-UDElement -Tag "input" -id $ID -Attributes @{ class = "ud-input"; type = "text" }
             New-UDElement -Tag Label -Attributes @{for = $ID } -Content { $PlaceHolder }
@@ -27,6 +37,9 @@ function Start-AtomicGUI {
 
     $InputArgCards = @{ }
     function New-InputArgCard {
+        [CmdletBinding(SupportsShouldProcess=$true)]
+        Param()
+        if (-not $PSCmdlet.ShouldProcess('InputArgCard', 'Create')) { return }
         $cardNumber = $InputArgCards.count + 1
         $newCard = New-UDCard -ID "InputArgCard$cardNumber" -Content {
             New-UDTextBoxX "InputArgCard$cardNumber-InputArgName" "Input Argument Name"
@@ -53,6 +66,9 @@ function Start-AtomicGUI {
 
     $depCards = @{ }
     function New-depCard {
+        [CmdletBinding(SupportsShouldProcess=$true)]
+        Param()
+        if (-not $PSCmdlet.ShouldProcess('depCard', 'Create')) { return }
         $cardNumber = $depCards.count + 1
         $newCard = New-UDCard -ID "depCard$cardNumber" -Content {
             New-UDTextBoxX "depCard$cardNumber-depDescription" "Prereq Description"
@@ -69,7 +85,11 @@ function Start-AtomicGUI {
         $newCard
     }
 
-    function New-UDSelectX ($Id, $Label) {
+    function New-UDSelectX {
+        [CmdletBinding(SupportsShouldProcess=$true)]
+        Param($Id, $Label)
+        if (-not $PSCmdlet.ShouldProcess($Id, 'Create UD select')) { return }
+        $null = $Id; $null = $Label
         New-UDSelect -Label $Label -Id $Id -Option {
             New-UDSelectOption -Name "PowerShell" -Value "PowerShell" -Selected
             New-UDSelectOption -Name "Command Prompt" -Value "CommandPrompt"
@@ -264,6 +284,9 @@ function Start-AtomicGUI {
 }
 
 function Stop-AtomicGUI {
+    [CmdletBinding(SupportsShouldProcess=$true)]
+    Param()
+    if (-not $PSCmdlet.ShouldProcess('Atomic GUI','Stop')) { return }
     Get-UDDashboard -Name 'AtomicGUI' | Stop-UDDashboard
     Write-Host "Stopped all AtomicGUI Dashboards"
 }

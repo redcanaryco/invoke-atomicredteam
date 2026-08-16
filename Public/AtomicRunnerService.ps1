@@ -260,7 +260,7 @@ Param(
   [Switch]$SCMStop,               # Process SCM Stop requests (Internal use only)
 
   [Parameter(ParameterSetName='Control', Mandatory=$true)]
-  [String]$Control = $null,     # Control message to send to the service
+  [String]$Control,     # Control message to send to the service
 
   [Parameter(ParameterSetName='Version', Mandatory=$true)]
   [Switch]$Version              # Get this script version
@@ -360,13 +360,15 @@ Function Log () {
     [Parameter(Mandatory=$false, ValueFromPipeline=$true, Position=0)]
     [String]$string
   )
-  if (!(Test-Path $logDir)) {
-    New-Item -ItemType directory -Path $logDir | Out-Null
+  Process {
+    if (!(Test-Path $logDir)) {
+      New-Item -ItemType directory -Path $logDir | Out-Null
+    }
+    if ($String.length) {
+      $string = "$(Now) $pid $currentUserName $string"
+    }
+    $string | Out-File -Encoding ASCII -Append "$logFile"
   }
-  if ($String.length) {
-    $string = "$(Now) $pid $currentUserName $string"
-  }
-  $string | Out-File -Encoding ASCII -Append "$logFile"
 }
 
 #-----------------------------------------------------------------------------#
@@ -399,10 +401,13 @@ Function Get-PSThread () {
     [Parameter(Mandatory=$false, ValueFromPipeline=$true, Position=0)]
     [int[]]$Id = $PSThreadList.Keys     # List of thread IDs
   )
-  $Id | ForEach-Object { $PSThreadList.$_ }
+  Process {
+    $Id | ForEach-Object { $PSThreadList.$_ }
+  }
 }
 
-Function Start-PSThread () {
+Function Start-PSThread {
+  [CmdletBinding(SupportsShouldProcess=$true)]
   Param(
     [Parameter(Mandatory=$true, Position=0)]
     [ScriptBlock]$ScriptBlock,          # The script block to run in a new thread
@@ -417,6 +422,8 @@ Function Start-PSThread () {
     [Parameter(Mandatory=$false)]
     [Object[]]$Arguments = @()          # Optional arguments to pass to the script.
   )
+
+  if (-not $PSCmdlet.ShouldProcess($Name, 'Start PSThread')) { return }
 
   $Id = $script:PSThreadCount
   $script:PSThreadCount += 1
@@ -503,12 +510,13 @@ Function Receive-PSThread () {
 }
 
 Function Remove-PSThread () {
-  [CmdletBinding()]
+  [CmdletBinding(SupportsShouldProcess=$true)]
   Param(
     [Parameter(Mandatory=$false, ValueFromPipeline=$true, Position=0)]
     [PSObject]$PSThread                 # Thread descriptor object
   )
   Process {
+    if (-not $PSCmdlet.ShouldProcess($PSThread, 'Remove PSThread')) { return }
     $_ | Receive-PSThread -AutoRemove | Out-Null
   }
 }
@@ -636,12 +644,14 @@ Function Receive-PipeMessage () {
 $pipeThreadName = "Control Pipe Handler"
 
 Function Start-PipeHandlerThread () {
+  [CmdletBinding(SupportsShouldProcess=$true)]
   Param(
     [Parameter(Mandatory=$true)]
     [String]$pipeName,                  # Named pipe name
     [Parameter(Mandatory=$false)]
     [String]$Event = "ControlMessage"   # Event message
   )
+  if (-not $PSCmdlet.ShouldProcess($pipeName, 'Start pipe handler thread')) { return }
   Start-PSThread -Variables @{  # Copy variables required by function Log() into the thread context
     logDir = $logDir
     logFile = $logFile
@@ -1009,7 +1019,10 @@ if ($Setup) {                   # Install the service
         if (!$Password) {
           $Credential = Get-Credential -UserName $UserName -Message "Please enter the password for the service user"
         } else {
-          $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
+          # Build a SecureString from the provided plaintext password without using ConvertTo-SecureString -AsPlainText
+          $securePassword = New-Object -TypeName System.Security.SecureString
+          foreach ($ch in $Password.ToCharArray()) { $securePassword.AppendChar($ch) }
+          $securePassword.MakeReadOnly()
           $Credential = New-Object -Type System.Management.Automation.PSCredential ($UserName, $securePassword)
         }
       }
@@ -1079,15 +1092,15 @@ if ($Service) {                 # Run the service
     Log "p1: $($p1.Id)  p2: $($p2.Id)"
     # Now enter the main service event loop
     do { # Keep running until told to exit by the -Stop handler
-      $event = Wait-Event # Wait for the next incoming event
-      $source = $event.SourceIdentifier
-      $message = $event.MessageData
-      $eventTime = $event.TimeGenerated.TimeofDay
+      $evt = Wait-Event # Wait for the next incoming event (use non-automatic variable name)
+      $source = $evt.SourceIdentifier
+      $message = $evt.MessageData
+      $eventTime = $evt.TimeGenerated.TimeofDay
       Write-Debug "Event at $eventTime from ${source}: $message"
-      $event | Remove-Event # Flush the event from the queue
+      $evt | Remove-Event # Flush the event from the queue
       switch ($message) {
         "ControlMessage" { # Required. Message received by the control pipe thread
-          $state = $event.SourceEventArgs.InvocationStateInfo.state
+          $state = $evt.SourceEventArgs.InvocationStateInfo.state
           Write-Debug "$script -Service # Thread $source state changed to $state"
           switch ($state) {
             "Completed" {
@@ -1122,7 +1135,7 @@ if ($Service) {                 # Run the service
     # Terminate the control pipe handler thread
     Get-PSThread | Remove-PSThread # Remove all remaining threads
     # Flush all leftover events (There may be some that arrived after we exited the while event loop, but before we unregistered the events)
-    $events = Get-Event | Remove-Event
+    Get-Event | Remove-Event
     # Log a termination event, no matter what the cause is.
     Write-EventLog -LogName $logName -Source $serviceName -EventId 1006 -EntryType Information -Message "$script -Service # Exiting"
     Log "$scriptName -Service # Exiting"

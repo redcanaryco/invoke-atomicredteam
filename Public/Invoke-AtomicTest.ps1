@@ -311,7 +311,7 @@ function Invoke-AtomicTest {
             }
         }
 
-        function Platform-IncludesCloud {
+        function Test-PlatformIncludesCloud {
             $cloud = ('office-365', 'azure-ad', 'google-workspace', 'saas', 'iaas', 'containers', 'iaas:aws', 'iaas:azure', 'iaas:gcp')
             foreach ($platform in $test.supported_platforms) {
                 if ($cloud -contains $platform) {
@@ -341,7 +341,10 @@ function Invoke-AtomicTest {
             }
         }
 
-        function Remove-TerraformFiles($AT, $testCount) {
+        function Remove-TerraformFiles {
+            [CmdletBinding(SupportsShouldProcess=$true)]
+            Param($AT, $testCount)
+            if (-not $PSCmdlet.ShouldProcess('Terraform files','Remove')) { return }
             $tmpDirPath = Join-Path $PathToAtomicsFolder "\$AT\src\$AT-$testCount"
             Write-Host $tmpDirPath
             $tfStateFile = Join-Path $tmpDirPath "terraform.tfstate"
@@ -387,7 +390,7 @@ function Invoke-AtomicTest {
                     $testCount++
 
                     if (-not $anyOS) {
-                        if ( -not $(Platform-IncludesCloud) -and -Not $test.supported_platforms.Contains($executionPlatform) ) {
+                        if ( -not $(Test-PlatformIncludesCloud) -and -Not $test.supported_platforms.Contains($executionPlatform) ) {
                             Write-Verbose -Message "Unable to run non-$executionPlatform tests"
                             continue
                         }

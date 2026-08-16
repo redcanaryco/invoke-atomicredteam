@@ -22,6 +22,8 @@ function Invoke-Process {
 
     end {
         $WorkingDirectory = if ($IsLinux -or $IsMacOS) { "/tmp" } else { $env:TEMP }
+        # Mark optional parameter as referenced to satisfy PSScriptAnalyzer
+        $null = $stderrFile
         try {
             # new Process
             if ($stdoutFile) {
@@ -78,6 +80,7 @@ function Invoke-Process {
                 $process = Start-Process -FilePath $FileName -ArgumentList $Arguments -WorkingDirectory $WorkingDirectory -NoNewWindow -PassThru
                 # cache process.Handle, otherwise ExitCode is null from powershell processes
                 $handle = $process.Handle
+                $null = $handle
 
                 # wait for complete
                 $Timeout = [System.TimeSpan]::FromSeconds(($TimeoutSeconds))
@@ -94,7 +97,7 @@ function Invoke-Process {
                                 "<timeout>" | Out-File (Join-Path $WorkingDirectory $stdoutFile) -Append -Encoding ASCII
                                 break # if we're here it means the file wasn't locked and Out-File worked, so we can leave the retry loop
                             }
-                            catch {} # file is locked
+                            catch { Write-Verbose "File locked while writing timeout marker: $_" } # file is locked
                             Start-Sleep -m 100
                         }
                     }

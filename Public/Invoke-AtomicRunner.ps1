@@ -101,16 +101,16 @@ function Invoke-AtomicRunner {
             }
 
             if ($IsLinux) {
-                if ($shouldRename) { Invoke-Expression $("hostnamectl set-hostname $newHostName") }
-                Invoke-Expression $("shutdown -r now")
+                            if ($shouldRename) { & hostnamectl 'set-hostname' $newHostName }
+                            & shutdown '-r' 'now'
             }
             if ($IsMacOS) {
                 if ($shouldRename) {
-                    Invoke-Expression $("/usr/sbin/scutil --set HostName $newHostName")
-                    Invoke-Expression $("/usr/sbin/scutil --set ComputerName $newHostName")
-                    Invoke-Expression $("/usr/sbin/scutil --set LocalHostName $newHostName")
+                                & /usr/sbin/scutil --set HostName $newHostName
+                                & /usr/sbin/scutil --set ComputerName $newHostName
+                                & /usr/sbin/scutil --set LocalHostName $newHostName
                 }
-                Invoke-Expression $("/sbin/shutdown -r now")
+                            & /sbin/shutdown -r now
             }
             else {
                 if ($debug) { LogRunnerMsg "Debug: pretending to rename the computer to $newHostName"; exit }

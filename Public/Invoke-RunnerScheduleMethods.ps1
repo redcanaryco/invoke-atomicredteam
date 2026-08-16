@@ -20,8 +20,8 @@ function Loop($fileList, $atomicType) {
                     $test | Add-Member -MemberType NoteProperty -Name enabled -Value $false
                     $test | Add-Member -MemberType NoteProperty -Name notes -Value ""
 
-                    # Added dummy variable to grab the index values returned by appending to an arraylist so they don't get written to the screen
-                    $dummy = $AllAtomicTests.Add(($test))
+                    # Append to the arraylist without exposing the returned index
+                    [void]$AllAtomicTests.Add($test)
                 }
             }
         }
@@ -46,8 +46,8 @@ function Get-NewSchedule() {
         Write-Verbose "Private Atomics Folder not Found $($artConfig.PathToPrivateAtomicsFolder)"
     }
     $AllAtomicTests = New-Object System.Collections.ArrayList
-    try { $AllAtomicTests.AddRange($publicAtomics) }catch {}
-    try { $AllAtomicTests.AddRange($privateAtomics) }catch {}
+    try { $AllAtomicTests.AddRange($publicAtomics) } catch { Write-Verbose "Skipping public atomics addrange: $_" }
+    try { $AllAtomicTests.AddRange($privateAtomics) } catch { Write-Verbose "Skipping private atomics addrange: $_" }
     return $AllAtomicTests
 }
 

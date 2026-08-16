@@ -1,5 +1,5 @@
-function Get-PreferredIPAddress($isWindows) {
-    if ($isWindows) {
+function Get-PreferredIPAddress($isWindowsFlag) {
+    if ($isWindowsFlag) {
         return (Get-NetIPAddress | Where-Object { $_.PrefixOrigin -ne "WellKnown" }).IPAddress
     }
     elseif ($IsMacOS) {
