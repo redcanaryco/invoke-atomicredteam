@@ -55,18 +55,49 @@ function Get-ScheduleRefresh() {
     $AllAtomicTests = Get-NewSchedule
     $schedule = Get-Schedule $null $false # get schedule, including inactive (ie not filtered)
 
+    $freshTestsByGuid = @{}
+    foreach ($test in $AllAtomicTests) {
+        $guidKey = if ($null -eq $test.auto_generated_guid) { 'N:' } else { "S:$($test.auto_generated_guid)" }
+        if (-not $freshTestsByGuid.ContainsKey($guidKey)) {
+            $freshTestsByGuid[$guidKey] = New-Object 'System.Collections.Generic.List[object]'
+        }
+        $freshTestsByGuid[$guidKey].Add($test)
+    }
+
+    $scheduledTestsByGuid = @{}
+    foreach ($test in $schedule) {
+        $guidKey = if ($null -eq $test.auto_generated_guid) { 'N:' } else { "S:$($test.auto_generated_guid)" }
+        if (-not $scheduledTestsByGuid.ContainsKey($guidKey)) {
+            $scheduledTestsByGuid[$guidKey] = New-Object 'System.Collections.Generic.List[object]'
+        }
+        $scheduledTestsByGuid[$guidKey].Add($test)
+    }
+
     # Creating new schedule object for updating changes in atomics
     $newSchedule = New-Object System.Collections.ArrayList
 
     # Check if any tests haven't been added to schedule and add them
     $update = $false
-    foreach ($guid in $AllAtomicTests | Select-Object -ExpandProperty auto_generated_guid) {
-        $fresh = $AllAtomicTests | Where-Object { $_.auto_generated_guid -eq $guid }
-        $old = $schedule | Where-Object { $_.auto_generated_guid -eq $guid }
+    foreach ($test in $AllAtomicTests) {
+        $guidKey = if ($null -eq $test.auto_generated_guid) { 'N:' } else { "S:$($test.auto_generated_guid)" }
+        $freshMatches = $freshTestsByGuid[$guidKey]
+        $fresh = if ($freshMatches.Count -gt 1) { $freshMatches.ToArray() } else { $freshMatches[0] }
+        $oldMatches = $scheduledTestsByGuid[$guidKey]
+        $old = if ($oldMatches.Count -eq 1) {
+            $oldMatches[0]
+        }
+        elseif ($oldMatches.Count -gt 1) {
+            $oldMatches.ToArray()
+        }
+        else {
+            $null
+        }
 
         if (!$old) {
             $update = $true
-            $newSchedule += $fresh
+            foreach ($freshTest in $fresh) {
+                $newSchedule.Add($freshTest) | Out-Null
+            }
         }
 
         # Updating schedule with changes
@@ -84,7 +115,9 @@ function Get-ScheduleRefresh() {
             $old.supported_platforms = $fresh.supported_platforms
 
             $update = $true
-            $newSchedule += $old
+            foreach ($scheduledTest in $old) {
+                $newSchedule.Add($scheduledTest) | Out-Null
+            }
         }
 
     }
