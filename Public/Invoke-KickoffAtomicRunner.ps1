@@ -1,7 +1,7 @@
 function Invoke-KickoffAtomicRunner {
 
     #log rotation function
-    function Rotate-Log {
+    function Invoke-RotateLog {
         Param ($logPath, $max_filesize, $max_age)
         $datetime = Get-Date -uformat "%Y-%m-%d-%H%M"
 
@@ -33,10 +33,10 @@ function Invoke-KickoffAtomicRunner {
     #Rotate logs based on FileSize and Date max_filesize
     $max_filesize = 200 #in MB
     $max_file_age = 30 #in days
-    Rotate-Log $all_log_file $max_filesize $max_file_age
-    Rotate-Log $all_log_file_cleanup $max_filesize $max_file_age
+    Invoke-RotateLog $all_log_file $max_filesize $max_file_age
+    Invoke-RotateLog $all_log_file_cleanup $max_filesize $max_file_age
 
-    Rotate-Log $artConfig.logFile $max_filesize $max_file_age #no need to repeat this. Can reduce further.
+    Invoke-RotateLog $artConfig.logFile $max_filesize $max_file_age #no need to repeat this. Can reduce further.
 
     # Optional additional delay before starting
     Start-Sleep $artConfig.kickOffDelay.TotalSeconds

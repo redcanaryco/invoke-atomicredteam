@@ -515,6 +515,9 @@ function Get-TechniqueNumbers {
 Register-ArgumentCompleter -CommandName 'Invoke-AtomicTest' -ParameterName 'AtomicTechnique' -ScriptBlock {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
 
+    # Mark parameters as referenced to avoid PSReviewUnusedParameter warnings
+    $null = $commandName; $null = $parameterName; $null = $commandAst; $null = $fakeBoundParameter
+
     Get-TechniqueNumbers | Where-Object { $_ -like "$wordToComplete*" } |
     ForEach-Object {
         New-Object System.Management.Automation.CompletionResult $_, $_, 'ParameterValue', "Technique number $_"

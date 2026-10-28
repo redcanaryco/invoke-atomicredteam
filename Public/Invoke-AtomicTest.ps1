@@ -122,8 +122,13 @@ function Invoke-AtomicTest {
         [Parameter(Mandatory = $false,
             ParameterSetName = 'technique')]
         [switch]
-        $SupressPathToAtomicsFolder = $false
+        $SupressPathToAtomicsFolder = $false,
 
+        [Parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'technique')]
+        [switch]
+        $Obfuscate = $false
     )
     BEGIN { } # Intentionally left blank and can be removed
     PROCESS {
@@ -306,7 +311,7 @@ function Invoke-AtomicTest {
             }
         }
 
-        function Platform-IncludesCloud {
+        function Test-PlatformIncludesCloud {
             $cloud = ('office-365', 'azure-ad', 'google-workspace', 'saas', 'iaas', 'containers', 'iaas:aws', 'iaas:azure', 'iaas:gcp')
             foreach ($platform in $test.supported_platforms) {
                 if ($cloud -contains $platform) {
@@ -336,7 +341,10 @@ function Invoke-AtomicTest {
             }
         }
 
-        function Remove-TerraformFiles($AT, $testCount) {
+        function Remove-TerraformFiles {
+            [CmdletBinding(SupportsShouldProcess=$true)]
+            Param($AT, $testCount)
+            if (-not $PSCmdlet.ShouldProcess('Terraform files','Remove')) { return }
             $tmpDirPath = Join-Path $PathToAtomicsFolder "\$AT\src\$AT-$testCount"
             Write-Host $tmpDirPath
             $tfStateFile = Join-Path $tmpDirPath "terraform.tfstate"
@@ -382,7 +390,7 @@ function Invoke-AtomicTest {
                     $testCount++
 
                     if (-not $anyOS) {
-                        if ( -not $(Platform-IncludesCloud) -and -Not $test.supported_platforms.Contains($executionPlatform) ) {
+                        if ( -not $(Test-PlatformIncludesCloud) -and -Not $test.supported_platforms.Contains($executionPlatform) ) {
                             Write-Verbose -Message "Unable to run non-$executionPlatform tests"
                             continue
                         }
@@ -464,14 +472,14 @@ function Invoke-AtomicTest {
                             $final_command_prereq = Merge-InputArgs $dep.prereq_command $test $InputArgs $PathToPayloads
                             if ($executor -ne "powershell") { $final_command_prereq = ($final_command_prereq.trim()).Replace("`n", " && ") }
                             $final_command_get_prereq = Merge-InputArgs $dep.get_prereq_command $test $InputArgs $PathToPayloads
-                            $res = Invoke-ExecuteCommand $final_command_prereq $executor $executionPlatform $TimeoutSeconds $session -Interactive:$true
+                            $res = Invoke-ExecuteCommand $final_command_prereq $executor $executionPlatform $TimeoutSeconds $session -Interactive:$true $Obfuscate
 
                             if ($res.ExitCode -eq 0) {
                                 Write-KeyValue "Prereq already met: " $description
                             }
                             else {
-                                $res = Invoke-ExecuteCommand $final_command_get_prereq $executor $executionPlatform $TimeoutSeconds $session -Interactive:$Interactive
-                                $res = Invoke-ExecuteCommand $final_command_prereq $executor $executionPlatform $TimeoutSeconds $session -Interactive:$true
+                                $res = Invoke-ExecuteCommand $final_command_get_prereq $executor $executionPlatform $TimeoutSeconds $session -Interactive:$Interactive $Obfuscate
+                                $res = Invoke-ExecuteCommand $final_command_prereq $executor $executionPlatform $TimeoutSeconds $session -Interactive:$true $Obfuscate
                                 if ($res.ExitCode -eq 0) {
                                     Write-KeyValue "Prereq successfully met: " $description
                                 }
@@ -485,7 +493,7 @@ function Invoke-AtomicTest {
                         Write-KeyValue "Executing cleanup for test: " $testId
                         $final_command = Merge-InputArgs $test.executor.cleanup_command $test $InputArgs $PathToPayloads
                         if (Get-Command 'Invoke-ARTPreAtomicCleanupHook' -errorAction SilentlyContinue) { Invoke-ARTPreAtomicCleanupHook $test $InputArgs }
-                        $res = Invoke-ExecuteCommand $final_command $test.executor.name $executionPlatform $TimeoutSeconds $session -Interactive:$Interactive
+                        $res = Invoke-ExecuteCommand $final_command $test.executor.name $executionPlatform $TimeoutSeconds $session -Interactive:$Interactive $Obfuscate
                         Write-KeyValue "Done executing cleanup for test: " $testId
                         if (Get-Command 'Invoke-ARTPostAtomicCleanupHook' -errorAction SilentlyContinue) { Invoke-ARTPostAtomicCleanupHook $test $InputArgs }
                         if ($(Test-IncludesTerraform $AT $testCount)) {
@@ -497,7 +505,7 @@ function Invoke-AtomicTest {
                         $startTime = Get-Date
                         $final_command = Merge-InputArgs $test.executor.command $test $InputArgs $PathToPayloads
                         if (Get-Command 'Invoke-ARTPreAtomicHook' -errorAction SilentlyContinue) { Invoke-ARTPreAtomicHook $test $InputArgs }
-                        $res = Invoke-ExecuteCommand $final_command $test.executor.name $executionPlatform $TimeoutSeconds $session -Interactive:$Interactive
+                        $res = Invoke-ExecuteCommand $final_command $test.executor.name $executionPlatform $TimeoutSeconds $session -Interactive:$Interactive $Obfuscate
                         Write-Host "Exit code: $($res.ExitCode)"
                         if (Get-Command 'Invoke-ARTPostAtomicHook' -errorAction SilentlyContinue) { Invoke-ARTPostAtomicHook $test $InputArgs }
                         $stopTime = Get-Date

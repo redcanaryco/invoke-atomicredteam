@@ -48,7 +48,7 @@ Outputs an object representing an atomic technique.
 The output of New-AtomicTechnique is designed to be piped to ConvertTo-Yaml.
 #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess=$true)]
     [OutputType([AtomicTechnique])]
     param (
         [Parameter(Mandatory)]
@@ -65,6 +65,9 @@ The output of New-AtomicTechnique is designed to be piped to ConvertTo-Yaml.
         [ValidateNotNull()]
         $AtomicTests
     )
+
+    # Respect -WhatIf/-Confirm: short-circuit when ShouldProcess returns false
+    if (-not $PSCmdlet.ShouldProcess($DisplayName, 'Create AtomicTechnique')) { return }
 
     $AtomicTechniqueInstance = [AtomicTechnique]::new()
 
@@ -170,7 +173,7 @@ Outputs an object representing an atomic test. This object is intended to be sup
 The output of New-AtomicTest can be piped to ConvertTo-Yaml. The resulting output can be added to an existing atomic technique YAML doc.
 #>
 
-    [CmdletBinding(DefaultParameterSetName = 'AutomatedExecutor')]
+    [CmdletBinding(DefaultParameterSetName = 'AutomatedExecutor', SupportsShouldProcess=$true)]
     [OutputType([AtomicTest])]
     param (
         [Parameter(Mandatory)]
@@ -370,7 +373,7 @@ Outputs an object representing an atomic test dependency. This object is intende
 Note: due to a bug in PowerShell classes, the get_prereq_command property will not display by default. If all fields must be explicitly displayed, they can be viewed by piping output to "Select-Object description, prereq_command, get_prereq_command".
 #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess=$true)]
     [OutputType([AtomicDependency])]
     param (
         [Parameter(Mandatory)]
@@ -388,6 +391,9 @@ Note: due to a bug in PowerShell classes, the get_prereq_command property will n
         [ValidateNotNullOrEmpty()]
         $GetPrereqCommand
     )
+
+    # Respect -WhatIf/-Confirm: short-circuit when ShouldProcess returns false
+    if (-not $PSCmdlet.ShouldProcess($Description, 'Create AtomicDependency')) { return }
 
     $DependencyInstance = [AtomicDependency]::new()
 
@@ -435,7 +441,7 @@ AtomicInputArgument
 Outputs an object representing an atomic test input argument. This object is intended to be supplied to the New-AtomicTest -InputArguments parameter.
 #>
 
-    [CmdletBinding(DefaultParameterSetName = 'PredefinedType')]
+    [CmdletBinding(DefaultParameterSetName = 'PredefinedType', SupportsShouldProcess=$true)]
     [OutputType([AtomicInputArgument])]
     param (
         [Parameter(Mandatory)]
@@ -458,11 +464,14 @@ Outputs an object representing an atomic test input argument. This object is int
         [ValidateNotNullOrEmpty()]
         $TypeOverride,
 
-        [Parameter(Mandatory)]
+        [Parameter(Mandatory=$false)]
         [String]
         [ValidateNotNullOrEmpty()]
         $Default
     )
+
+    # Respect -WhatIf/-Confirm: short-circuit when ShouldProcess returns false
+    if (-not $PSCmdlet.ShouldProcess($Name, 'Create AtomicInputArgument')) { return }
 
     if ($Name -notmatch '^(?-i:[0-9a-z_]+)$') {
         Write-Error "Input argument names must be lowercase and optionally, contain underscores. Input argument name supplied: $Name"
