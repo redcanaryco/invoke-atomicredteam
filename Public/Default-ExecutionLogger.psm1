@@ -23,7 +23,12 @@ function Write-ExecutionLog($startTime, $stopTime, $technique, $testNum, $testNa
         "ExitCode"               = $res.ExitCode
     }
 
-    $msg | Export-Csv -Path $LogPath -NoTypeInformation -Append
+    if ($PSVersionTable.PSVersion.Major -ge 6) {
+        $msg | Export-Csv -Path $LogPath -Append
+    }
+    else {
+        $msg | Export-Csv -Path $LogPath -NoTypeInformation -Append
+    }
 }
 
 function Stop-ExecutionLog($startTime, $logPath, $targetHostname, $targetUser, $isWindows) {

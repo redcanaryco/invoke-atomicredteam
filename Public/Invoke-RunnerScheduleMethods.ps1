@@ -139,13 +139,27 @@ function Invoke-GenerateNewSchedule() {
 
     LogRunnerMsg "Generating new schedule: $($artConfig.scheduleFile)"
     $schedule = Get-NewSchedule
-    $schedule | Export-Csv $artConfig.scheduleFile -NoTypeInformation
+
+    if ($PSVersionTable.PSVersion.Major -ge 6) {
+        $schedule | Export-Csv $artConfig.scheduleFile
+    }
+    else {
+        $schedule | Export-Csv $artConfig.scheduleFile -NoTypeInformation
+    }
+
     Write-Host -ForegroundColor Green "Schedule written to $($artConfig.scheduleFile)"
 }
 
 function Invoke-RefreshExistingSchedule() {
     LogRunnerMsg "Refreshing existing schedule: $($artConfig.scheduleFile)"
     $schedule = Get-ScheduleRefresh
-    $schedule | Export-Csv $artConfig.scheduleFile -NoTypeInformation
+
+    if ($PSVersionTable.PSVersion.Major -ge 6) {
+        $schedule | Export-Csv $artConfig.scheduleFile
+    }
+    else {
+        $schedule | Export-Csv $artConfig.scheduleFile -NoTypeInformation
+    }
+
     Write-Host -ForegroundColor Green "Refreshed schedule written to $($artConfig.scheduleFile)"
 }
